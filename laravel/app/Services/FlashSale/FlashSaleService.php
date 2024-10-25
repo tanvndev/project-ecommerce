@@ -51,7 +51,7 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
     public function findById($id)
     {
 
-        $data = $this->flashSaleRepository->findByWhere(['id' => $id], ['*'], ['productVariants'], true);
+        $data = $this->flashSaleRepository->findByWhere(['id' => $id], ['*'], ['product_variants'], true);
 
         return $data;
     }
@@ -79,7 +79,7 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
                     continue;
                 }
 
-                $flashSale->productVariants()->attach($key, [
+                $flashSale->product_variants()->attach($key, [
                     'max_quantity' => $quantity,
                     'sale_price' => $data['sale_prices'][$key]
                 ]);
@@ -134,7 +134,7 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
                     continue;
                 }
 
-                $flashSale->productVariants()->updateExistingPivot($key, [
+                $flashSale->product_variants()->updateExistingPivot($key, [
                     'max_quantity' => $quantity,
                     'sale_price' => $data['sale_prices'][$key]
                 ]);
@@ -194,7 +194,7 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
             // Kiểm tra xem có flash sale nào không
             if ($flashSale) {
                 // Lấy thông tin biến thể sản phẩm từ flash sale
-                $productVariant = $flashSale->productVariants()->where('id', $productVariantId)->first();
+                $productVariant = $flashSale->product_variants()->where('id', $productVariantId)->first();
 
                 // Kiểm tra xem biến thể sản phẩm có trong flash sale không
                 if ($productVariant) {
@@ -202,7 +202,7 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
                     if ($productVariant->pivot->max_quantity >= $quantity) {
                         // Giảm số lượng tối đa trong flash sale
                         $newMaxQuantity = $productVariant->pivot->max_quantity - $quantity;
-                        $flashSale->productVariants()->updateExistingPivot($productVariantId, ['max_quantity' => $newMaxQuantity]);
+                        $flashSale->product_variants()->updateExistingPivot($productVariantId, ['max_quantity' => $newMaxQuantity]);
 
                         // Nếu số lượng còn lại bằng 0, reset giá khuyến mãi
                         if ($newMaxQuantity <= 0) {
@@ -230,10 +230,10 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
     {
         return $this->flashSaleRepository->findByWhereHas([
             'publish' => true,
-        ], ['*'], ['productVariants'], '', false)
+        ], ['*'], ['product_variants'], '', false)
             ->where('start_at', '<=', now())
             ->where('end_at', '>=', now())
-            ->whereHas('productVariants', function ($query) use ($productVariantId) {
+            ->whereHas('product_variants', function ($query) use ($productVariantId) {
                 $query->where('id', $productVariantId);
             });
     }

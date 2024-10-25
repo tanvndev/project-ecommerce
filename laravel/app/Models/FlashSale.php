@@ -13,7 +13,7 @@ class FlashSale extends Model
 
     protected $fillable = ['name', 'start_date', 'end_date', 'publish'];
 
-    public function productVariants()
+    public function product_variants()
     {
         return $this->belongsToMany(ProductVariant::class, 'flash_sale_product_variants')
             ->withPivot('max_quantity', 'sold_quantity', 'sale_price')
