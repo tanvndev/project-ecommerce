@@ -4,6 +4,8 @@
 
 namespace App\Services\Product;
 
+use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductAttribute;
 use App\Models\ProductVariantAttributeValue;
@@ -12,6 +14,7 @@ use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
 use App\Services\BaseService;
 use App\Services\Interfaces\Product\ProductServiceInterface;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -176,7 +179,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
     private function createProductAttribute($product, array $payload)
     {
-        if ( ! isset($payload['attributes']) || empty($payload['attributes'])) {
+        if (! isset($payload['attributes']) || empty($payload['attributes'])) {
             return false;
         }
 
@@ -213,7 +216,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
     private function combineVariantAttributeValue($productVariants)
     {
-        if ( ! count($productVariants)) {
+        if (! count($productVariants)) {
             return [];
         }
 
@@ -286,7 +289,7 @@ class ProductService extends BaseService implements ProductServiceInterface
                 }
 
                 if ($catalogues = json_decode($request->input('catalogues', '[]'), true)) {
-                    if ( ! empty($catalogues)) {
+                    if (! empty($catalogues)) {
                         $q->whereHas('catalogues', function ($q) use ($catalogues) {
                             $q->whereIn('product_catalogue_id', $catalogues);
                         });
@@ -331,7 +334,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         // Transform keys by removing "variable_" prefix
         $payloadFormat = array_combine(
-            array_map(fn ($key) => str_replace('variable_', '', $key), array_keys($payload)),
+            array_map(fn($key) => str_replace('variable_', '', $key), array_keys($payload)),
             array_values($payload)
         );
 
@@ -354,20 +357,20 @@ class ProductService extends BaseService implements ProductServiceInterface
                 'is_used' => ['=', false],
             ]);
 
-            if ( ! $variant) {
+            if (! $variant) {
                 throw new Exception('VARIANT_NOT_FOUND');
             }
 
-            if ( ! $variant->delete()) {
+            if (! $variant->delete()) {
                 throw new Exception('FAILED_TO_DELETE_VARIANT');
             }
 
             $remainingAttributes = ProductVariantAttributeValue::query()
-                ->whereHas('product_variant', fn ($query) => $query->where('product_id', $variant->product_id))
+                ->whereHas('product_variant', fn($query) => $query->where('product_id', $variant->product_id))
                 ->with('attribute_value:id,attribute_id')
                 ->get(['attribute_value_id'])
                 ->groupBy('attribute_value.attribute_id')
-                ->map(fn ($group) => [
+                ->map(fn($group) => [
                     'product_id'          => $variant->product_id,
                     'attribute_id'        => $group->first()->attribute_value->attribute_id,
                     'attribute_value_ids' => $group->pluck('attribute_value_id')->unique()->values()->toArray(),
@@ -452,7 +455,7 @@ class ProductService extends BaseService implements ProductServiceInterface
         $existingAttributeCombines = $productVariants->pluck('attribute_value_combine')->toArray();
 
         $productVariantPayload = $attributeValueCombines->map(function ($attributeValueCombine, $key) use ($existingAttributeCombines, $product) {
-            if ( ! in_array($attributeValueCombine['attribute_value_combine'], $existingAttributeCombines)) {
+            if (! in_array($attributeValueCombine['attribute_value_combine'], $existingAttributeCombines)) {
                 $productName = $product->name;
                 $options = explode(' - ', $attributeValueCombine['attributeText'] ?? '');
                 $sku = generateSKU($productName, 3, $options) . '-' . ($key + 1);
@@ -513,6 +516,107 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         return $result;
     }
+
+
+    public function getProductReport()
+    {
+
+        $payload = $this->preparePayload();
+
+
+        $start_date = isset($payload['start_date']) ? $payload['start_date'] : Carbon::now()->startOfYear()->toDateString();
+        $end_date = isset($payload['end_date']) ? $payload['end_date'] : Carbon::now()->endOfYear()->toDateString();
+
+        $condition = $payload['condition'] ?? "product_sell_best";
+        // product_sell_top: sản phẩm có doanh thu cao nhất
+        // product_sell_best: sản phẩm bán chạy nhất (đã xong)
+        // product_sell_best_type: sản phẩm bán chạy theo loại
+        // product_return: sản phẩm có tỉ lệ hoàn trả cao nhất
+        // product_inventory_lowest: sản phẩm có lượng tồn kho thấp nhất
+
+        // Kiểm tra điều kiện và sắp xếp tương ứng
+        switch ($condition) {
+            case 'product_sell_best':
+                $query = $this->getProductSellTop($start_date, $end_date);
+                $result = $query->get()
+                    ->map(function ($item) {
+                        if (!$item->product_variant) {
+                            return null;
+                        }
+                        return [
+                            'product_variant_id' => $item->product_variant_id,
+                            'product_id' => $item->product_variant['product_id'],
+                            'product_name' => $item->product_variant['name'],
+                            'product_image' => $item->product_variant['image'],
+                            'product_price' => $item->product_variant['sale_price'] ?? $item->product_variant['price'],
+                            'product_cost_price' => $item->product_variant['cost_price'],
+                            'total_quantity_sold' => $item->total_quantity_sold,
+                            'total_revenue' => $item->total_revenue,
+                            'net_revenue' => (($item->product_variant['sale_price'] ?? $item->product_variant['price']) - $item->product_variant['cost_price']) * $item->total_quantity_sold,
+                        ];
+                    });
+                break;
+            case 'product_review_top':
+                $query = $this->getProductReviewTop($start_date, $end_date);
+                $result = $query->get()
+                    ->filter(function ($item) {
+
+                        return $item->review_count > 0 && !is_null($item->average_rating);
+                    })
+                    ->map(function ($item) {
+
+                        return [
+                            'id' => $item->id,
+                            'name' => $item->name,
+                            'review_count' => $item->review_count,
+                            'average_rating' => $item->average_rating,
+                            'reviews' => $item->reviews,
+                        ];
+                    });
+                break;
+        }
+
+
+
+        return $result;
+    }
+
+    // Top sản phẩm bán chạy nhất
+    private function getProductSellTop($start_date, $end_date)
+    {
+        $query = OrderItem::with(['order', 'product_variant'])
+            ->whereHas('order', function ($query) use ($start_date, $end_date) {
+                $query->where('order_status', 'completed')
+                    ->whereBetween('ordered_at', [$start_date, $end_date]);
+            })
+            ->join('product_variants', 'order_items.product_variant_id', '=', 'product_variants.id') // Join với product_variant
+            ->selectRaw('order_items.product_variant_id, SUM(order_items.quantity) as total_quantity_sold
+        , SUM(COALESCE(order_items.sale_price, order_items.price) * order_items.quantity) as total_revenue')
+            ->groupBy('order_items.product_variant_id')
+            ->orderBy('total_quantity_sold', 'DESC');
+        return $query;
+    }
+
+    // Top sản phẩm được đánh giá tốt nhất
+    private function getProductReviewTop($start_date, $end_date)
+    {
+        $query = Product::with('reviews')
+            ->select('id', 'name') // Chỉ lấy các trường id và name
+            ->withCount([
+                'reviews as review_count', // Đếm số lượng reviews
+                'reviews as average_rating' => function ($query) use ($start_date, $end_date) {
+                    $query->whereBetween('created_at', [$start_date, $end_date])
+                        ->select(DB::raw('AVG(rating)')); // Tính đánh giá trung bình
+                }
+            ])
+            ->orderByDesc('average_rating') // Sắp xếp theo điểm đánh giá trung bình giảm dần
+            ->orderByDesc('review_count');  // Sắp xếp theo số lượng đánh giá giảm dần
+
+        return $query;
+    }
+
+
+
 
     // CLIENT API //
 

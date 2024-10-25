@@ -101,6 +101,22 @@ const sidebar = [
         route: 'post.catalogue.index'
       }
     ]
+  },
+  {
+    id: 'flash_sale_sidebar',
+    icon: 'fas fa-bolt',
+    name: 'Flash sale',
+    active: ['flash-sale'],
+    subMenu: [
+      {
+        name: 'Danh sách Flash sale',
+        route: 'flash-sale.index'
+      },
+      {
+        name: 'Thêm mới Flash sale',
+        route: 'flash-sale.create'
+      }
+    ]
   }
 ];
 export default sidebar;

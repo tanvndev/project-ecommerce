@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\V1\Product\ProductCatalogueController;
 use App\Http\Controllers\Api\V1\SystemConfig\SystemConfigController;
 use App\Http\Controllers\Api\V1\PaymentMethod\PaymentMethodController;
 use App\Http\Controllers\Api\V1\ShippingMethod\ShippingMethodController;
+use App\Http\Controllers\Api\V1\Statistic\StatisticController;
 
 /*
 |--------------------------------------------------------------------------
@@ -135,6 +136,8 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         Route::prefix('/')->name('products.')->group(function () {
             Route::apiResource('products/catalogues', ProductCatalogueController::class);
         });
+        Route::get('products/report', [ProductController::class, 'getProductReport']);
+
         Route::get('products/variants', [ProductController::class, 'getProductVariants']);
         Route::put('products/variants/update', [ProductController::class, 'updateVariant']);
         Route::delete('products/variants/delete/{id}', [ProductController::class, 'deleteVariant']);
@@ -161,6 +164,7 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
 
         // Flash Sale ROUTE
         Route::apiResource('flash-sales', FlashSaleController::class);
+        route::put('change-status-flash-sale/{id}', [FlashSaleController::class, 'changeStatus']);
 
         // SYSTEM CONFIG ROUTE
         Route::get('system-configs', [SystemConfigController::class, 'index']);
@@ -224,4 +228,14 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         Route::delete('carts/delete-cart-selected', 'deleteCartSelected')->name('deleteCartSelected');
         Route::get('carts/add-paid-products', 'addPaidProductsToCart')->name('addPaidProducts');
     });
+
+    // Statistics
+
+    Route::controller(StatisticController::class)
+        ->prefix('statistic')
+        ->name('statistic.')
+        ->group(function () {
+            Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
+        });
+
 });

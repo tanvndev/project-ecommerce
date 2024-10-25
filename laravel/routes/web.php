@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Statistic\StatisticController;
 use App\Http\Controllers\Api\V1\User\UserAddressController;
 use App\Http\Controllers\Payment\MomoController;
 use App\Http\Controllers\Payment\PaypalController;
@@ -42,3 +43,7 @@ Route::get('paypal/cancel', [PaypalController::class, 'cancel'])->name('paypal.c
 Route::get('stringee/answer', [StringeeController::class, 'answer']);
 
 Route::get('test/order', [TestController::class, 'getOrder']);
+
+Route::get('test', [StatisticController::class, 'revenueByDate']);
+
+

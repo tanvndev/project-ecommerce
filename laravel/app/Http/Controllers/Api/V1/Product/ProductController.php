@@ -17,6 +17,7 @@ use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
 use App\Services\Interfaces\Apriori\AprioriServiceInterface;
 use App\Services\Interfaces\Product\ProductServiceInterface;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -119,6 +120,13 @@ class ProductController extends Controller
         $response = $this->productService->updateAttribute($productId);
 
         return handleResponse($response);
+    }
+
+    public function getProductReport()
+    {
+        $response = $this->productService->getProductReport();
+
+        return successResponse('', $response, true);
     }
 
     // CLIENT API //
