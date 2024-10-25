@@ -33,7 +33,8 @@ class OrderService extends BaseService implements OrderServiceInterface
         protected ShippingMethodRepositoryInterface $shippingMethodRepository,
         protected VoucherRepositoryInterface $voucherRepository,
         protected FlashSaleRepositoryInterface $flashSaleRepository
-    ) {}
+    ) {
+    }
 
     /**
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
@@ -53,7 +54,7 @@ class OrderService extends BaseService implements OrderServiceInterface
         $request = request();
 
         $condition = [
-            'search'       => addslashes($request->search),
+            'search' => addslashes($request->search),
             'searchFields' => ['code'],
         ];
 
@@ -73,7 +74,7 @@ class OrderService extends BaseService implements OrderServiceInterface
     public function getOrder(string $orderCode): Order
     {
         $condition = [
-            'code'    => $orderCode,
+            'code' => $orderCode,
         ];
 
         $order = $this->orderRepository->findByWhere(
@@ -101,7 +102,7 @@ class OrderService extends BaseService implements OrderServiceInterface
                 && $request->has('payment_status')
                 && $request->has('delivery_status')
             ) {
-                if (! $this->checkUpdateStatus($request, $order)) {
+                if (!$this->checkUpdateStatus($request, $order)) {
                     return errorResponse(__('messages.order.error.invalid'));
                 }
             }
@@ -299,7 +300,7 @@ class OrderService extends BaseService implements OrderServiceInterface
 
             $productVariant->update(
                 [
-                    'stock'   => $productVariant->stock - $quantity,
+                    'stock' => $productVariant->stock - $quantity,
                     'is_used' => true,
                 ]
             );
@@ -315,8 +316,8 @@ class OrderService extends BaseService implements OrderServiceInterface
     private function prepareOrderPayload($request, string $userId): array
     {
         return array_merge($request->except('_token'), [
-            'user_id'    => $userId,
-            'code'       => generateOrderCode(),
+            'user_id' => $userId,
+            'code' => generateOrderCode(),
             'ordered_at' => now(),
         ]);
     }
@@ -331,11 +332,11 @@ class OrderService extends BaseService implements OrderServiceInterface
     private function getPaymentMethod(int $paymentMethodId)
     {
         $paymentMethod = $this->paymentMethodRepository->findByWhere([
-            'id'      => $paymentMethodId,
+            'id' => $paymentMethodId,
             'publish' => 1,
         ]);
 
-        if (! $paymentMethod) {
+        if (!$paymentMethod) {
             throw new Exception('Payment method not found.');
         }
 
@@ -352,11 +353,11 @@ class OrderService extends BaseService implements OrderServiceInterface
     private function getShippingMethod(int $shippingMethodId)
     {
         $shippingMethod = $this->shippingMethodRepository->findByWhere([
-            'id'      => $shippingMethodId,
+            'id' => $shippingMethodId,
             'publish' => 1,
         ]);
 
-        if (! $shippingMethod) {
+        if (!$shippingMethod) {
             throw new Exception('Shipping method not found.');
         }
 
@@ -387,7 +388,7 @@ class OrderService extends BaseService implements OrderServiceInterface
 
         $cart = $this->cartRepository->findByWhere(['user_id' => $userId], ['*'], $relation);
 
-        if (! $cart) {
+        if (!$cart) {
             throw new Exception('Cart not found.');
         }
 
@@ -405,12 +406,12 @@ class OrderService extends BaseService implements OrderServiceInterface
     {
         return [
             'payment_method' => [
-                'id'   => $paymentMethod->id,
+                'id' => $paymentMethod->id,
                 'name' => $paymentMethod->name,
             ],
             'shipping_method' => [
-                'id'        => $shippingMethod->id,
-                'name'      => $shippingMethod->name,
+                'id' => $shippingMethod->id,
+                'name' => $shippingMethod->name,
                 'base_cost' => $shippingMethod->base_cost,
             ],
         ];
@@ -424,19 +425,19 @@ class OrderService extends BaseService implements OrderServiceInterface
     private function applyVoucher(array &$payload)
     {
         $voucher = $this->voucherRepository->findByWhere([
-            'id'      => $payload['voucher_id'],
+            'id' => $payload['voucher_id'],
             'publish' => 1,
         ])->lockForUpdate()->first();
 
-        if (! $voucher) {
+        if (!$voucher) {
             throw new Exception('Voucher not found.');
         }
 
         $payload['additional_details']['voucher'] = [
-            'id'         => $voucher->id,
-            'name'       => $voucher->name,
+            'id' => $voucher->id,
+            'name' => $voucher->name,
             'value_type' => $voucher->value_type,
-            'value'      => $voucher->value,
+            'value' => $voucher->value,
         ];
 
         if ($voucher->value_type === Voucher::TYPE_PERCENT) {
@@ -460,8 +461,9 @@ class OrderService extends BaseService implements OrderServiceInterface
         $payloadOrderItem = $this->formatPayloadOrderItem($cartItems ?? [], $order->id);
         $order->order_items()->createMany($payloadOrderItem);
 
-        $this->updateFlashSaleQuantities($cartItems);
+        // $this->updateFlashSaleQuantities($cartItems);
     }
+
 
 
     private function updateFlashSaleQuantities($cartItems): void
@@ -483,7 +485,7 @@ class OrderService extends BaseService implements OrderServiceInterface
                 ])
                 ->first();
 
-            if (! $flashSaleProductVariant) {
+            if (!$flashSaleProductVariant) {
                 continue;
             }
 
@@ -523,6 +525,59 @@ class OrderService extends BaseService implements OrderServiceInterface
 
 
 
+    // private function updateFlashSaleQuantities($cartItems): void
+    // {
+    //     foreach ($cartItems as $item) {
+    //         $productVariantId = $item->product_variant_id;
+
+    //         $flashSaleProductVariant = DB::table('flash_sale_product_variants')
+    //             ->join('flash_sales', 'flash_sale_product_variants.flash_sale_id', '=', 'flash_sales.id')
+    //             ->where([
+    //                 'flash_sale_product_variants.product_variant_id' => $productVariantId,
+    //                 'flash_sales.start_date' => '<=',
+    //                 now(),
+    //                 'flash_sales.end_date' => '>=',
+    //                 now(),
+    //                 'flash_sales.publish' => true,
+    //                 'flash_sale_product_variants.max_quantity' => '>',
+    //                 0
+    //             ])
+    //             ->first();
+
+    //         if (! $flashSaleProductVariant) {
+    //             continue;
+    //         }
+
+    //         if ($flashSaleProductVariant->max_quantity > 0) {
+    //             $newMaxQuantity = $flashSaleProductVariant->max_quantity - $item->quantity;
+    //             $newSoldQuantity = $flashSaleProductVariant->sold_quantity + $item->quantity;
+
+    //             $newMaxQuantity = max(0, $newMaxQuantity);
+
+    //             DB::table('flash_sale_product_variants')
+    //                 ->where('product_variant_id', $productVariantId)
+    //                 ->update([
+    //                     'max_quantity' => $newMaxQuantity,
+    //                     'sold_quantity' => $newSoldQuantity,
+    //                 ]);
+
+    //             if ($newMaxQuantity == 0) {
+    //                 $productVariant = $this->productVariantRepository->findById($productVariantId);
+
+    //                 if ($productVariant) {
+    //                     $productVariant->update([
+    //                         'sale_price' => null,
+    //                         'sale_price_start_at' => null,
+    //                         'sale_price_end_at' => null,
+    //                         'is_discount_time' => false,
+    //                     ]);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+
     /**
      * Format payload for create order items
      *
@@ -534,13 +589,14 @@ class OrderService extends BaseService implements OrderServiceInterface
             $salePrice = $this->getEffectivePrice($item->product_variant, false);
 
             return [
-                'order_id'             => $orderId,
-                'uuid'                 => $item->product_variant->uuid,
-                'product_variant_id'   => $item->product_variant_id,
+                'order_id' => $orderId,
+                'uuid' => $item->product_variant->uuid,
+                'product_variant_id' => $item->product_variant_id,
                 'product_variant_name' => $item->product_variant->name,
-                'quantity'             => $item->quantity,
-                'price'                => $item->product_variant->price,
-                'sale_price'           => $salePrice != null ? floatval($salePrice) : null,
+                'quantity' => $item->quantity,
+                'price' => $item->product_variant->price,
+                'sale_price' => $salePrice != null ? floatval($salePrice) : null,
+                'cost_price' => $item->product_variant->cost_price,
             ];
         })->toArray();
 
@@ -584,15 +640,108 @@ class OrderService extends BaseService implements OrderServiceInterface
             $productVariant = $item->product_variant;
             $quantity = $item->quantity;
 
-            $price = $this->getEffectivePrice($productVariant);
+            // Kiểm tra xem sản phẩm có trong flash sale không
+            $flashSaleProductVariant = $this->getFlashSaleProductVariant($productVariant->id);
 
-            if ($price != null) {
-                $totalPrice += $price * $quantity;
+            // Nếu sản phẩm đang trong flash sale và còn số lượng
+            if ($flashSaleProductVariant) {
+                $totalPrice += $this->calculateFlashSaleTotal($item, $flashSaleProductVariant);
+            } else {
+                // Nếu không có flash sale, tính giá gốc
+                $totalPrice += $this->calculateRegularTotal($productVariant, $quantity);
             }
         }
 
         return $totalPrice;
     }
+
+    private function getFlashSaleProductVariant($productVariantId)
+    {
+        return DB::table('flash_sale_product_variants')
+            ->join('flash_sales', 'flash_sale_product_variants.flash_sale_id', '=', 'flash_sales.id')
+            ->where('flash_sale_product_variants.product_variant_id', $productVariantId)
+            ->whereDate('flash_sales.start_date', '<=', now()) // So sánh ngày bắt đầu flash sale
+            ->whereDate('flash_sales.end_date', '>=', now())   // So sánh ngày kết thúc flash sale
+            ->where('flash_sales.publish', true)               // Kiểm tra trạng thái publish
+            ->where('flash_sale_product_variants.max_quantity', '>', 0) // Sản phẩm còn hàng
+            ->first();
+    }
+
+
+    private function calculateFlashSaleTotal($item, $flashSaleProductVariant): float
+    {
+        $productVariant = $item->product_variant;
+        $quantity = $item->quantity;
+
+        // Xác định số lượng được giảm giá và không giảm giá
+        $quantityForDiscount = min($quantity, $flashSaleProductVariant->max_quantity);
+        $quantityNotForDiscount = $quantity - $quantityForDiscount;
+
+        // Tính giá khuyến mãi cho phần được giảm
+        $totalFlashSalePrice = $this->calculateDiscountedPrice($productVariant, $quantityForDiscount);
+
+        // Tính giá thường cho phần không được giảm giá
+        $totalRegularPrice = $this->calculateRegularTotal($productVariant, $quantityNotForDiscount);
+
+        // Cập nhật số lượng flash sale
+        $this->updateFlashSaleQuantitiesForItem($flashSaleProductVariant, $quantityForDiscount, $productVariant->id);
+
+        return $totalFlashSalePrice + $totalRegularPrice;
+    }
+
+    private function calculateDiscountedPrice($productVariant, $quantityForDiscount): float
+    {
+        $salePrice = $this->getEffectivePrice($productVariant);
+
+        if ($salePrice !== null && $quantityForDiscount > 0) {
+            return $salePrice * $quantityForDiscount;
+        }
+
+        return 0;
+    }
+
+    private function calculateRegularTotal($productVariant, $quantity): float
+    {
+        $price = $this->getEffectivePrice($productVariant);
+
+        if ($price !== null && $quantity > 0) {
+            return $productVariant->price * $quantity;
+        }
+
+        return 0;
+    }
+
+    private function updateFlashSaleQuantitiesForItem($flashSaleProductVariant, $quantityForDiscount, $productVariantId): void
+    {
+        if ($quantityForDiscount > 0) {
+            $newMaxQuantity = $flashSaleProductVariant->max_quantity - $quantityForDiscount;
+            $newSoldQuantity = $flashSaleProductVariant->sold_quantity + $quantityForDiscount;
+
+            $newMaxQuantity = max(0, $newMaxQuantity);
+
+            // Cập nhật flash sale
+            DB::table('flash_sale_product_variants')
+                ->where('product_variant_id', $productVariantId)
+                ->update([
+                    'max_quantity' => $newMaxQuantity,
+                    'sold_quantity' => $newSoldQuantity,
+                ]);
+
+            // Nếu hết khuyến mãi, cập nhật lại biến thể sản phẩm
+            if ($newMaxQuantity == 0) {
+                $productVariant = $this->productVariantRepository->findById($productVariantId);
+                if ($productVariant) {
+                    $productVariant->update([
+                        'sale_price' => null,
+                        'sale_price_start_at' => null,
+                        'sale_price_end_at' => null,
+                        'is_discount_time' => false,
+                    ]);
+                }
+            }
+        }
+    }
+
 
     /**
      * Get the effective price of a product variant, taking into account the sale price
@@ -626,7 +775,7 @@ class OrderService extends BaseService implements OrderServiceInterface
      */
     private function isSalePriceValid($productVariant): bool
     {
-        if (! $productVariant->sale_price || ! $productVariant->price) {
+        if (!$productVariant->sale_price || !$productVariant->price) {
             return false;
         }
 
@@ -675,10 +824,10 @@ class OrderService extends BaseService implements OrderServiceInterface
     {
 
         return [
-            'order_id'          => $order->id,
+            'order_id' => $order->id,
             'payment_method_id' => $order->payment_method_id,
-            'payment_detail'    => $payload['payment_detail'],
-            'method_name'       => $order->payment_method->name,
+            'payment_detail' => $payload['payment_detail'],
+            'method_name' => $order->payment_method->name,
         ];
     }
 
@@ -700,7 +849,7 @@ class OrderService extends BaseService implements OrderServiceInterface
     public function getOrderUserByCode(string $orderCode): ?Order
     {
         $condition = [
-            'code'    => $orderCode,
+            'code' => $orderCode,
             // 'user_id' => auth()->check() ? auth()->user()->id : null,
         ];
 
@@ -722,7 +871,7 @@ class OrderService extends BaseService implements OrderServiceInterface
      */
     public function getOrderByUser()
     {
-        if (! auth()->check()) {
+        if (!auth()->check()) {
             return [];
         }
 
@@ -747,9 +896,9 @@ class OrderService extends BaseService implements OrderServiceInterface
         }
 
         $condition = [
-            'search'       => addslashes($request->search),
+            'search' => addslashes($request->search),
             'searchFields' => ['code'],
-            'where'        => $conditionWhere,
+            'where' => $conditionWhere,
         ];
 
         return $this->orderRepository->pagination(
@@ -766,7 +915,7 @@ class OrderService extends BaseService implements OrderServiceInterface
     {
         return $this->executeInTransaction(function () use ($id) {
 
-            if (! auth()->check()) {
+            if (!auth()->check()) {
                 return errorResponse(__('messages.order.error.status'));
             }
 
@@ -776,7 +925,7 @@ class OrderService extends BaseService implements OrderServiceInterface
 
             $order = $this->orderRepository->findByWhere(
                 [
-                    'id'      => $id,
+                    'id' => $id,
                     'user_id' => auth()->user()->id,
                 ]
             );
@@ -795,7 +944,7 @@ class OrderService extends BaseService implements OrderServiceInterface
     {
         return $this->executeInTransaction(function () use ($id) {
 
-            if (! auth()->check()) {
+            if (!auth()->check()) {
                 return errorResponse(__('messages.order.error.status'));
             }
 
@@ -805,7 +954,7 @@ class OrderService extends BaseService implements OrderServiceInterface
 
             $order = $this->orderRepository->findByWhere(
                 [
-                    'id'      => $id,
+                    'id' => $id,
                     'user_id' => auth()->user()->id,
                 ]
             );
@@ -946,7 +1095,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             ->findByWhereIn(
                 $product_variant_ids,
                 'id',
-                ['id', 'uuid', 'name', 'price', 'sale_price', 'sale_price_start_at', 'sale_price_end_at']
+                ['id', 'uuid', 'name', 'price', 'sale_price', 'cost_price','is_discount_time', 'sale_price_start_at', 'sale_price_end_at']
             );
 
         $payloadOrderItems = $payload['order_items'];
@@ -968,7 +1117,7 @@ class OrderService extends BaseService implements OrderServiceInterface
 
         $this->createOrderItems($order, $orderItems);
 
-        // $this->updateStockProductVariants($orderItems);
+        $this->updateStockProductVariants($orderItems);
 
         return $order;
     }
@@ -1000,6 +1149,8 @@ class OrderService extends BaseService implements OrderServiceInterface
                     'name' => $product['name'],
                     'price' => $product['price'],
                     "sale_price" => $product['sale_price'],
+                    "cost_price" => $product['cost_price'],
+                    "is_discount_time" => $product['is_discount_time'],
                     "sale_price_start_at" => $product['sale_price_start_at'],
                     "sale_price_end_at" => $product['sale_price_end_at'],
                 ],
@@ -1010,7 +1161,7 @@ class OrderService extends BaseService implements OrderServiceInterface
     private function updateStockProductVariants($orderItems): void
     {
         foreach ($orderItems as $orderItem) {
-            $productVariant = $this->productVariantRepository->findByWhere(['id' => $orderItem->product_variant_id])->first();
+            $productVariant = $this->productVariantRepository->findByWhere(['id' => $orderItem->product_variant_id]);
             $quantity = $orderItem->quantity;
             $stock = $productVariant->stock - $quantity;
             $productVariant->update(

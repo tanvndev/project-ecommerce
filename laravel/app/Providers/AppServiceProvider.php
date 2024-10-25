@@ -74,6 +74,8 @@ class AppServiceProvider extends ServiceProvider
         'App\Services\Interfaces\Apriori\AprioriServiceInterface' => 'App\Services\Apriori\AprioriService',
         // FLASH SALE
         'App\Services\Interfaces\FlashSale\FlashSaleServiceInterface' => 'App\Services\FlashSale\FlashSaleService',
+        // STATISTIC
+        'App\Services\Interfaces\Statistic\StatisticServiceInterface' => 'App\Services\Statistic\StatisticService',
     ];
 
     public function register(): void
@@ -89,11 +91,11 @@ class AppServiceProvider extends ServiceProvider
             $fileSystem = $app->make(Filesystem::class);
 
             return ServerFactory::create([
-                'response'           => new LaravelResponseFactory(app('request')),
-                'source'             => $fileSystem->getDriver(),
-                'cache'              => $fileSystem->getDriver(),
+                'response' => new LaravelResponseFactory(app('request')),
+                'source' => $fileSystem->getDriver(),
+                'cache' => $fileSystem->getDriver(),
                 'source_path_prefix' => env('IMAGE_SOURCE_PATH'),
-                'cache_path_prefix'  => '.cache',
+                'cache_path_prefix' => '.cache',
             ]);
         });
 
@@ -103,7 +105,9 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void {}
+    public function boot(): void
+    {
+    }
 
     private function printLogSql()
     {
@@ -114,9 +118,9 @@ class AppServiceProvider extends ServiceProvider
 
             $logContent = sprintf(
                 "/*==================================================================*/\n" .
-                    "/* Origin (request): %s\n" .
-                    "   Query %d - %s [%sms] */\n\n" .
-                    "%s\n\n",
+                "/* Origin (request): %s\n" .
+                "   Query %d - %s [%sms] */\n\n" .
+                "%s\n\n",
                 request()->fullUrl() ?? 'N/A',
                 $query->time, // Số thứ tự truy vấn
                 Carbon::now()->toDateTimeString(),
