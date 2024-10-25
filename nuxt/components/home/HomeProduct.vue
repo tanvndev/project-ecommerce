@@ -166,7 +166,7 @@ const addToWishlist = async (variantId) => {
   border-radius: 10px !important;
   transform: translateY(0);
   transition: all 0.3s linear;
-  padding: 0 15px;
+  padding: 0 20px;
 }
 .product-media img {
   object-fit: contain !important;
