@@ -17,6 +17,7 @@ const cartCount = computed(() => cartStore.getCartCount)
 const wishlistCount = computed(() => wishlistStore.getWishlistCount)
 const notifications = computed(() => notificationStore.getNotifications)
 const chatCount = computed(() => chatStore.getChatCount)
+const isSignedIn = computed(() => authStore.isSignedIn)
 const isShowBell = ref(false)
 const config = useRuntimeConfig()
 
@@ -93,7 +94,7 @@ onUnmounted(() => {
         <div class="header-right">
           <!-- End of Dropdown Menu -->
           <span class="d-lg-show"></span>
-          <div class="header-notification">
+          <div class="header-notification" v-if="isSignedIn">
             <NuxtLink to="/post/catalogue" class="d-lg-show notification-link">
               <i class="fas fa-bell fs-1" :class="{ shake: isShowBell }"></i>
               <span class="notification-text"> Thông báo </span>
@@ -128,7 +129,7 @@ onUnmounted(() => {
           </div>
           <NuxtLink to="/post/catalogue" class="d-lg-show">Bài viết</NuxtLink>
           <NuxtLink to="/contact" class="d-lg-show">Liên hệ</NuxtLink>
-          <NuxtLink to="/user/profile" class="d-lg-show">Tài khoản</NuxtLink>
+          <NuxtLink to="/user/profile" class="d-lg-show" v-if="isSignedIn">Tài khoản</NuxtLink>
           <a
             v-if="!authStore.isSignedIn"
             :href="`${config.public.VUE_APP_URL}/login`"
@@ -213,7 +214,7 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <div class="dropdown cart-dropdown cart-offcanvas mr-0 mr-lg-2">
+            <div class="dropdown cart-dropdown cart-offcanvas mr-0 mr-lg-2" v-if="isSignedIn">
               <div class="cart-overlay"></div>
               <NuxtLink to="/chat" class="cart-toggle label-down link">
                 <i class="w-icon-chat">
