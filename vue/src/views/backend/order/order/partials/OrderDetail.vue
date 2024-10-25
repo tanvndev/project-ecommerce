@@ -96,7 +96,7 @@
     <label class="mb-2 block text-[#222]">Ghi chú</label>
     <a-textarea
       v-model:value="note"
-      placeholder="Autosize height with minimum and maximum number of lines"
+      placeholder="Ghi chú của bạn cho người bán"
       :auto-size="{ minRows: 3, maxRows: 5 }"
     />
     <a-button size="large" class="mt-3" @click="handleUpdateNote"> Cập nhập </a-button>
@@ -197,11 +197,11 @@ import { message } from 'ant-design-vue';
 const errors = ref({});
 const paymentStatusModal = ref(false);
 const orderStatusModal = ref(false);
-const note = ref('');
 
 const props = defineProps({
-  order: Object
+    order: Object
 });
+const note = ref(props.order?.note);
 const emits = defineEmits(['update:status']);
 
 const handleUpdateNote = async () => {

@@ -8,6 +8,7 @@ use App\Models\Voucher;
 use App\Models\FlashSale;
 use Illuminate\Http\Request;
 use App\Models\PaymentMethod;
+use App\Models\ShippingMethod;
 use App\Services\BaseService;
 use PhpParser\Node\Stmt\Return_;
 use Illuminate\Support\Facades\DB;
@@ -33,8 +34,7 @@ class OrderService extends BaseService implements OrderServiceInterface
         protected ShippingMethodRepositoryInterface $shippingMethodRepository,
         protected VoucherRepositoryInterface $voucherRepository,
         protected FlashSaleRepositoryInterface $flashSaleRepository
-    ) {
-    }
+    ) {}
 
     /**
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
@@ -97,14 +97,8 @@ class OrderService extends BaseService implements OrderServiceInterface
 
             $order = $this->orderRepository->findById($id);
 
-            if (
-                $request->has('order_status')
-                && $request->has('payment_status')
-                && $request->has('delivery_status')
-            ) {
-                if (!$this->checkUpdateStatus($request, $order)) {
-                    return errorResponse(__('messages.order.error.invalid'));
-                }
+            if (!$this->checkUpdateStatus($request, $order)) {
+                return errorResponse(__('messages.order.error.invalid'));
             }
 
             $order->update($payload);
@@ -155,82 +149,25 @@ class OrderService extends BaseService implements OrderServiceInterface
 
     public function checkUpdateStatus($request, Order $order): bool
     {
-        // Kiểm tra phương thức thanh toán
-        $isCOD = $order->additional_details['payment_method']['id'] == 1;
-
-        // Trường hợp thanh toán sau khi nhận hàng (COD)
-        if ($isCOD) {
-            if ($order->delivery_status == Order::DELYVERY_STATUS_PENDING) {
-                if ($request->delivery_status == Order::DELYVERY_STATUS_DELIVERED) {
-                    return false;
-                }
-            }
-
-            if ($request->payment_status == Order::PAYMENT_STATUS_PAID) {
-                if ($request->delivery_status != Order::DELYVERY_STATUS_DELIVERED) {
-                    return false;
-                }
-            }
 
 
-            if ($order->payment_status == Order::PAYMENT_STATUS_PAID) {
-                if ($request->payment_status == Order::PAYMENT_STATUS_UNPAID) {
-                    return false;
-                }
+        $isCOD = $order->additional_details['payment_method']['id'] == PaymentMethod::COD_ID;
 
-                if ($request->order_status == Order::ORDER_STATUS_PENDING) {
-                    return false;
-                }
-            }
-
-
-            if ($request->order_status == Order::ORDER_STATUS_COMPLETED) {
-                if (
-                    $order->payment_status != Order::PAYMENT_STATUS_PAID
-                    || $order->delivery_status != Order::DELYVERY_STATUS_DELIVERED
-                ) {
-                    return false;
-                }
-            }
-        } else {
-
-            // Trường hợp thanh toán trước khi nhận hàng
-            if ($order->payment_status == Order::PAYMENT_STATUS_PAID) {
-
-                if ($request->order_status == Order::ORDER_STATUS_COMPLETED && $order->delivery_status != Order::DELYVERY_STATUS_DELIVERED) {
-                    return false;
-                }
-
-                if ($request->delivery_status == Order::DELYVERY_STATUS_PENDING) {
-                    if ($order->delivery_status == Order::DELYVERY_STATUS_DELIVERED) {
-                        return false;
-                    }
-                }
-
-                if ($request->delivery_status == Order::DELYVERY_STATUS_DELIVERED) {
-                    if ($request->order_status == Order::ORDER_STATUS_PENDING) {
-                        return false;
-                    }
-                }
-            } else {
-                return false;
-            }
-
-            if ($request->payment_status == Order::PAYMENT_STATUS_UNPAID) {
+        if ($isCOD && $request->payment_status == Order::PAYMENT_STATUS_PAID) {
+            if (
+                $order->delivery_status != Order::DELYVERY_STATUS_DELIVERED
+            ) {
                 return false;
             }
         }
 
-        if ($order->order_status == Order::ORDER_STATUS_COMPLETED) {
-            return false;
-        }
-
-        // Kiểm tra tính hợp lệ của trạng thái đơn hàng và trạng thái giao hàng
-        if (
-            !array_key_exists($request->order_status, Order::ORDER_STATUS) ||
-            !array_key_exists($request->delivery_status, Order::DELYVERY_STATUS)
-        ) {
-            return false;
+        if ($request->order_status == Order::ORDER_STATUS_COMPLETED) {
+            if (
+                $order->payment_status != Order::PAYMENT_STATUS_PAID
+                || $order->delivery_status != Order::DELYVERY_STATUS_DELIVERED
+            ) {
+                return false;
+            }
         }
 
         return true;
@@ -519,12 +456,6 @@ class OrderService extends BaseService implements OrderServiceInterface
     }
 
 
-
-
-
-
-
-
     // private function updateFlashSaleQuantities($cartItems): void
     // {
     //     foreach ($cartItems as $item) {
@@ -595,6 +526,7 @@ class OrderService extends BaseService implements OrderServiceInterface
                 'product_variant_name' => $item->product_variant->name,
                 'quantity' => $item->quantity,
                 'price' => $item->product_variant->price,
+                'price' => $item->product_variant->cost_price,
                 'sale_price' => $salePrice != null ? floatval($salePrice) : null,
                 'cost_price' => $item->product_variant->cost_price,
             ];
@@ -1055,13 +987,11 @@ class OrderService extends BaseService implements OrderServiceInterface
     // Create order with admin fake data
     // public function createNewOrder(): mixed
     // {
-    //     // return $this->executeInTransaction(function () {
     //     $request = request();
 
     //     $this->fakeData();
 
     //     return [];
-    //     // }, __('messages.order.error.create'));
     // }
 
 
@@ -1091,17 +1021,16 @@ class OrderService extends BaseService implements OrderServiceInterface
         $shippingMethod = $this->getShippingMethod($payload['shipping_method_id']);
         $product_variant_ids = array_column($payload['order_items'], 'product_variant_id');
 
-        $listProduct = $this->productVariantRepository
+        $listProductVariants = $this->productVariantRepository
             ->findByWhereIn(
                 $product_variant_ids,
                 'id',
-                ['id', 'uuid', 'name', 'price', 'sale_price', 'cost_price','is_discount_time', 'sale_price_start_at', 'sale_price_end_at']
+                ['id', 'uuid', 'name', 'price', 'sale_price', 'cost_price', 'is_discount_time', 'sale_price_start_at', 'sale_price_end_at']
             );
 
         $payloadOrderItems = $payload['order_items'];
 
-        // Tổ chức lại dữ liệu của orderItems
-        $orderItems = $this->mapOrderItem($listProduct, $payloadOrderItems);
+        $orderItems = $this->mapOrderItem($listProductVariants, $payloadOrderItems);
 
         // Đổi orderItems từ mảng sang object
         $orderItems = json_decode(json_encode($orderItems));
@@ -1113,7 +1042,7 @@ class OrderService extends BaseService implements OrderServiceInterface
 
         $order = $this->orderRepository->create($payload);
 
-        $orderItems = new Collection($orderItems);
+        $orderItems = collect($orderItems);
 
         $this->createOrderItems($order, $orderItems);
 
@@ -1129,33 +1058,35 @@ class OrderService extends BaseService implements OrderServiceInterface
             'ordered_at' => now(),
         ]);
     }
-    private function mapOrderItem($listProduct, $payloadOrderItems)
+    private function mapOrderItem($listProductVariants, $payloadOrderItems)
     {
+        $orderItemMap = [];
+        foreach ($payloadOrderItems as $item) {
+            $orderItemMap[$item['product_variant_id']] = $item['quantity'];
+        }
+
         $orderItems = [];
 
-        foreach ($listProduct as $product) {
-
-            $orderItem = current(array_filter($payloadOrderItems, function ($item) use ($product) {
-                return $item['product_variant_id'] === $product->id;
-            }));
-            $product->quantity = $orderItem['quantity'];
+        foreach ($listProductVariants as $product) {
+            $quantity = $orderItemMap[$product->id] ?? 0;
 
             $orderItems[] = [
-                'product_variant_id' => $product['id'],
-                'quantity' => $product['quantity'],
+                'product_variant_id' => $product->id,
+                'quantity' => $quantity,
                 'product_variant' => [
-                    'id' => $product['id'],
-                    "uuid" => $product['uuid'],
-                    'name' => $product['name'],
-                    'price' => $product['price'],
-                    "sale_price" => $product['sale_price'],
-                    "cost_price" => $product['cost_price'],
-                    "is_discount_time" => $product['is_discount_time'],
-                    "sale_price_start_at" => $product['sale_price_start_at'],
-                    "sale_price_end_at" => $product['sale_price_end_at'],
+                    'id' => $product->id,
+                    'uuid' => $product->uuid,
+                    'name' => $product->name,
+                    'price' => $product->price,
+                    'sale_price' => $product->sale_price,
+                    'cost_price' => $product->cost_price,
+                    'is_discount_time' => $product->is_discount_time,
+                    'sale_price_start_at' => $product->sale_price_start_at,
+                    'sale_price_end_at' => $product->sale_price_end_at,
                 ],
             ];
         }
+
         return $orderItems;
     }
     private function updateStockProductVariants($orderItems): void

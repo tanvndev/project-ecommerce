@@ -59,7 +59,7 @@ class OrderController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreOrderRequest $request): JsonResponse
     {
         $order = $this->orderService->create();
         if (empty($order) || $order['status'] == 'error') {
@@ -188,7 +188,7 @@ class OrderController extends Controller
         return handleResponse($response);
     }
 
-    public function createOrder(Request $request): JsonResponse
+    public function createOrder(CreateOrderRequest $request): JsonResponse
     {
         $order = $this->orderService->createNewOrder();
 

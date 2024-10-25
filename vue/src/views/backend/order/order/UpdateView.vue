@@ -7,7 +7,7 @@
           <a-row :gutter="16" v-if="order">
             <a-col :span="18">
               <a-card class="mt-3">
-                <template #title> Đơn hàng #10000048 </template>
+                <template #title> Đơn hàng #{{ order.code }} </template>
                 <!-- Order detail -->
                 <OrderDetail :order="order" @update:status="fetchOne" />
 
