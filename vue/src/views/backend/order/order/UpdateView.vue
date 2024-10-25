@@ -7,6 +7,7 @@
           <a-row :gutter="16" v-if="order">
             <a-col :span="18">
               <a-card class="mt-3">
+                <AleartError :errors="state.errors" />
                 <template #title> Đơn hàng #{{ order.code }} </template>
                 <!-- Order detail -->
                 <OrderDetail :order="order" @update:status="fetchOne" />
@@ -104,7 +105,7 @@ const { handleSubmit, setValues } = useForm({
 });
 
 const onSubmit = handleSubmit(async (values) => {
-  console.log(values);
+  console.log(messages.value);
 
   const response = await update(state.endpoint, order.value.id, values);
   if (!response) {

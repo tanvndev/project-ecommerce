@@ -127,4 +127,9 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function product_reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
 }

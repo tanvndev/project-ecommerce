@@ -193,46 +193,58 @@ import { formatCurrency } from '@/utils/format';
 import { AleartError } from '@/components/backend';
 import axios from '@/configs/axios';
 import { message } from 'ant-design-vue';
+import { getErrorMsg } from '@/utils/helpers';
 
 const errors = ref({});
 const paymentStatusModal = ref(false);
 const orderStatusModal = ref(false);
 
 const props = defineProps({
-    order: Object
+  order: Object
 });
 const note = ref(props.order?.note);
 const emits = defineEmits(['update:status']);
 
 const handleUpdateNote = async () => {
-  const response = await axios.put(`/orders/${props.order.id}?method=PUT`, {
-    note: note.value
-  });
+  try {
+    const response = await axios.put(`/orders/${props.order.id}?method=PUT`, {
+      note: note.value
+    });
 
-  if (response.status == 'success') {
-    message.success(response.messages);
-    return emits('update:status');
+    if (response.status == 'success') {
+      message.success(response.messages);
+      return emits('update:status');
+    }
+  } catch (error) {
+    const msg = getErrorMsg(error);
+
+    message.error(msg);
+    errors.value = { msg };
   }
-  message.error(response.messages);
-  errors.value = response.messages;
 };
 
 const handleUpdateStatus = async (field) => {
-  orderStatusModal.value = false;
-  paymentStatusModal.value = false;
+  try {
+    orderStatusModal.value = false;
+    paymentStatusModal.value = false;
 
-  const payload = {
-    [field]: field === 'order_status' ? ORDER_STATUS[1].value : PAYMENT_STATUS[1].value
-  };
+    const payload = {
+      [field]: field === 'order_status' ? ORDER_STATUS[1].value : PAYMENT_STATUS[1].value
+    };
 
-  const response = await axios.put(`/orders/${props.order.id}?method=PUT`, payload);
+    const response = await axios.put(`/orders/${props.order.id}?method=PUT`, payload);
 
-  if (response.status == 'success') {
-    message.success(response.messages);
-    return emits('update:status');
+    errors.value = {};
+    if (response.status == 'success') {
+      message.success(response.messages);
+      return emits('update:status');
+    }
+  } catch (error) {
+    const msg = getErrorMsg(error);
+
+    message.error(msg);
+    errors.value = { msg };
   }
-  message.error(response.messages);
-  errors.value = response.messages;
 };
 
 watch(

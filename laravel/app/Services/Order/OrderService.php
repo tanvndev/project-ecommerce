@@ -839,7 +839,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             5,
             [],
             [],
-            ['order_items'],
+            ['order_items', 'product_reviews'],
         );
     }
 
