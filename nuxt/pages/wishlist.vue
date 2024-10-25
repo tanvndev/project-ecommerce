@@ -19,6 +19,10 @@ const addWishlistToCart = async (product_variant_id) => {
 watch(page, () => {
   debounceHandleChangePage()
 })
+
+onMounted(async () => {
+  await wishlistStore.getAllWishlists(page.value)
+})
 </script>
 
 <template>
