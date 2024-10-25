@@ -8,9 +8,9 @@ trait QueryScopes
 {
     public function scopeSearch($query, $keyword, $fieldSearch = [], $whereHas = [])
     {
-        if ( ! empty($keyword)) {
+        if (!empty($keyword)) {
 
-            if ( ! empty($fieldSearch)) {
+            if (!empty($fieldSearch)) {
                 foreach ($fieldSearch as $field) {
                     $query->orWhere($field, 'LIKE', '%' . $keyword . '%');
                 }
@@ -19,7 +19,7 @@ trait QueryScopes
             }
         }
 
-        if ( ! empty($whereHas)) {
+        if (!empty($whereHas)) {
             // $whereHas = [
             //     'field' => 'name',
             //     'relation' => 'product_catalogues',
@@ -35,7 +35,7 @@ trait QueryScopes
 
     public function scopePublish($query, $publish)
     {
-        if (( ! empty($publish)) && $publish != '0') {
+        if ((!empty($publish)) && $publish != '0') {
             $query->where('publish', $publish);
         }
 
@@ -48,7 +48,7 @@ trait QueryScopes
         // where với toán tử: ['price' => ['>', 100]]
         // whereIn: ['category_id' => ['in', [1, 2, 3]]]
 
-        if ( ! empty($conditions) && is_array($conditions)) {
+        if (!empty($conditions) && is_array($conditions)) {
             foreach ($conditions as $column => $value) {
                 if (is_array($value)) {
                     if ($value[0] === 'in') {
@@ -70,19 +70,18 @@ trait QueryScopes
     public function scopeCustomWhereRaw($query, $whereRaw = [])
     {
         // $value[0] là câu truy vấn $value[1] là tham số truy vấn
-        if ( ! empty($whereRaw) && is_array($whereRaw)) {
+        if (!empty($whereRaw) && is_array($whereRaw)) {
             foreach ($whereRaw as $key => $value) {
                 $query->whereRaw($value[0], $value[1]);
             }
         }
-
         return $query;
     }
 
     public function scopeRelation($query, $relations = [])
     {
         // ['user_catalogue', '...']
-        if ( ! empty($relations) && is_array($relations)) {
+        if (!empty($relations) && is_array($relations)) {
             foreach ($relations as $relation) {
                 $query->with($relation);
             }
@@ -94,7 +93,7 @@ trait QueryScopes
     public function scopeRelationCount($query, $relations = [])
     {
         // ['user_catalogue', '...']
-        if ( ! empty($relations) && is_array($relations)) {
+        if (!empty($relations) && is_array($relations)) {
             foreach ($relations as $relation) {
                 $query->withCount($relation);
             }
@@ -107,7 +106,7 @@ trait QueryScopes
     {
         // 'table_name_1' => ['constraint1', 'constraint2'],
         // 'brand' => ['brand.id', 'product.brand_id']
-        if ( ! empty($join) && is_array($join)) {
+        if (!empty($join) && is_array($join)) {
             foreach ($join as $table => $constraints) {
                 $query->join($table, ...$constraints);
             }
@@ -120,7 +119,7 @@ trait QueryScopes
     {
         // 'column1' or
         // ['column1', 'column2']
-        if ( ! empty($groupBy)) {
+        if (!empty($groupBy)) {
             if (is_array($groupBy)) {
                 foreach ($groupBy as $group) {
                     $query->groupBy($group);
@@ -141,7 +140,7 @@ trait QueryScopes
         //  'name' => 'ASC',
         //  'created_at' => 'DESC'
         // ]
-        if ( ! empty($orderBy) && is_array($orderBy)) {
+        if (!empty($orderBy) && is_array($orderBy)) {
             foreach ($orderBy as $column => $direction) {
                 $query->orderBy($column, $direction);
             }
@@ -154,7 +153,7 @@ trait QueryScopes
 
     public function scopeFilterDropdown($query, $condition = [])
     {
-        if ( ! empty($condition) && is_array($condition)) {
+        if (!empty($condition) && is_array($condition)) {
             foreach ($condition as $column => $value) {
                 if ($value != '') {
                     $query->where($column, $value);
@@ -167,7 +166,7 @@ trait QueryScopes
 
     public function scopeCreatedAt($query, $condition = '')
     {
-        if ( ! empty($condition) && $condition != '') {
+        if (!empty($condition) && $condition != '') {
             $date = explode(' - ', $condition);
             $startAt = convertDateTime($date[0], 'Y-m-d H:i:s');
             $endAt = convertDateTime($date[1], 'Y-m-d H:i:s');
