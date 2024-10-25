@@ -7,7 +7,7 @@
           <a-row :gutter="16">
             <a-col :span="18">
               <a-card class="mt-3" title="Danh sách sản phẩm">
-                <AleartError :errors="state.errors" />
+                <AleartError :errors="!_.isEmpty(errors) ? errors : state.errors" />
                 <a-row :gutter="[16, 16]">
                   <a-col :span="24">
                     <SearchProductView @on-save="handleSave" />
@@ -30,9 +30,10 @@
                       <SelectComponent
                         name="shipping_method_id"
                         label="Hình thức vận chuyển"
-                        :options="state.shippingMethods"
+                        :options="state.shippingMethodSelects"
                         :required="true"
                         placeholder="Chọn hình thức với chuyển"
+                        @on-change="handleChangeShippingMethod"
                       />
                     </div>
 
@@ -51,21 +52,21 @@
                       <div class="d-flex items-center justify-end">
                         <span class="font-bold">Tạm tính</span>
                         <span class="w-[200px] text-right">
-                          {{ formatCurrency(total_price || 20000000) }}
+                          {{ formatCurrency(total_price) }}
                         </span>
                       </div>
 
                       <div class="d-flex items-center justify-end">
                         <span class="font-bold">Phí vận chuyển</span>
                         <span class="w-[200px] text-right">
-                          {{ formatCurrency(shipping_fee || 20000000) }}
+                          {{ formatCurrency(shipping_fee) }}
                         </span>
                       </div>
 
                       <div class="d-flex items-center justify-end text-[16px]">
                         <span class="font-bold">Tổng cuối</span>
                         <span class="w-[200px] text-right font-bold">
-                          {{ formatCurrency(final_price || 20000000) }}
+                          {{ formatCurrency(final_price) }}
                         </span>
                       </div>
                     </div>
@@ -75,7 +76,7 @@
             </a-col>
 
             <a-col :span="6">
-              <SearchUser />
+              <SearchUser @change-user="handleChangeUser" />
             </a-col>
           </a-row>
 
@@ -99,54 +100,98 @@ import {
   InputComponent,
   SelectComponent
 } from '@/components/backend';
-import { computed, onMounted, reactive } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useForm } from 'vee-validate';
 import { formatCurrency, formatDataToSelect, formatMessages } from '@/utils/format';
-import { useStore } from 'vuex';
 import * as yup from 'yup';
-import router from '@/router';
+import { useRouter } from 'vue-router';
 import { useCRUD } from '@/composables';
 import SearchProductView from './partials/SearchProductView.vue';
 import SearchUser from './partials/SearchUser.vue';
+import { message } from 'ant-design-vue';
+import  _ from 'lodash';
 
-// VARIABLES
-
-const store = useStore();
-const { getOne, create, update, messages, data, getAll } = useCRUD();
-const id = computed(() => router.currentRoute.value.params.id || null);
+const { create, messages, data, getAll } = useCRUD();
+const router = useRouter();
 
 // STATE
 const state = reactive({
-  endpoint: 'brands',
+  endpoint: 'orders/create',
   pageTitle: 'Thêm mới đơn hàng',
   errors: {},
   products: [],
   paymentMethods: [],
-  shippingMethods: []
+  shippingMethods: [],
+  shippingMethodSelects: []
 });
 
-const { handleSubmit, setValues } = useForm({
+const shipping_fee = ref(0);
+const total_price = computed(() => {
+  let total = 0;
+  state.products.forEach((item) => {
+    total += item.price * item.quantity;
+  });
+  return total;
+});
+const final_price = computed(() => total_price.value + shipping_fee.value);
+
+const { handleSubmit, setValues, errors } = useForm({
   validationSchema: yup.object({
-    name: yup.string().required('Tên đơn hàng không được để trống.')
+    shipping_method_id: yup.string().required('Hình thức vận chuyển không được để trống.'),
+    payment_method_id: yup.string().required('Phương thức thanh toán không được để trống.'),
+    order_items: yup.array().required('Danh sách sản phẩm đơn mua không đặt.'),
+    user_id: yup.string().required('Vui lòng chọn khác hàng.'),
+    customer_name: yup.string().required('Tên khách hàng không được để trống.'),
+    customer_email: yup
+      .string()
+      .required('Email không được để trống.')
+      .email('Email không đúng định dạng.'),
+    customer_phone: yup.string().required('Số điện thoại không được để trống.'),
+    shipping_address: yup.string().required('Địa chỉ giao hàng không được để trống.'),
+    province_id: yup.string().required('Vui lòng chọn Tỉnh/ Thành phố.'),
+    district_id: yup.string().required('Vui bạn chọn Quận/ Huyện.'),
+    ward_id: yup.string().required('Vui này chọn phú Phường/ Xã.')
   })
 });
 
 const onSubmit = handleSubmit(async (values) => {
-  const response =
-    id.value && id.value > 0
-      ? await update(state.endpoint, id.value, values)
-      : await create(state.endpoint, values);
+  const response = await create(state.endpoint, values);
+  console.log(errors.value);
+
   if (!response) {
     return (state.errors = formatMessages(messages.value));
   }
 
-  store.dispatch('antStore/showMessage', { type: 'success', message: messages.value });
   state.errors = {};
-  router.push({ name: 'brand.index' });
+  message.success(messages.value);
+  router.push({ name: 'order.index' });
 });
 
 const handleSave = (data) => {
   state.products = data;
+  console.log(state.products);
+
+  setValues({
+    order_items: data
+  });
+};
+
+const handleChangeShippingMethod = (value) => {
+  const shipping = state.shippingMethods.find((item) => item.id == value);
+  shipping_fee.value = parseFloat(shipping.base_cost) || 0;
+};
+
+const handleChangeUser = ({ address, user }) => {
+  setValues({
+    customer_name: address.fullname,
+    customer_email: user.email,
+    customer_phone: address.phone,
+    shipping_address: address.shipping_address,
+    province_id: address.province_id,
+    district_id: address.district_id,
+    ward_id: address.ward_id,
+    user_id: user.id
+  });
 };
 
 const getPaymentMethods = async () => {
@@ -161,7 +206,8 @@ const getPaymentMethods = async () => {
 const getShippingMethod = async () => {
   try {
     await getAll('shipping-methods');
-    state.shippingMethods = formatDataToSelect(data.value);
+    state.shippingMethods = data.value;
+    state.shippingMethodSelects = formatDataToSelect(data.value);
   } catch (error) {
     console.log(error);
   }

@@ -232,6 +232,13 @@ const timeAgo = (dateString) => {
   return 'vừa mới';
 };
 
+const getErrorMsg = (error) => {
+  if (error.response) {
+    return error?.response?.data?.messages || 'Something went wrong!';
+  }
+  return error?.message || 'Something went wrong!';
+}
+
 export {
   debounce,
   resizeImage,
@@ -244,5 +251,6 @@ export {
   generateSlug,
   handleDateChangeToAnt,
   generateRandomString,
-  timeAgo
+  timeAgo,
+  getErrorMsg
 };

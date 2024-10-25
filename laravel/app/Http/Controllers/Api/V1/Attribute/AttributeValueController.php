@@ -34,7 +34,7 @@ class AttributeValueController extends Controller
         $paginator = $this->attributeValueService->paginate();
         $data = new AttributeValueCollection($paginator);
 
-        return successResponse('', $data);
+        return successResponse('', $data, true);
     }
 
     /**
@@ -56,7 +56,7 @@ class AttributeValueController extends Controller
     {
         $response = new AttributeValueResource($this->attributeValueRepository->findById($id));
 
-        return successResponse('', $response);
+        return successResponse('', $response, true);
     }
 
     /**

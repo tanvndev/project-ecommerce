@@ -9,6 +9,8 @@ const user_address = ref(null);
 const users = ref([]);
 const search = ref('');
 
+const emits = defineEmits(['changeUser']);
+
 const getAllUser = async (search = '') => {
   try {
     const response = await axios.get('/users?page=1&pageSize=6&publish=0&search=' + search);
@@ -31,6 +33,11 @@ const getUser = async (user) => {
   user_address.value = user?.addresses?.find((item) => item.is_primary == 1);
   users.value = [];
   search.value = '';
+
+  emits('changeUser', {
+    address: user_address.value,
+    user: currentUser.value
+  });
 };
 
 onMounted(() => {

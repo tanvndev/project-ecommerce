@@ -59,7 +59,7 @@ class OrderController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreOrderRequest $request): JsonResponse
     {
         $order = $this->orderService->create();
         if (empty($order) || $order['status'] == 'error') {
@@ -192,12 +192,13 @@ class OrderController extends Controller
     {
         $order = $this->orderService->createNewOrder();
 
-        if (empty($order) || $order['status'] == 'error') {
-            return errorResponse(__('messages.order.error.create'), true);
-        }
+        return handleResponse($order, ResponseEnum::CREATED);
+        // if (empty($order) || $order['status'] == 'error') {
+        //     return errorResponse(__('messages.order.error.create'), true);
+        // }
 
-        $response = $this->handlePaymentMethod($order);
+        // $response = $this->handlePaymentMethod($order);
 
-        return handleResponse($response, ResponseEnum::CREATED);
+        // return handleResponse($response, ResponseEnum::CREATED);
     }
 }

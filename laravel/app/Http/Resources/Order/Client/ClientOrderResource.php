@@ -102,4 +102,5 @@ class ClientOrderResource extends JsonResource
                 return 'orange';
         }
     }
+
 }
