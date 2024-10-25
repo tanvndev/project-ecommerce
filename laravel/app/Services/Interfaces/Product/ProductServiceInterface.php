@@ -23,4 +23,6 @@ interface ProductServiceInterface
     public function updateAttribute(string $productId);
 
     public function getProduct(string $slug);
+
+    public function getProductReport();
 }

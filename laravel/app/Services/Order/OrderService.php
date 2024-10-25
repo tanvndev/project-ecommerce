@@ -465,6 +465,7 @@ class OrderService extends BaseService implements OrderServiceInterface
     }
 
 
+
     private function updateFlashSaleQuantities($cartItems): void
     {
         foreach ($cartItems as $item) {
@@ -522,6 +523,59 @@ class OrderService extends BaseService implements OrderServiceInterface
 
 
 
+
+
+    // private function updateFlashSaleQuantities($cartItems): void
+    // {
+    //     foreach ($cartItems as $item) {
+    //         $productVariantId = $item->product_variant_id;
+
+    //         $flashSaleProductVariant = DB::table('flash_sale_product_variants')
+    //             ->join('flash_sales', 'flash_sale_product_variants.flash_sale_id', '=', 'flash_sales.id')
+    //             ->where([
+    //                 'flash_sale_product_variants.product_variant_id' => $productVariantId,
+    //                 'flash_sales.start_date' => '<=',
+    //                 now(),
+    //                 'flash_sales.end_date' => '>=',
+    //                 now(),
+    //                 'flash_sales.publish' => true,
+    //                 'flash_sale_product_variants.max_quantity' => '>',
+    //                 0
+    //             ])
+    //             ->first();
+
+    //         if (! $flashSaleProductVariant) {
+    //             continue;
+    //         }
+
+    //         if ($flashSaleProductVariant->max_quantity > 0) {
+    //             $newMaxQuantity = $flashSaleProductVariant->max_quantity - $item->quantity;
+    //             $newSoldQuantity = $flashSaleProductVariant->sold_quantity + $item->quantity;
+
+    //             $newMaxQuantity = max(0, $newMaxQuantity);
+
+    //             DB::table('flash_sale_product_variants')
+    //                 ->where('product_variant_id', $productVariantId)
+    //                 ->update([
+    //                     'max_quantity' => $newMaxQuantity,
+    //                     'sold_quantity' => $newSoldQuantity,
+    //                 ]);
+
+    //             if ($newMaxQuantity == 0) {
+    //                 $productVariant = $this->productVariantRepository->findById($productVariantId);
+
+    //                 if ($productVariant) {
+    //                     $productVariant->update([
+    //                         'sale_price' => null,
+    //                         'sale_price_start_at' => null,
+    //                         'sale_price_end_at' => null,
+    //                         'is_discount_time' => false,
+    //                     ]);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
 
     /**
@@ -586,15 +640,108 @@ class OrderService extends BaseService implements OrderServiceInterface
             $productVariant = $item->product_variant;
             $quantity = $item->quantity;
 
-            $price = $this->getEffectivePrice($productVariant);
+            // Kiểm tra xem sản phẩm có trong flash sale không
+            $flashSaleProductVariant = $this->getFlashSaleProductVariant($productVariant->id);
 
-            if ($price != null) {
-                $totalPrice += $price * $quantity;
+            // Nếu sản phẩm đang trong flash sale và còn số lượng
+            if ($flashSaleProductVariant) {
+                $totalPrice += $this->calculateFlashSaleTotal($item, $flashSaleProductVariant);
+            } else {
+                // Nếu không có flash sale, tính giá gốc
+                $totalPrice += $this->calculateRegularTotal($productVariant, $quantity);
             }
         }
 
         return $totalPrice;
     }
+
+    private function getFlashSaleProductVariant($productVariantId)
+    {
+        return DB::table('flash_sale_product_variants')
+            ->join('flash_sales', 'flash_sale_product_variants.flash_sale_id', '=', 'flash_sales.id')
+            ->where('flash_sale_product_variants.product_variant_id', $productVariantId)
+            ->whereDate('flash_sales.start_date', '<=', now()) // So sánh ngày bắt đầu flash sale
+            ->whereDate('flash_sales.end_date', '>=', now())   // So sánh ngày kết thúc flash sale
+            ->where('flash_sales.publish', true)               // Kiểm tra trạng thái publish
+            ->where('flash_sale_product_variants.max_quantity', '>', 0) // Sản phẩm còn hàng
+            ->first();
+    }
+
+
+    private function calculateFlashSaleTotal($item, $flashSaleProductVariant): float
+    {
+        $productVariant = $item->product_variant;
+        $quantity = $item->quantity;
+
+        // Xác định số lượng được giảm giá và không giảm giá
+        $quantityForDiscount = min($quantity, $flashSaleProductVariant->max_quantity);
+        $quantityNotForDiscount = $quantity - $quantityForDiscount;
+
+        // Tính giá khuyến mãi cho phần được giảm
+        $totalFlashSalePrice = $this->calculateDiscountedPrice($productVariant, $quantityForDiscount);
+
+        // Tính giá thường cho phần không được giảm giá
+        $totalRegularPrice = $this->calculateRegularTotal($productVariant, $quantityNotForDiscount);
+
+        // Cập nhật số lượng flash sale
+        $this->updateFlashSaleQuantitiesForItem($flashSaleProductVariant, $quantityForDiscount, $productVariant->id);
+
+        return $totalFlashSalePrice + $totalRegularPrice;
+    }
+
+    private function calculateDiscountedPrice($productVariant, $quantityForDiscount): float
+    {
+        $salePrice = $this->getEffectivePrice($productVariant);
+
+        if ($salePrice !== null && $quantityForDiscount > 0) {
+            return $salePrice * $quantityForDiscount;
+        }
+
+        return 0;
+    }
+
+    private function calculateRegularTotal($productVariant, $quantity): float
+    {
+        $price = $this->getEffectivePrice($productVariant);
+
+        if ($price !== null && $quantity > 0) {
+            return $productVariant->price * $quantity;
+        }
+
+        return 0;
+    }
+
+    private function updateFlashSaleQuantitiesForItem($flashSaleProductVariant, $quantityForDiscount, $productVariantId): void
+    {
+        if ($quantityForDiscount > 0) {
+            $newMaxQuantity = $flashSaleProductVariant->max_quantity - $quantityForDiscount;
+            $newSoldQuantity = $flashSaleProductVariant->sold_quantity + $quantityForDiscount;
+
+            $newMaxQuantity = max(0, $newMaxQuantity);
+
+            // Cập nhật flash sale
+            DB::table('flash_sale_product_variants')
+                ->where('product_variant_id', $productVariantId)
+                ->update([
+                    'max_quantity' => $newMaxQuantity,
+                    'sold_quantity' => $newSoldQuantity,
+                ]);
+
+            // Nếu hết khuyến mãi, cập nhật lại biến thể sản phẩm
+            if ($newMaxQuantity == 0) {
+                $productVariant = $this->productVariantRepository->findById($productVariantId);
+                if ($productVariant) {
+                    $productVariant->update([
+                        'sale_price' => null,
+                        'sale_price_start_at' => null,
+                        'sale_price_end_at' => null,
+                        'is_discount_time' => false,
+                    ]);
+                }
+            }
+        }
+    }
+
 
     /**
      * Get the effective price of a product variant, taking into account the sale price
