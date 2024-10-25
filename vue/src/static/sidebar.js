@@ -78,7 +78,7 @@ const sidebar = [
     id: 'marketing_sidebar',
     icon: 'fas fa-bullhorn',
     name: 'Marketing',
-    active: ['voucher', 'widget'],
+    active: ['voucher', 'widget', 'flash-sale'],
     subMenu: [
       {
         name: 'Danh sách khuyến mại',
@@ -87,6 +87,14 @@ const sidebar = [
       {
         name: 'Danh sách widget',
         route: 'widget.index'
+      },
+      {
+        name: 'Danh sách Flash sale',
+        route: 'flash-sale.index'
+      },
+      {
+        name: 'Tạo mới Flash sale',
+        route: 'flash-sale.create'
       }
     ]
   },
@@ -103,22 +111,6 @@ const sidebar = [
       {
         name: 'Nhóm bài viết',
         route: 'post.catalogue.index'
-      }
-    ]
-  },
-  {
-    id: 'flash_sale_sidebar',
-    icon: 'fas fa-bolt',
-    name: 'Flash sale',
-    active: ['flash-sale'],
-    subMenu: [
-      {
-        name: 'Danh sách Flash sale',
-        route: 'flash-sale.index'
-      },
-      {
-        name: 'Thêm mới Flash sale',
-        route: 'flash-sale.create'
       }
     ]
   }

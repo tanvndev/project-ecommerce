@@ -111,7 +111,7 @@ const onSwiper = (swiper) => {
                     :title="productCatalogue.name"
                   >
                     <img
-                      :src="resizeImage(productCatalogue.image, 500)"
+                      :src="resizeImage(productCatalogue.image, 300)"
                       :alt="productCatalogue.name"
                     />
                   </NuxtLink>
@@ -119,27 +119,6 @@ const onSwiper = (swiper) => {
                     <h4 class="category-name">{{ productCatalogue.name }}</h4>
                     <NuxtLink
                       :title="productCatalogue.name"
-                      to="category"
-                      class="btn btn-primary btn-link btn-underline"
-                      >Xem ngay</NuxtLink
-                    >
-                  </div>
-                </div>
-              </swiper-slide>
-
-              <swiper-slide>
-                <div
-                  class="category category-classic category-absolute overlay-zoom br-xs mx-2"
-                >
-                  <NuxtLink href="category" class="category-media rounded">
-                    <img
-                      src="assets/images/demos/demo1/categories/2-6.jpg"
-                      alt="Category"
-                    />
-                  </NuxtLink>
-                  <div class="category-content">
-                    <h4 class="category-name">Laptop</h4>
-                    <NuxtLink
                       to="category"
                       class="btn btn-primary btn-link btn-underline"
                       >Xem ngay</NuxtLink
@@ -172,8 +151,11 @@ const onSwiper = (swiper) => {
 <style scoped>
 .category-media {
   background-color: #fff;
+  display: block;
+  padding: 14px 5px;
 }
 .category-media img {
+  margin-top: -30px;
   height: 186px;
   width: 186px;
   object-fit: contain;

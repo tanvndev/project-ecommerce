@@ -12393,7 +12393,7 @@ body .product-popup {
   padding: 0.6250rem;
   width: 2.5000rem;
   height: 2.5000rem;
-  right: 0.9375rem;
+  right: 2rem;
   bottom: 0.9375rem;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
@@ -15799,8 +15799,8 @@ aside .sp-sidebar-banner span {
 }
 .product-widget .product-details {
   -webkit-box-flex: 0;
-  -ms-flex: 0 0 calc(100% - 7.1875rem);
-  flex: 0 0 calc(100% - 7.1875rem);
+  /* -ms-flex: 0 0 calc(100% - 7.1875rem);
+  flex: 0 0 calc(100% - 7.1875rem); */
   max-width: calc(100% - 7.1875rem);
 }
 .product-widget .product-name {

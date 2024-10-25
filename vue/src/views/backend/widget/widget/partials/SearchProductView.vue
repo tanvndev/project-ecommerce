@@ -81,11 +81,11 @@
           </a-col>
         </a-row>
       </div>
-      <div class="my-5 border-t pt-5" v-if="state.dataSource.length > 0">
+      <div class="my-5 border-t pt-5" v-if="filteredProducts.length > 0">
         <a-table
           bordered
           :columns="columns"
-          :data-source="state.dataSource"
+          :data-source="filteredProducts"
           :row-selection="rowSelection"
           :pagination="pagination"
           :scroll="{ y: '57vh' }"
@@ -144,7 +144,7 @@ import { useCRUD, usePagination } from '@/composables';
 import { formatCurrency, formatDataToSelect, formatDataToTreeSelect } from '@/utils/format';
 import { debounce, resizeImage } from '@/utils/helpers';
 import { useField } from 'vee-validate';
-import { reactive, watch, onMounted } from 'vue';
+import { reactive, watch, onMounted, computed } from 'vue';
 import { SelectComponent, TreeSelectComponent } from '@/components/backend';
 
 // STATE
@@ -198,6 +198,12 @@ const props = defineProps({
     type: Array,
     default: () => []
   }
+});
+
+const filteredProducts = computed(() => {
+  return state.dataSource.filter((product) =>
+    product.name.toLowerCase().includes(state.search.toLowerCase())
+  );
 });
 
 // Fetchdata

@@ -4,7 +4,7 @@ const flashSaleRoutes = [
   {
     path: '/flash-sale/index',
     name: 'flash-sale.index',
-    component: () => import('@/views/backend/flash-sale/indexView.vue'),
+    component: () => import('@/views/backend/flash-sale/IndexView.vue'),
     beforeEnter: [isLoggedIn]
   },
   {

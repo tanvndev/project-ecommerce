@@ -146,6 +146,7 @@ const onSwiper = (swiper) => {
 }
 .product-widget .product-media {
   background-color: #f5f6f7;
+  padding: 8px 12px !important;
 }
 .product-widget .product-media img {
   object-fit: contain;
