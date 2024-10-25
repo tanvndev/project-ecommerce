@@ -16,6 +16,10 @@ const sidebar = [
       {
         name: 'Danh sách đơn hàng',
         route: 'order.index'
+      },
+      {
+        name: 'Tạo mới đơn hàng',
+        route: 'order.store'
       }
     ]
   },
@@ -66,8 +70,8 @@ const sidebar = [
   {
     id: 'live_chat_sidebar',
     icon: 'fas fa-comments',
-    name: 'Nhắn tin',
-    route: 'live-chat.index',
+    name: 'Tin nhắn',
+    route: 'chat.index',
     subMenu: []
   },
   {
