@@ -164,6 +164,7 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
 
         // Flash Sale ROUTE
         Route::apiResource('flash-sales', FlashSaleController::class);
+        route::put('change-status-flash-sale/{id}', [FlashSaleController::class, 'changeStatus']);
 
         // SYSTEM CONFIG ROUTE
         Route::get('system-configs', [SystemConfigController::class, 'index']);

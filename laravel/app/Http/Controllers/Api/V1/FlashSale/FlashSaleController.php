@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1\FlashSale;
 
+use App\Enums\ResponseEnum;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\FlashSale\FlashSaleCollection;
 use App\Http\Requests\FlashSale\FlashSaleStoreRequest;
 use App\Services\Interfaces\FlashSale\FlashSaleServiceInterface;
 use App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface;
@@ -21,9 +24,12 @@ class FlashSaleController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
+        $paginator = $this->flashSaleService->paginate();
+        $data = new FlashSaleCollection($paginator);
+
+        return successResponse('', $data, true);
     }
 
     /**
@@ -33,7 +39,7 @@ class FlashSaleController extends Controller
     {
         $data = $this->flashSaleService->store($request->all());
 
-        return successResponse('', $data, true);
+        return handleResponse($data, ResponseEnum::CREATED);
     }
 
     /**
@@ -41,7 +47,11 @@ class FlashSaleController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $response = $this->flashSaleService->findById($id);
+
+        $data = new FlashSaleCollection($response);
+
+        return successResponse('', $data, true);
     }
 
     /**
@@ -60,5 +70,12 @@ class FlashSaleController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function changeStatus(string $id){
+
+        $data = $this->flashSaleService->changeStatus($id);
+
+        return successResponse('', $data, true);
     }
 }

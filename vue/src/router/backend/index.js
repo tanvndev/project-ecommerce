@@ -8,3 +8,4 @@ export { default as voucherRoutes } from './voucherRoutes';
 export { default as orderRoutes } from './orderRoutes';
 export { default as postRoutes } from './postRoutes';
 export { default as liveChatRoutes } from './liveChatRoutes';
+export { default as flashSaleRoutes } from './flashSaleRoute';
