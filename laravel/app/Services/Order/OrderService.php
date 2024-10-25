@@ -8,6 +8,7 @@ use App\Models\Voucher;
 use App\Models\FlashSale;
 use Illuminate\Http\Request;
 use App\Models\PaymentMethod;
+use App\Models\ProductVariant;
 use App\Models\ShippingMethod;
 use App\Services\BaseService;
 use PhpParser\Node\Stmt\Return_;
@@ -908,10 +909,11 @@ class OrderService extends BaseService implements OrderServiceInterface
 
     private function fakeData()
     {
-        $ids = Cache::get('product_variants');
-        $arrayOfIds = array_column($ids, 'id');
+        // $ids = ProductVariant::query()->pluck('id')->toArray();
+        // Cache::set('product_variants', $ids);
 
-        // Sinh ra các frequent itemsets với các kích thước khác nhau
+        $arrayOfIds = Cache::get('product_variants');
+
         $frequentItemsets = $this->generateFrequentItemsets($arrayOfIds, 5, 3, 6);
 
         for ($i = 1; $i <= 100; $i++) {
@@ -960,10 +962,21 @@ class OrderService extends BaseService implements OrderServiceInterface
         $itemset = $frequentItemsets[array_rand($frequentItemsets)];
 
         // Tăng xác suất thêm các sản phẩm ngẫu nhiên
-        $additionalItems = rand(0, 2);
+        $additionalItems = rand(0, 3);
         for ($j = 0; $j < $additionalItems; $j++) {
             if (rand(0, 100) < $probability) {
-                $randomProductId = $arrayOfIds[array_rand($arrayOfIds)];
+                // Ưu tiên bốc sản phẩm từ 47 đến 69
+                $filteredIds = array_filter($arrayOfIds, function ($id) {
+                    return $id >= 47 && $id <= 69;
+                });
+
+                if (!empty($filteredIds)) {
+                    $randomProductId = $filteredIds[array_rand($filteredIds)];
+                } else {
+                    // Nếu không có sản phẩm nào trong khoảng, bốc random từ toàn bộ danh sách
+                    $randomProductId = $arrayOfIds[array_rand($arrayOfIds)];
+                }
+
                 if (!in_array($randomProductId, $itemset)) {
                     $itemset[] = $randomProductId;
                 }
@@ -985,27 +998,31 @@ class OrderService extends BaseService implements OrderServiceInterface
 
 
     // Create order with admin fake data
-    // public function createNewOrder(): mixed
-    // {
-    //     $request = request();
+    public function createNewOrder(): mixed
+    {
+        try {
+            $request = request();
 
-    //     $this->fakeData();
+            $this->fakeData();
 
-    //     return [];
-    // }
+            return successResponse(__('messages.order.success.create'), []);
+        } catch (\Exception $e) {
+            return errorResponse('Loiiiii!!');
+        }
+    }
 
 
     // Create order with admin
-    public function createNewOrder(): mixed
-    {
-        return $this->executeInTransaction(function () {
-            $request = request();
+    // public function createNewOrder(): mixed
+    // {
+    //     return $this->executeInTransaction(function () {
+    //         $request = request();
 
-            $order = $this->addOrder($request);
+    //         $order = $this->addOrder($request);
 
-            return $order;
-        }, __('messages.order.error.create'));
-    }
+    //         return $order;
+    //     }, __('messages.order.error.create'));
+    // }
 
     /**
      * Create a new order in the database.
@@ -1046,7 +1063,7 @@ class OrderService extends BaseService implements OrderServiceInterface
 
         $this->createOrderItems($order, $orderItems);
 
-        $this->updateStockProductVariants($orderItems);
+        // $this->updateStockProductVariants($orderItems);
 
         return $order;
     }

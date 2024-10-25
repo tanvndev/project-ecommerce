@@ -11,11 +11,11 @@ def call_api(i):
     response = requests.post(
         "http://127.0.0.1:8001/api/v1/orders/create", headers=headers
     )
-    if response.status_code == 200:
+    if response.status_code == 201 or response.status_code == 200:
         print(f"API call successful! count: {i}")
     else:
         print(f"Request failed with status code: {response.status_code}")
 
 
-for i in range(10000):
+for i in range(20000):
     call_api(i)

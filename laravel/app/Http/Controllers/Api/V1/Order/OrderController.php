@@ -188,16 +188,17 @@ class OrderController extends Controller
         return handleResponse($response);
     }
 
-    public function createOrder(CreateOrderRequest $request): JsonResponse
+    public function createOrder(Request $request): JsonResponse
     {
         $order = $this->orderService->createNewOrder();
 
-        if (empty($order) || $order['status'] == 'error') {
-            return errorResponse(__('messages.order.error.create'), true);
-        }
+        return handleResponse($order, ResponseEnum::CREATED);
+        // if (empty($order) || $order['status'] == 'error') {
+        //     return errorResponse(__('messages.order.error.create'), true);
+        // }
 
-        $response = $this->handlePaymentMethod($order);
+        // $response = $this->handlePaymentMethod($order);
 
-        return handleResponse($response, ResponseEnum::CREATED);
+        // return handleResponse($response, ResponseEnum::CREATED);
     }
 }

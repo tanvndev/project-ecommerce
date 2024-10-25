@@ -23,7 +23,7 @@ class StoreProductCatalogueRequest extends FormRequest
     {
         return [
             'name'      => 'required',
-            'canonical' => 'unique',
+            'canonical' => 'unique:product_catalogues,canonical',
         ];
     }
 
