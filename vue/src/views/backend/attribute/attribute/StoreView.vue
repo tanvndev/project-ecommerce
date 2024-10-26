@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 h-screen min-h-screen pb-24">
+      <div class="mx-10 min-h-screen pb-24">
         <form>
           <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
           <a-card class="mt-3" title="Dữ liệu thuộc tính">

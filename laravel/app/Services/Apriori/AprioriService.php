@@ -19,7 +19,6 @@ class AprioriService implements AprioriServiceInterface
     // SET
     //     order_status = 'completed',
     //     payment_status = 'paid',
-    //     delivery_status = 'delivered';
 
     public function exportOrdersToCsv()
     {
@@ -32,7 +31,6 @@ class AprioriService implements AprioriServiceInterface
             Order::query()
                 ->where('order_status', 'completed')
                 ->where('payment_status', 'paid')
-                ->where('delivery_status', 'delivered')
                 ->with('order_items')
                 ->chunk(1000, function ($orders) use ($file) {
                     foreach ($orders as $order) {

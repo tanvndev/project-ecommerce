@@ -1,7 +1,11 @@
 const ORDER_STATUS = [
   {
-    label: 'Chờ thanh toán',
+    label: 'Chờ xác nhận',
     value: 'pending'
+  },
+  {
+    label: 'Đang xử lý',
+    value: 'processing'
   },
   {
     label: 'Đang giao',

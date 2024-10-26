@@ -12,6 +12,7 @@ class Order extends Model
 
     const ORDER_STATUS = [
         'pending'    => 'Chờ xác nhận',
+        'processing' => 'Đang xử lý',
         'delivering' => 'Đang giao',
         'completed'  => 'Hoàn thành',
         'canceled'   => 'Đã huỷ',
@@ -23,14 +24,9 @@ class Order extends Model
         'unpaid' => 'Chưa thanh toán',
     ];
 
-    const DELYVERY_STATUS = [
-        'pending'    => 'Chờ giao',
-        'delivering' => 'Đang giao',
-        'delivered'  => 'Đã giao hàng',
-        'failed'     => 'Giao thất bại',
-    ];
-
     const ORDER_STATUS_PENDING = 'pending';
+
+    const ORDER_STATUS_PROCESSING = 'processing';
 
     const ORDER_STATUS_DELIVERING = 'delivering';
 
@@ -44,13 +40,6 @@ class Order extends Model
 
     const PAYMENT_STATUS_UNPAID = 'unpaid';
 
-    const DELYVERY_STATUS_PENDING = 'pending';
-
-    const DELYVERY_STATUS_DELIVERING = 'delivering';
-
-    const DELYVERY_STATUS_DELIVERED = 'delivered';
-
-    const DELYVERY_STATUS_FAILED = 'failed';
 
     protected $fillable = [
         'code',
@@ -68,14 +57,12 @@ class Order extends Model
         'voucher_id',
         'order_status',
         'payment_status',
-        'delivery_status',
         'total_price',
         'shipping_fee',
         'discount',
         'final_price',
         'ordered_at',
         'paid_at',
-        'delivered_at',
         'additional_details',
     ];
 

@@ -16,8 +16,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('voucher_id')->constrained('vouchers')->cascadeOnDelete()->cascadeOnUpdate();
             $table->timestamps();
-
-            $table->unique(['user_id', 'voucher_id']);
         });
     }
 
