@@ -3,6 +3,7 @@ import { resizeImage } from '#imports'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation, Autoplay } from 'swiper/modules'
 import 'swiper/css'
+import _ from 'lodash'
 
 const modules = [Navigation, Autoplay]
 const { $axios } = useNuxtApp()
@@ -23,6 +24,14 @@ const attributes = ref([])
 const priceRange = reactive({
   min: '',
   max: '',
+})
+const searchTerm = ref('')
+
+const filteredProducts = computed(() => {
+  if (!searchTerm.value) products.value
+  return products.value.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.value.toLowerCase())
+  )
 })
 
 const onSwiper = (swiper) => {
@@ -153,7 +162,13 @@ onMounted(() => {
                   <i class="fal fa-filter fs-14 mr-1"></i>
                   BỘ LỌC TÌM KIẾM</label
                 >
-                <a href="#">Xóa tất cả</a>
+                <a
+                  href="clean-all"
+                  @click.prevent="$router.push('/category')"
+                  v-if="!_.isEmpty(queryParams)"
+                >
+                  Xóa tất cả
+                </a>
               </div>
               <!-- Start of Collapsible widget -->
               <div class="widget widget-collapsible">
@@ -258,12 +273,25 @@ onMounted(() => {
         <!-- Start of Shop Main Content -->
         <div class="main-content">
           <nav class="toolbox sticky-toolbox sticky-content fix-top">
-            <div class="toolbox-left">
-              <a
-                href="#"
-                class="btn btn-primary btn-outline btn-rounded left-sidebar-toggle btn-icon-left d-block d-lg-none"
-                ><i class="w-icon-category"></i><span>Lọc sản phẩm</span></a
-              >
+            <div class="toolbox-left justify-between w-100">
+              <div>
+                <div style="width: 300px; font-size: 12px">
+                  <v-text-field
+                    style="font-size: 12px"
+                    v-model="searchTerm"
+                    prepend-inner-icon="mdi-magnify"
+                    variant="underlined"
+                    clearable
+                    density="comfortable"
+                    placeholder="Bạn có thể tìm kiếm nhanh ở đây"
+                  ></v-text-field>
+                </div>
+                <a
+                  href="#"
+                  class="btn btn-primary btn-outline btn-rounded left-sidebar-toggle btn-icon-left d-block d-lg-none"
+                  ><i class="w-icon-category"></i><span>Lọc sản phẩm</span></a
+                >
+              </div>
               <div class="toolbox-item toolbox-sort select-box text-dark">
                 <label>Sắp xếp theo </label>
                 <select name="orderby" class="form-control">
@@ -279,10 +307,14 @@ onMounted(() => {
           </nav>
           <div
             class="product-wrapper row cols-lg-4 cols-md-3 cols-sm-2 cols-2"
-            v-if="!isLoading && products?.length"
+            v-if="!isLoading && filteredProducts?.length"
           >
             <!--  -->
-            <div class="product-wrap" v-for="item in products" :key="item.id">
+            <div
+              class="product-wrap"
+              v-for="item in filteredProducts"
+              :key="item.id"
+            >
               <div class="product text-center">
                 <figure class="product-media">
                   <NuxtLink
@@ -341,7 +373,7 @@ onMounted(() => {
 
           <v-row v-if="isLoading">
             <v-col
-              v-for="item in products"
+              v-for="item in filteredProducts"
               :key="item.id"
               cols="12"
               sm="6"
@@ -352,7 +384,7 @@ onMounted(() => {
             </v-col>
           </v-row>
 
-          <div v-if="!products?.length">
+          <div v-if="!filteredProducts?.length">
             <v-empty-state
               icon="mdi-magnify"
               text="Sản phẩm đang trống vui lòng chọn quay lại mua những sản phẩm mới nhất của chúng tôi."
