@@ -637,8 +637,10 @@ class ProductService extends BaseService implements ProductServiceInterface
         $priceRange = $this->getPriceRange($data);
         $sort = $data['sort'] ?? 'asc';
         $search = $data['search'] ?? '';
+        $values = $data['values'] ?? '';
+        $attributes = $data['attribute'] ?? '';
 
-        $productVariants = $this->getProductVariantsFilter($catalogues, $priceRange, $sort, $search);
+        $productVariants = $this->getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $attributes);
 
         $formattedAttributes = $this->getFormattedAttributes($productVariants);
 
@@ -664,16 +666,59 @@ class ProductService extends BaseService implements ProductServiceInterface
     }
 
     // gọi các hàm lọc
-    protected function getProductVariantsFilter($catalogues, $priceRange, $sort, $search)
+    protected function getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $attributes)
     {
         $query = ProductVariant::query();
         $query = $this->filterByCatalogue($query, $catalogues);
         $query = $this->filterByPrice($query, $priceRange);
 
+        // Apply search
+        $this->applySearch($query, $search);
+
+        // Filter by attributes
+        $this->applyAttributeFilter($query, $attributes);
+
+        // Filter by values
+        $this->applyValueFilter($query, $values);
+
+        // Join flash sale for effective price
+        $this->applyFlashSaleJoin($query);
+
+        // Sort by price
+        $this->applySorting($query, $sort);
+
+        return $query->paginate(30);
+    }
+    protected function applySearch($query, $search)
+    {
         if (!empty($search)) {
             $query->where('product_variants.name', 'like', '%' . $search . '%');
         }
+    }
 
+    protected function applyAttributeFilter($query, $attributes)
+    {
+        if (!empty($attributes)) {
+            $attributeArray = explode(',', $attributes);
+
+            $query->whereHas('attribute_values.attribute', function ($q) use ($attributeArray) {
+                $q->whereIn('attributes.id', $attributeArray);
+            });
+        }
+    }
+
+    protected function applyValueFilter($query, $values)
+    {
+        if (!empty($values)) {
+            $valueArray = explode(',', $values);
+            $query->whereHas('attribute_values', function ($q) use ($valueArray) {
+                $q->whereIn('attribute_values.id', $valueArray);
+            });
+        }
+    }
+
+    protected function applyFlashSaleJoin($query)
+    {
         $query->leftJoin('flash_sale_product_variants', function ($join) {
             $join->on('product_variants.id', '=', 'flash_sale_product_variants.product_variant_id')
                 ->join('flash_sales', 'flash_sale_product_variants.flash_sale_id', '=', 'flash_sales.id')
@@ -687,14 +732,11 @@ class ProductService extends BaseService implements ProductServiceInterface
         product_variants.*,
         COALESCE(flash_sale_product_variants.sale_price, product_variants.price) as effective_price
     ');
+    }
 
-        if ($sort === 'desc') {
-            $query->orderBy('effective_price', 'desc');
-        } else {
-            $query->orderBy('effective_price', 'asc');
-        }
-
-        return $query->paginate(30);
+    protected function applySorting($query, $sort)
+    {
+        $query->orderBy('effective_price', $sort);
     }
 
     // lấy ra danh sách attributes và values
@@ -713,6 +755,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         return $this->formatAttributes($attributeValues);
     }
+
 
     // format attributes
     protected function formatAttributes($attributeValues)
@@ -758,10 +801,8 @@ class ProductService extends BaseService implements ProductServiceInterface
     protected function filterByCatalogue($query, $catalogues)
     {
         if (!empty($catalogues)) {
-            $query->whereHas('product', function ($q) use ($catalogues) {
-                $q->whereHas('catalogues', function ($subQuery) use ($catalogues) {
-                    $subQuery->whereIn('product_catalogue_id', $catalogues);
-                });
+            $query->whereHas('product.catalogues', function ($q) use ($catalogues) {
+                $q->whereIn('product_catalogue_id', $catalogues);
             });
         }
         return $query;
