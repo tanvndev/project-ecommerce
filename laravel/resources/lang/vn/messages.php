@@ -42,6 +42,7 @@ return [
             'delete'  => 'Xóa thành công.',
             'clean'   => 'Xóa thành công giỏ hàng.',
             'publish' => 'Cập nhật trạng thái thành công.',
+            'buy_now' => 'Thao tác thành công.',
 
         ],
         'error' => [
