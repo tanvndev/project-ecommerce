@@ -643,7 +643,7 @@ class ProductService extends BaseService implements ProductServiceInterface
         $formattedAttributes = $this->getFormattedAttributes($productVariants);
 
         return [
-            'productVariants' => $productVariants,
+            'product_variants' => $productVariants,
             'attributes' => $formattedAttributes
         ];
     }
@@ -717,19 +717,17 @@ class ProductService extends BaseService implements ProductServiceInterface
     // format attributes
     protected function formatAttributes($attributeValues)
     {
-        $formatted = [
-            'attributes' => [],
-            'values' => []
-        ];
+        $formatted = [];
 
         foreach ($attributeValues as $attributeId => $values) {
-            $formatted['attributes'][$attributeId] = [
+            $formatted[$attributeId] = [
                 'id' => $values[0]->attribute_id,
                 'name' => $values[0]->attribute_name,
+                'values' => []
             ];
 
             foreach ($values as $value) {
-                $formatted['values'][$attributeId][] = [
+                $formatted[$attributeId]['values'][] = [
                     'id' => $value->value_id,
                     'name' => $value->value_name,
                 ];
@@ -738,6 +736,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         return $formatted;
     }
+
 
     // lọc giá
     protected function filterByPrice($query, $priceRange)

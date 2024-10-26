@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="container mx-auto mb-[50px] mt-6 min-h-screen">
+      <div class="mx-10 mb-[50px] mt-6 h-screen min-h-screen">
         <form @submit.prevent="submitForm">
           <div class="grid grid-cols-12 gap-6">
             <!-- Left Column (Name and Products Fields) -->

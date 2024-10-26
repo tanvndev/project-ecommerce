@@ -1,255 +1,144 @@
-<template>
-  <div class="page-content mt-5">
-    <div class="container">
-      <div class="shop-default-brands mb-5 pb-5 mt-7">
-        <div class="brands-swiper swiper-theme">
-          <div
-            class="row gutter-no cols-xl-7 cols-lg-6 cols-md-4 cols-sm-3 cols-2"
-          >
-            <div class="">
-              <figure>
-                <img
-                  src="assets/images/brands/category/1.png"
-                  alt="Brand"
-                  width="160"
-                  height="90"
-                />
-              </figure>
-            </div>
-            <div class="">
-              <figure>
-                <img
-                  src="assets/images/brands/category/2.png"
-                  alt="Brand"
-                  width="160"
-                  height="90"
-                />
-              </figure>
-            </div>
-            <div class="">
-              <figure>
-                <img
-                  src="assets/images/brands/category/3.png"
-                  alt="Brand"
-                  width="160"
-                  height="90"
-                />
-              </figure>
-            </div>
-            <div class="">
-              <figure>
-                <img
-                  src="assets/images/brands/category/4.png"
-                  alt="Brand"
-                  width="160"
-                  height="90"
-                />
-              </figure>
-            </div>
-            <div class="">
-              <figure>
-                <img
-                  src="assets/images/brands/category/5.png"
-                  alt="Brand"
-                  width="160"
-                  height="90"
-                />
-              </figure>
-            </div>
-            <div class="">
-              <figure>
-                <img
-                  src="assets/images/brands/category/6.png"
-                  alt="Brand"
-                  width="160"
-                  height="90"
-                />
-              </figure>
-            </div>
-            <div class="">
-              <figure>
-                <img
-                  src="assets/images/brands/category/7.png"
-                  alt="Brand"
-                  width="160"
-                  height="90"
-                />
-              </figure>
-            </div>
-          </div>
-          <div class="swiper-pagination"></div>
-        </div>
-      </div>
-      <!-- End of Shop Brands-->
+<script setup>
+import { resizeImage } from '#imports'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Navigation, Autoplay } from 'swiper/modules'
+import 'swiper/css'
+import _ from 'lodash'
 
+const modules = [Navigation, Autoplay]
+const { $axios } = useNuxtApp()
+const productCatalogueStore = useProductCatalogueStore()
+const loadingStore = useLoadingStore()
+const cartStore = useCartStore()
+const wishlistStore = useWishlistStore()
+const productCatalogues = computed(
+  () => productCatalogueStore.getProductCatalogues
+)
+const route = useRoute()
+const queryParams = computed(() => route.query)
+const slider = ref(null)
+const is_collapsed = ref({})
+const isLoading = ref(false)
+const products = ref([])
+const attributes = ref([])
+const priceRange = reactive({
+  min: '',
+  max: '',
+})
+const searchTerm = ref('')
+
+const filteredProducts = computed(() => {
+  if (!searchTerm.value) products.value
+  return products.value.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.value.toLowerCase())
+  )
+})
+
+const onSwiper = (swiper) => {
+  slider.value = swiper
+}
+
+const addToCart = async (variantId) => {
+  if (!variantId) {
+    return toast('Có lỗi vui lòng thử lại.', 'error')
+  }
+
+  const payload = {
+    product_variant_id: variantId,
+  }
+
+  await cartStore.addToCart(payload)
+}
+
+const addToWishlist = async (variantId) => {
+  if (!variantId) {
+    return toast('Có lỗi vui lòng thử lại.', 'error')
+  }
+
+  const payload = {
+    product_variant_id: variantId,
+  }
+
+  await wishlistStore.addToWishlist(payload)
+}
+
+const toggleCollapse = (id) => {
+  if (is_collapsed.value[id] === undefined) {
+    is_collapsed.value[id] = false
+  }
+  is_collapsed.value[id] = !is_collapsed.value[id]
+}
+
+const getProducts = async () => {
+  try {
+    isLoading.value = true
+    const response = await $axios.get(`/products/filter`, {
+      params: queryParams.value,
+    })
+    products.value = response?.data?.product_variants?.data
+    attributes.value = response?.data?.attributes
+  } catch (error) {
+    console.log(error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const debounceGetProducts = debounce(getProducts, 400)
+
+watch(
+  queryParams,
+  () => {
+    debounceGetProducts()
+  },
+  { deep: true, immediate: true }
+)
+
+onMounted(() => {
+  getProducts()
+})
+</script>
+<template>
+  <div class="page-content mt-7">
+    <div class="container">
       <!-- Start of Shop Category -->
       <div class="shop-default-category category-ellipse-section mb-6">
         <div class="swiper-theme shadow-swiper">
           <div
-            class="row gutter-lg cols-xl-8 cols-lg-7 cols-md-6 cols-sm-4 cols-xs-3 cols-2"
+            class="row gutter-lg cols-xl-6 cols-lg-6 cols-md-6 cols-sm-4 cols-xs-3 cols-2"
           >
-            <div class="category-wrap">
+            <div
+              class="category-wrap"
+              v-for="item in productCatalogues"
+              :key="item.id"
+            >
               <div class="category category-ellipse">
                 <figure class="category-media">
-                  <a href="shop-banner-sidebar.html">
+                  <NuxtLink
+                    :title="item.name"
+                    :to="`/category?catalogues=${item.id}`"
+                  >
                     <img
-                      src="assets/images/categories/category-4.jpg"
-                      alt="Categroy"
+                      :src="resizeImage(item.image, 300)"
+                      :alt="item.name"
                       width="190"
                       height="190"
-                      style="background-color: #5c92c0"
+                      class="category-image"
                     />
-                  </a>
+                  </NuxtLink>
                 </figure>
                 <div class="category-content">
                   <h4 class="category-name">
-                    <a href="shop-banner-sidebar.html">Sports</a>
-                  </h4>
-                </div>
-              </div>
-            </div>
-            <div class="category-wrap">
-              <div class="category category-ellipse">
-                <figure class="category-media">
-                  <a href="shop-banner-sidebar.html">
-                    <img
-                      src="assets/images/categories/category-5.jpg"
-                      alt="Categroy"
-                      width="190"
-                      height="190"
-                      style="background-color: #b8bdc1"
-                    />
-                  </a>
-                </figure>
-                <div class="category-content">
-                  <h4 class="category-name">
-                    <a href="shop-banner-sidebar.html">Babies</a>
-                  </h4>
-                </div>
-              </div>
-            </div>
-            <div class="category-wrap">
-              <div class="category category-ellipse">
-                <figure class="category-media">
-                  <a href="shop-banner-sidebar.html">
-                    <img
-                      src="assets/images/categories/category-6.jpg"
-                      alt="Categroy"
-                      width="190"
-                      height="190"
-                      style="background-color: #99c4ca"
-                    />
-                  </a>
-                </figure>
-                <div class="category-content">
-                  <h4 class="category-name">
-                    <a href="shop-banner-sidebar.html">Sneakers</a>
-                  </h4>
-                </div>
-              </div>
-            </div>
-            <div class="category-wrap">
-              <div class="category category-ellipse">
-                <figure class="category-media">
-                  <a href="shop-banner-sidebar.html">
-                    <img
-                      src="assets/images/categories/category-7.jpg"
-                      alt="Categroy"
-                      width="190"
-                      height="190"
-                      style="background-color: #4e5b63"
-                    />
-                  </a>
-                </figure>
-                <div class="category-content">
-                  <h4 class="category-name">
-                    <a href="shop-banner-sidebar.html">Cameras</a>
-                  </h4>
-                </div>
-              </div>
-            </div>
-            <div class="category-wrap">
-              <div class="category category-ellipse">
-                <figure class="category-media">
-                  <a href="shop-banner-sidebar.html">
-                    <img
-                      src="assets/images/categories/category-8.jpg"
-                      alt="Categroy"
-                      width="190"
-                      height="190"
-                      style="background-color: #d3e5ef"
-                    />
-                  </a>
-                </figure>
-                <div class="category-content">
-                  <h4 class="category-name">
-                    <a href="shop-banner-sidebar.html">Games</a>
-                  </h4>
-                </div>
-              </div>
-            </div>
-            <div class="category-wrap">
-              <div class="category category-ellipse">
-                <figure class="category-media">
-                  <a href="shop-banner-sidebar.html">
-                    <img
-                      src="assets/images/categories/category-9.jpg"
-                      alt="Categroy"
-                      width="190"
-                      height="190"
-                      style="background-color: #65737c"
-                    />
-                  </a>
-                </figure>
-                <div class="category-content">
-                  <h4 class="category-name">
-                    <a href="shop-banner-sidebar.html">Kitchen</a>
-                  </h4>
-                </div>
-              </div>
-            </div>
-            <div class="category-wrap">
-              <div class="category category-ellipse">
-                <figure class="category-media">
-                  <a href="shop-banner-sidebar.html">
-                    <img
-                      src="assets/images/categories/category-20.jpg"
-                      alt="Categroy"
-                      width="190"
-                      height="190"
-                      style="background-color: #e4e4e4"
-                    />
-                  </a>
-                </figure>
-                <div class="category-content">
-                  <h4 class="category-name">
-                    <a href="shop-banner-sidebar.html">Watches</a>
-                  </h4>
-                </div>
-              </div>
-            </div>
-            <div class="category-wrap">
-              <div class="category category-ellipse">
-                <figure class="category-media">
-                  <a href="shop-banner-sidebar.html">
-                    <img
-                      src="assets/images/categories/category-21.jpg"
-                      alt="Categroy"
-                      width="190"
-                      height="190"
-                      style="background-color: #d3d8de"
-                    />
-                  </a>
-                </figure>
-                <div class="category-content">
-                  <h4 class="category-name">
-                    <a href="shop-banner-sidebar.html">Clothes</a>
+                    <NuxtLink
+                      :title="item.name"
+                      :to="`/category?catalogues=${item.id}`"
+                      >{{ item.name }}</NuxtLink
+                    >
                   </h4>
                 </div>
               </div>
             </div>
           </div>
-          <div class="swiper-pagination"></div>
         </div>
       </div>
       <!-- End of Shop Category -->
@@ -269,37 +158,80 @@
             <!-- Start of Sticky Sidebar -->
             <div class="sticky-sidebar">
               <div class="filter-actions">
-                <label>Lọc sản phẩm:</label>
-                <a href="#" class="btn btn-dark btn-link filter-clean"
-                  >Xóa tất cả</a
+                <label>
+                  <i class="fal fa-filter fs-14 mr-1"></i>
+                  BỘ LỌC TÌM KIẾM</label
                 >
+                <a
+                  href="clean-all"
+                  @click.prevent="$router.push('/category')"
+                  v-if="!_.isEmpty(queryParams)"
+                >
+                  Xóa tất cả
+                </a>
               </div>
               <!-- Start of Collapsible widget -->
               <div class="widget widget-collapsible">
-                <h3 class="widget-title">
+                <h3
+                  class="widget-title"
+                  :class="is_collapsed['catalogue'] ? 'collapsed' : ''"
+                  @click="toggleCollapse('catalogue')"
+                >
                   <label>Danh mục</label>
                   <span class="toggle-btn"></span>
                 </h3>
-                <ul class="widget-body filter-items search-ul">
-                  <li><a href="#">Accessories</a></li>
-                  <li><a href="#">Babies</a></li>
-                  <li><a href="#">Beauty</a></li>
-                  <li><a href="#">Decoration</a></li>
-                  <li><a href="#">Electronics</a></li>
-                  <li><a href="#">Fashion</a></li>
-                  <li><a href="#">Food</a></li>
-                  <li><a href="#">Furniture</a></li>
-                  <li><a href="#">Kitchen</a></li>
-                  <li><a href="#">Medical</a></li>
-                  <li><a href="#">Sports</a></li>
-                  <li><a href="#">Watches</a></li>
+                <ul class="widget-body filter-items item-check mt-1">
+                  <li
+                    v-for="item in productCatalogues"
+                    :key="item.id"
+                    class="active"
+                  >
+                    <input type="checkbox" class="d-none" :value="item.id" />
+                    <a :title="item.name" href="#">{{ item.name }}</a>
+                  </li>
+                </ul>
+              </div>
+              <!-- End of Collapsible Widget -->
+
+              <!-- Start of Collapsible Widget -->
+              <div
+                class="widget widget-collapsible"
+                v-for="attribute in attributes"
+                :key="`attribute-${attribute.id}`"
+              >
+                <h3
+                  class="widget-title"
+                  :class="
+                    is_collapsed[`attribute-${attribute.id}`] ? 'collapsed' : ''
+                  "
+                  @click="toggleCollapse(`attribute-${attribute.id}`)"
+                >
+                  <label>{{ attribute.name }}</label>
+                  <span class="toggle-btn"></span>
+                </h3>
+                <ul class="widget-body filter-items item-check mt-1">
+                  <li
+                    class="active"
+                    v-for="value in attribute.values"
+                    :key="`values-${value.id}`"
+                  >
+                    <input type="checkbox" class="d-none" :value="value.id" />
+                    <a href="#">{{ value.name }}</a>
+                  </li>
                 </ul>
               </div>
               <!-- End of Collapsible Widget -->
 
               <!-- Start of Collapsible Widget -->
               <div class="widget widget-collapsible">
-                <h3 class="widget-title"><label>Giá cả</label></h3>
+                <h3
+                  class="widget-title"
+                  :class="is_collapsed['price'] ? 'collapsed' : ''"
+                  @click="toggleCollapse('price')"
+                >
+                  <label>Khoảng Giá</label>
+                  <span class="toggle-btn"></span>
+                </h3>
                 <div class="widget-body">
                   <ul class="filter-items search-ul">
                     <li><a href="#">$0.00 - $100.00</a></li>
@@ -311,62 +243,24 @@
                   <form class="price-range">
                     <input
                       type="number"
-                      name="min_price"
                       class="min_price text-center"
-                      placeholder="Tối thiểu"
-                    /><span class="delimiter">-</span
-                    ><input
+                      v-model="priceRange.min"
+                      placeholder="Tối thiểu ₫"
+                    />
+                    <span class="delimiter">
+                      <i class="fal fa-minus fs-13"></i>
+                    </span>
+                    <input
                       type="number"
-                      name="max_price"
                       class="max_price text-center"
-                      placeholder="Tối đa"
-                    /><a href="#" class="btn btn-primary btn-rounded">Đi</a>
+                      v-model="priceRange.max"
+                      placeholder="Tối đa ₫"
+                    />
                   </form>
+                  <v-btn html-type="button" width="100%" color="#336699"
+                    >Xác nhận</v-btn
+                  >
                 </div>
-              </div>
-              <!-- End of Collapsible Widget -->
-
-              <!-- Start of Collapsible Widget -->
-              <div class="widget widget-collapsible">
-                <h3 class="widget-title"><label>Kích cỡ</label></h3>
-                <ul class="widget-body filter-items item-check mt-1">
-                  <li><a href="#">Extra Large</a></li>
-                  <li><a href="#">Large</a></li>
-                  <li><a href="#">Medium</a></li>
-                  <li><a href="#">Small</a></li>
-                </ul>
-              </div>
-              <!-- End of Collapsible Widget -->
-
-              <!-- Start of Collapsible Widget -->
-              <div class="widget widget-collapsible">
-                <h3 class="widget-title"><label>Thương hiệu</label></h3>
-                <ul class="widget-body filter-items item-check mt-1">
-                  <li><a href="#">Elegant Auto Group</a></li>
-                  <li><a href="#">Green Grass</a></li>
-                  <li><a href="#">Node Js</a></li>
-                  <li><a href="#">NS8</a></li>
-                  <li><a href="#">Red</a></li>
-                  <li><a href="#">Skysuite Tech</a></li>
-                  <li><a href="#">Sterling</a></li>
-                </ul>
-              </div>
-              <!-- End of Collapsible Widget -->
-
-              <!-- Start of Collapsible Widget -->
-              <div class="widget widget-collapsible">
-                <h3 class="widget-title">
-                  <label>Màu sắc</label>
-                </h3>
-                <ul class="widget-body filter-items item-check mt-1">
-                  <li><a href="#">Black</a></li>
-                  <li><a href="#">Blue</a></li>
-                  <li><a href="#">Brown</a></li>
-                  <li><a href="#">Green</a></li>
-                  <li><a href="#">Grey</a></li>
-                  <li><a href="#">Orange</a></li>
-                  <li><a href="#">Yellow</a></li>
-                </ul>
               </div>
               <!-- End of Collapsible Widget -->
             </div>
@@ -379,14 +273,27 @@
         <!-- Start of Shop Main Content -->
         <div class="main-content">
           <nav class="toolbox sticky-toolbox sticky-content fix-top">
-            <div class="toolbox-left">
-              <a
-                href="#"
-                class="btn btn-primary btn-outline btn-rounded left-sidebar-toggle btn-icon-left d-block d-lg-none"
-                ><i class="w-icon-category"></i><span>Lọc sản phẩm</span></a
-              >
+            <div class="toolbox-left justify-between w-100">
+              <div>
+                <div style="width: 300px; font-size: 12px">
+                  <v-text-field
+                    style="font-size: 12px"
+                    v-model="searchTerm"
+                    prepend-inner-icon="mdi-magnify"
+                    variant="underlined"
+                    clearable
+                    density="comfortable"
+                    placeholder="Bạn có thể tìm kiếm nhanh ở đây"
+                  ></v-text-field>
+                </div>
+                <a
+                  href="#"
+                  class="btn btn-primary btn-outline btn-rounded left-sidebar-toggle btn-icon-left d-block d-lg-none"
+                  ><i class="w-icon-category"></i><span>Lọc sản phẩm</span></a
+                >
+              </div>
               <div class="toolbox-item toolbox-sort select-box text-dark">
-                <label>Sắp xếp theo :</label>
+                <label>Sắp xếp theo </label>
                 <select name="orderby" class="form-control">
                   <option value="default" selected>Default sorting</option>
                   <option value="popularity">Sort by popularity</option>
@@ -398,14 +305,24 @@
               </div>
             </div>
           </nav>
-          <div class="product-wrapper row cols-lg-4 cols-md-3 cols-sm-2 cols-2">
+          <div
+            class="product-wrapper row cols-lg-4 cols-md-3 cols-sm-2 cols-2"
+            v-if="!isLoading && filteredProducts?.length"
+          >
             <!--  -->
-            <div class="product-wrap" v-for="n in 12">
+            <div
+              class="product-wrap"
+              v-for="item in filteredProducts"
+              :key="item.id"
+            >
               <div class="product text-center">
                 <figure class="product-media">
-                  <NuxtLink to="detail">
+                  <NuxtLink
+                    :title="item?.name"
+                    :to="`product/${item.slug}-${item.product_id}`"
+                  >
                     <img
-                      src="assets/images/shop/3.jpg"
+                      :src="resizeImage(item.image, 500)"
                       alt="Product"
                       width="300"
                       height="338"
@@ -413,20 +330,32 @@
                   </NuxtLink>
                   <div class="product-action-horizontal">
                     <a
-                      href="#"
+                      @click.prevent="addToCart(item?.id)"
+                      :href="item.slug"
                       class="btn-product-icon btn-cart w-icon-cart"
-                      title="Add to cart"
+                      title="Thêm vào giỏ hàng"
                     ></a>
                     <a
-                      href="#"
+                      @click.prevent="addToWishlist(item?.id)"
+                      :href="item.slug"
                       class="btn-product-icon btn-wishlist w-icon-heart"
-                      title="Wishlist"
+                      title="Thêm vào ưa thích"
                     ></a>
+                  </div>
+                  <div class="product-label-group" v-if="item?.discount">
+                    <label class="product-label label-discount"
+                      >Giảm {{ item?.discount }}%</label
+                    >
                   </div>
                 </figure>
                 <div class="product-details">
                   <h3 class="product-name">
-                    <NuxtLink to="detail">Macbook Air M1 18inch </NuxtLink>
+                    <NuxtLink
+                      :title="item?.name"
+                      :to="`product/${item.slug}-${item.product_id}`"
+                    >
+                      {{ item.name }}
+                    </NuxtLink>
                   </h3>
                   <div class="ratings-container">
                     <div class="ratings-full">
@@ -435,14 +364,32 @@
                     </div>
                     <a href="#" class="rating-reviews">(5 đánh giá)</a>
                   </div>
-                  <div class="product-price">
-                    <ins class="new-price">22.0000.000 đ</ins>
-                    <del class="old-price">34.0000.000 đ</del>
-                  </div>
+                  <div v-html="handleRenderPrice(item)"></div>
                 </div>
               </div>
             </div>
             <!--  -->
+          </div>
+
+          <v-row v-if="isLoading">
+            <v-col
+              v-for="item in filteredProducts"
+              :key="item.id"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+            >
+              <v-skeleton-loader type="card"></v-skeleton-loader>
+            </v-col>
+          </v-row>
+
+          <div v-if="!filteredProducts?.length">
+            <v-empty-state
+              icon="mdi-magnify"
+              text="Sản phẩm đang trống vui lòng chọn quay lại mua những sản phẩm mới nhất của chúng tôi."
+              title="Sản phẩm không có sẵn."
+            ></v-empty-state>
           </div>
 
           <div class="toolbox toolbox-pagination justify-content-between">
@@ -477,3 +424,32 @@
     </div>
   </div>
 </template>
+<style scoped>
+.category-media {
+  background-color: #fff;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+.category-media .category-image {
+  padding: 15px;
+}
+
+.product-media {
+  background-color: #f5f6f7;
+  border-radius: 10px !important;
+  transform: translateY(0);
+  transition: all 0.3s linear;
+  padding: 0 20px;
+}
+.product-media img {
+  object-fit: contain !important;
+  width: 300px;
+  height: 230px;
+  border-radius: 10px !important;
+  mix-blend-mode: darken;
+  transition: all 0.2s ease-in-out;
+}
+
+.product-media:hover img {
+  transform: translateY(-12px);
+}
+</style>

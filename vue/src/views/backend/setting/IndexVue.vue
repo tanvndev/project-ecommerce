@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="container mx-auto min-h-screen">
+      <div class="mx-10 h-screen min-h-screen">
         <a-row :gutter="[16, 16]" class="mt-4">
           <a-col span="24">
             <a-card>
