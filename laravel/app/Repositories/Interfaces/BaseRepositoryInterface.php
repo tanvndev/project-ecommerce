@@ -34,7 +34,8 @@ interface BaseRepositoryInterface
         array $orderBy = [],
         array $whereInParams = [],
         array $withWhereHas = [],
-        array $withCount = []
+        array $withCount = [],
+        bool $lockForUpdate = false
     );
 
     /**

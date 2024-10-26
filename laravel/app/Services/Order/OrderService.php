@@ -230,18 +230,35 @@ class OrderService extends BaseService implements OrderServiceInterface
      *
      * @param  \Illuminate\Support\Collection  $cartItems
      */
-    private function decreaseStockProductVariants(Collection $cartItems): void
+    private function decreaseStockProductVariants($cartItems): void
     {
         foreach ($cartItems as $cartItem) {
-            $productVariant = $cartItem->product_variant->lockForUpdate()->first();
+            $productVariant = $this->productVariantRepository->findByWhere(
+                ['id' => $cartItem->product_variant_id],
+                ['*'],
+                [],
+                false,
+                [],
+                [],
+                [],
+                [],
+                true
+            );
+
+            if (!$productVariant) {
+                throw new Exception('Product variant not found.');
+            }
+
             $quantity = $cartItem->quantity;
 
-            $productVariant->update(
-                [
-                    'stock' => $productVariant->stock - $quantity,
-                    'is_used' => true,
-                ]
-            );
+            if ($productVariant->stock < $quantity) {
+                throw new Exception('Not enough stock for product variant');
+            }
+
+            $productVariant->update([
+                'stock' => $productVariant->stock - $quantity,
+                'is_used' => true,
+            ]);
         }
     }
 
@@ -362,13 +379,19 @@ class OrderService extends BaseService implements OrderServiceInterface
      */
     private function applyVoucher(array &$payload)
     {
+        // Fetch the voucher with lock
         $voucher = $this->voucherRepository->findByWhere([
             'id' => $payload['voucher_id'],
             'publish' => 1,
-        ])->lockForUpdate()->first();
+        ], ['*'], [], false, [], [], [], [], true);
+
 
         if (!$voucher) {
             throw new Exception('Voucher not found.');
+        }
+
+        if ($voucher->quantity <= 0) {
+            throw new Exception('Voucher quantity is exhausted.');
         }
 
         $payload['additional_details']['voucher'] = [
@@ -386,6 +409,10 @@ class OrderService extends BaseService implements OrderServiceInterface
 
         $voucher->quantity -= 1;
         $voucher->save();
+
+        $voucher->voucher_usages()->create([
+            'user_id' => $payload['user_id'],
+        ]);
     }
 
     /**
@@ -998,31 +1025,31 @@ class OrderService extends BaseService implements OrderServiceInterface
 
 
     // Create order with admin fake data
-    public function createNewOrder(): mixed
-    {
-        try {
-            $request = request();
+    // public function createNewOrder(): mixed
+    // {
+    //     try {
+    //         $request = request();
 
-            $this->fakeData();
+    //         $this->fakeData();
 
-            return successResponse(__('messages.order.success.create'), []);
-        } catch (\Exception $e) {
-            return errorResponse('Loiiiii!!');
-        }
-    }
+    //         return successResponse(__('messages.order.success.create'), []);
+    //     } catch (\Exception $e) {
+    //         return errorResponse('Loiiiii!!');
+    //     }
+    // }
 
 
     // Create order with admin
-    // public function createNewOrder(): mixed
-    // {
-    //     return $this->executeInTransaction(function () {
-    //         $request = request();
+    public function createNewOrder(): mixed
+    {
+        return $this->executeInTransaction(function () {
+            $request = request();
 
-    //         $order = $this->addOrder($request);
+            $order = $this->addOrder($request);
 
-    //         return $order;
-    //     }, __('messages.order.error.create'));
-    // }
+            return $order;
+        }, __('messages.order.error.create'));
+    }
 
     /**
      * Create a new order in the database.
@@ -1063,7 +1090,7 @@ class OrderService extends BaseService implements OrderServiceInterface
 
         $this->createOrderItems($order, $orderItems);
 
-        // $this->updateStockProductVariants($orderItems);
+        $this->decreaseStockProductVariants($orderItems);
 
         return $order;
     }
@@ -1105,19 +1132,5 @@ class OrderService extends BaseService implements OrderServiceInterface
         }
 
         return $orderItems;
-    }
-    private function updateStockProductVariants($orderItems): void
-    {
-        foreach ($orderItems as $orderItem) {
-            $productVariant = $this->productVariantRepository->findByWhere(['id' => $orderItem->product_variant_id]);
-            $quantity = $orderItem->quantity;
-            $stock = $productVariant->stock - $quantity;
-            $productVariant->update(
-                [
-                    'stock' => $stock,
-                    'is_used' => true,
-                ]
-            );
-        }
     }
 }
