@@ -53,6 +53,16 @@ class CartController extends Controller
     }
 
     /**
+     * Buy now.
+     */
+    public function byNow(Request $request): JsonResponse
+    {
+        $response = $this->cartService->buyNow($request);
+
+        return handleResponse($response);
+    }
+
+    /**
      * Remove the specified item from the cart.
      */
     public function destroy(string $id): JsonResponse

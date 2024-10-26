@@ -62,6 +62,7 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
     Route::get('product-reviews', [ProductReviewController::class, 'getAllProductReviews'])->name('index');
     Route::get('posts/all', [PostController::class, 'getAllPost']);
     Route::get('posts/{canonical}/detail', [PostController::class, 'getPostByCanonical']);
+    Route::get('products/filter', [ProductController::class, 'filterProducts']);
 
     // Order
     Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
@@ -227,6 +228,7 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         Route::put('carts/handle-selected', 'handleSelected')->name('handle-selected');
         Route::delete('carts/delete-cart-selected', 'deleteCartSelected')->name('deleteCartSelected');
         Route::get('carts/add-paid-products', 'addPaidProductsToCart')->name('addPaidProducts');
+        route::put('carts/by-now', 'byNow')->name('byNow');
     });
 
     // Statistics
