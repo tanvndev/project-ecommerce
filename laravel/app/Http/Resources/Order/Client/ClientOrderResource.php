@@ -23,56 +23,23 @@ class ClientOrderResource extends JsonResource
             'customer_phone'             => $this->customer_phone,
             'customer_email'             => $this->customer_email,
             'shipping_address'           => $this->shipping_address,
-            'order_status'               => $this->getOrderStatus(),
+            'order_status'               => Order::ORDER_STATUS[$this->order_status],
             'order_status_code'          => $this->order_status,
-            'delivery_status_code'       => $this->delivery_status,
             'payment_status_code'        => $this->payment_status,
             'payment_method_id'          => $this->payment_method_id,
             'order_status_color'         => $this->getOrderStatusColor(),
             'payment_status'             => Order::PAYMENT_STATUS[$this->payment_status],
-            'delivery_status'            => Order::DELYVERY_STATUS[$this->delivery_status],
             'total_price'                => $this->total_price,
             'shipping_fee'               => $this->shipping_fee,
             'discount'                   => $this->discount,
             'final_price'                => $this->final_price,
             'ordered_at'                 => $this->ordered_at,
             'paid_at'                    => $this->paid_at,
-            'delivered_at'               => $this->delivered_at,
             'additional_details'         => $this->additional_details,
             'additional_details'         => $this->additional_details,
             'note'                       => $this->note,
             'order_items'                => ClientOrderItemResource::collection($this->order_items),
         ];
-    }
-
-    /**
-     * Get the order status.
-     *
-     * If the payment method is not COD and the payment status is unpaid,
-     * return the payment status as unpaid. Otherwise, return the order status.
-     */
-    private function getOrderStatus(): string
-    {
-        if (
-            $this->payment_method_id != PaymentMethod::COD_ID
-            && $this->payment_status == Order::PAYMENT_STATUS_UNPAID
-        ) {
-            return Order::PAYMENT_STATUS[Order::PAYMENT_STATUS_UNPAID];
-        }
-
-        if (
-            $this->order_status == Order::ORDER_STATUS_CANCELED
-        ) {
-            return Order::ORDER_STATUS[Order::ORDER_STATUS_CANCELED];
-        }
-
-        if (
-            $this->delivery_status == Order::DELYVERY_STATUS_PENDING
-        ) {
-            return Order::DELYVERY_STATUS[Order::DELYVERY_STATUS_PENDING];
-        }
-
-        return Order::ORDER_STATUS[$this->order_status];
     }
 
     /**
@@ -102,5 +69,4 @@ class ClientOrderResource extends JsonResource
                 return 'orange';
         }
     }
-
 }

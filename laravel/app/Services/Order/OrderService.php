@@ -116,7 +116,6 @@ class OrderService extends BaseService implements OrderServiceInterface
      * The fields that are included in the payload are:
      *  - ordered_at if the order status is being updated
      *  - paid_at if the payment status is being updated
-     *  - delivered_at if the delivery status is being updated
      *
      * @param  \Illuminate\Http\Request  $request
      */
@@ -133,10 +132,6 @@ class OrderService extends BaseService implements OrderServiceInterface
             $payload['paid_at'] = $now;
         }
 
-        if ($request->has('delivery_status')) {
-            $payload['delivered_at'] = $now;
-        }
-
         return $payload;
     }
 
@@ -151,25 +146,35 @@ class OrderService extends BaseService implements OrderServiceInterface
     public function checkUpdateStatus($request, Order $order): bool
     {
 
+        // NEU DA HOAN THANH THI K CHO THAY DOI TRANG THAI
+        if ($order->order_status == Order::ORDER_STATUS_COMPLETED) {
+            return false;
+        }
 
+        if (
+            $order->order_status == Order::ORDER_STATUS_COMPLETED
+            && $order->payment_status == Order::PAYMENT_STATUS_PAID
+        ) {
+            return false;
+        }
+
+        // Nếu đơn hàng đã bị hủy, không cho thay đổi trạng thái
+        if ($order->order_status === Order::ORDER_STATUS_CANCELED) {
+            return false;
+        }
+
+        // NEU LA THANH TOAN COD THI SE KHONG CHO HOAN THANH KHI CHUA THANH TOAN
         $isCOD = $order->additional_details['payment_method']['id'] == PaymentMethod::COD_ID;
 
-        if ($isCOD && $request->payment_status == Order::PAYMENT_STATUS_PAID) {
-            if (
-                $order->delivery_status != Order::DELYVERY_STATUS_DELIVERED
-            ) {
-                return false;
-            }
+        if (
+            $isCOD
+            && $request->order_status == Order::ORDER_STATUS_COMPLETED
+            && $order->payment_status != Order::PAYMENT_STATUS_PAID
+        ) {
+            return false;
         }
 
-        if ($request->order_status == Order::ORDER_STATUS_COMPLETED) {
-            if (
-                $order->payment_status != Order::PAYMENT_STATUS_PAID
-                || $order->delivery_status != Order::DELYVERY_STATUS_DELIVERED
-            ) {
-                return false;
-            }
-        }
+
 
         return true;
     }
@@ -800,11 +805,13 @@ class OrderService extends BaseService implements OrderServiceInterface
     /**
      * Send mail to customer when update payment status of an order.
      */
-    private function sendMailUpdatePayment(Order $order): void
-    {
-        // $mail = new OrderMail($order);
-        // $mail->send();
-    }
+    private function sendMailUpdatePayment(Order $order): void {}
+
+    private function sendMailOrderCreated(Order $order): void {}
+
+    private function sendMailOrderCompleted(Order $order): void {}
+
+    private function sendMailOrderCancelled(Order $order): void {}
 
     /**
      * Get an order by its code and the current user's id.
@@ -893,16 +900,23 @@ class OrderService extends BaseService implements OrderServiceInterface
                 [
                     'id' => $id,
                     'user_id' => auth()->user()->id,
-                ]
+                ],
+                ['*'],
+                [],
+                false,
+                [],
+                [],
+                [],
+                [],
+                true
             );
 
-            if ($order->payment_status != Order::PAYMENT_STATUS_PAID) {
-                return errorResponse(__('messages.order.error.status'));
+            if ($order->payment_status == Order::PAYMENT_STATUS_PAID) {
+                $order->update($payload);
+                return successResponse(__('messages.order.success.status'));
             }
 
-            $order->update($payload);
-
-            return successResponse(__('messages.order.success.status'));
+            return errorResponse(__('messages.order.error.status'));
         }, __('messages.order.error.status'));
     }
 
@@ -914,6 +928,7 @@ class OrderService extends BaseService implements OrderServiceInterface
                 return errorResponse(__('messages.order.error.status'));
             }
 
+
             $payload = request()->except('_token', '_method');
             $payload['order_status'] = Order::ORDER_STATUS_CANCELED;
             $payload['ordered_at'] = now();
@@ -922,19 +937,26 @@ class OrderService extends BaseService implements OrderServiceInterface
                 [
                     'id' => $id,
                     'user_id' => auth()->user()->id,
-                ]
+                ],
+                ['*'],
+                [],
+                false,
+                [],
+                [],
+                [],
+                [],
+                true
             );
 
             if (
-                $order->delivery_status == Order::DELYVERY_STATUS_DELIVERING
-                || $order->order_status == Order::ORDER_STATUS_DELIVERING
+                $order->order_status == Order::ORDER_STATUS_PENDING ||
+                $order->order_status == Order::ORDER_STATUS_PROCESSING
             ) {
-                return errorResponse(__('messages.order.error.status'));
+                $order->update($payload);
+                return successResponse(__('messages.order.success.status'));
             }
 
-            $order->update($payload);
-
-            return successResponse(__('messages.order.success.status'));
+            return errorResponse(__('messages.order.error.status'));
         }, __('messages.order.error.status'));
     }
 
@@ -978,7 +1000,6 @@ class OrderService extends BaseService implements OrderServiceInterface
                 "payment_method_id" => 1,
                 "order_status" => "completed",
                 "payment_status" => "paid",
-                "delivery_status" => "delivered",
                 "user_id" => rand(19, 210),
                 "discount" => rand(0, 1) ? rand(1000, 5000) : null,
                 "order_items" => $orderItems

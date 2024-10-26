@@ -3,7 +3,6 @@ import {
   ORDER_STATUS_TABS,
   ORDER_STATUS,
   PAYMENT_STATUS,
-  DELYVERY_STATUS,
 } from '~/static/order'
 import { COD_ID } from '~/static/paymentMethod'
 import { useLoadingStore, useCartStore, useOrderStore } from '#imports'
@@ -362,11 +361,9 @@ onMounted(async () => {
                         cols="auto"
                         class="mr-2"
                         v-if="
-                          ORDER_STATUS[2].value == order.order_status_code &&
+                          ORDER_STATUS[3].value == order.order_status_code &&
                           order.payment_status_code ==
                             PAYMENT_STATUS[1].value &&
-                          DELYVERY_STATUS[2].value ==
-                            order.delivery_status_code &&
                           order?.order_items?.find(
                             (item) => item.is_reviewed == false
                           )
@@ -384,12 +381,8 @@ onMounted(async () => {
                         cols="auto"
                         class="mr-2"
                         v-if="
-                          (DELYVERY_STATUS[0].value ==
-                            order.delivery_status_code &&
-                            ORDER_STATUS[0].value == order.order_status_code) ||
-                          (DELYVERY_STATUS[0].value ==
-                            order.delivery_status_code &&
-                            ORDER_STATUS[1].value == order.order_status_code)
+                          ORDER_STATUS[0].value == order.order_status_code ||
+                          ORDER_STATUS[1].value == order.order_status_code
                         "
                       >
                         <v-btn
@@ -407,7 +400,7 @@ onMounted(async () => {
                       <v-col
                         cols="auto"
                         class="mr-2"
-                        v-if="ORDER_STATUS[2].value == order.order_status_code"
+                        v-if="ORDER_STATUS[3].value == order.order_status_code"
                       >
                         <v-btn
                           @click="addToCart(order.id)"
@@ -428,13 +421,8 @@ onMounted(async () => {
                         cols="auto"
                         class="mr-2"
                         v-if="
-                          ORDER_STATUS[1].value == order.order_status_code &&
-                          PAYMENT_STATUS[1].value ==
-                            order.payment_status_code &&
-                          (DELYVERY_STATUS[1].value ==
-                            order.delivery_status_code ||
-                            DELYVERY_STATUS[2].value ==
-                              order.delivery_status_code)
+                          ORDER_STATUS[2].value == order.order_status_code &&
+                          PAYMENT_STATUS[1].value == order.payment_status_code
                         "
                       >
                         <v-btn

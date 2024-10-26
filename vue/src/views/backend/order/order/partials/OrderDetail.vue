@@ -175,19 +175,9 @@
     </a-modal>
   </div>
   <a-divider />
-  <div class="flex items-center justify-between">
-    <span class="uppercase">
-      <i
-        class="fas fa-truck mr-2"
-        v-if="order?.delivery_status_code == DELYVERY_STATUS[0].value"
-      ></i>
-      <i class="fas fa-check mr-2 text-green-500" v-else></i>
-      {{ order?.delivery_status }}
-    </span>
-  </div>
 </template>
 <script setup>
-import { ORDER_STATUS, PAYMENT_STATUS, DELYVERY_STATUS } from '@/static/order';
+import { ORDER_STATUS, PAYMENT_STATUS } from '@/static/order';
 import { ref, watch } from 'vue';
 import { formatCurrency } from '@/utils/format';
 import { AleartError } from '@/components/backend';

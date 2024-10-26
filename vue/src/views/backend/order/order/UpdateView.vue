@@ -40,13 +40,6 @@
                     />
                   </a-col>
                   <a-col span="24">
-                    <SelectComponent
-                      name="delivery_status"
-                      label="Trạng thái vận chuyển"
-                      :options="DELYVERY_STATUS"
-                    />
-                  </a-col>
-                  <a-col span="24">
                     <a-button html-type="submit" class="float-end" size="large">
                       Cập nhập
                     </a-button>
@@ -99,7 +92,6 @@ const order = ref(null);
 const { handleSubmit, setValues } = useForm({
   validationSchema: yup.object({
     payment_status: yup.string().required('Vui lòng chọn trạng thái thanh toán.'),
-    delivery_status: yup.string().required('Vui lòng chọn trạng thái vận chuyển.'),
     order_status: yup.string().required('Vui lòng chọn trạng thái đơn hàng.')
   })
 });
@@ -120,7 +112,7 @@ const onSubmit = handleSubmit(async (values) => {
 const fetchOne = async () => {
   await getOne(state.endpoint, code.value);
   order.value = data.value;
-  const { order_items, payment_status_code, delivery_status_code, order_status_code } = data.value;
+  const { order_items, payment_status_code, order_status_code } = data.value;
 
   state.weight =
     order_items?.reduce((total, item) => {
@@ -129,7 +121,6 @@ const fetchOne = async () => {
 
   setValues({
     payment_status: payment_status_code,
-    delivery_status: delivery_status_code,
     order_status: order_status_code
   });
 };
