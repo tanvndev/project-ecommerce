@@ -151,8 +151,9 @@ class ProductController extends Controller
         return successResponse('', $data, true);
     }
 
-    public function filterProducts(Request $request){
-// dd($request->toArray());
+    public function filterProducts(Request $request)
+    {
+        // dd($request->toArray());
         $response = $this->productService->filterProducts($request->toArray());
 
         return successResponse('', $response, true);
