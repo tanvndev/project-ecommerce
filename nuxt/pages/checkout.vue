@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useForm } from 'vee-validate'
-import { useCartStore } from '#imports'
+import Cookies from 'js-cookie'
 
 const { $axios } = useNuxtApp()
 const cartStore = useCartStore()
@@ -72,7 +72,11 @@ const validateEmail = (value) => {
 
 const onSubmit = handleSubmit(async (values) => {
   try {
-    const response = await $axios.post('/orders', values)
+    const endpoint = isLoggedIn.value
+      ? `/orders`
+      : `/orders/?session_id=` + Cookies.get('session_id')
+
+    const response = await $axios.post(endpoint, values)
 
     if (response.status == 'success') {
       return (location.href = response?.url)

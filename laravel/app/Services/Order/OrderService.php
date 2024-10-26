@@ -197,12 +197,13 @@ class OrderService extends BaseService implements OrderServiceInterface
      */
     private function createOrder($request): Order
     {
-        $userId = auth()->user()->id;
-        $payload = $this->prepareOrderPayload($request, $userId);
+        $userId = auth()->check() ? auth()->user()->id : null;
+        $sessionId = $request->session_id;
 
+        $payload = $this->prepareOrderPayload($request, $userId);
         $paymentMethod = $this->getPaymentMethod($payload['payment_method_id']);
         $shippingMethod = $this->getShippingMethod($payload['shipping_method_id']);
-        $cartItems = $this->getCartItems($userId);
+        $cartItems = $this->getCartItems($userId, $sessionId);
 
         $payload['total_price'] = $this->calculateTotalPrice($cartItems);
         $payload['additional_details'] = $this->getAdditionalDetails($paymentMethod, $shippingMethod, $payload);
@@ -268,10 +269,10 @@ class OrderService extends BaseService implements OrderServiceInterface
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $userId
      */
-    private function prepareOrderPayload($request, string $userId): array
+    private function prepareOrderPayload($request, $userId = null): array
     {
         return array_merge($request->except('_token'), [
-            'user_id' => $userId,
+            'user_id' => $userId ?? null,
             'code' => generateOrderCode(),
             'ordered_at' => now(),
         ]);
@@ -326,7 +327,7 @@ class OrderService extends BaseService implements OrderServiceInterface
      *
      * @throws Exception
      */
-    private function getCartItems(int $userId)
+    private function getCartItems($userId, string $session_id = null)
     {
         $relation = [
             [
@@ -340,8 +341,13 @@ class OrderService extends BaseService implements OrderServiceInterface
                 },
             ],
         ];
+        $conditions = [];
 
-        $cart = $this->cartRepository->findByWhere(['user_id' => $userId], ['*'], $relation);
+        $conditions = is_null($session_id) ?
+            ['user_id' => $userId] :
+            ['session_id' => $session_id];
+
+        $cart = $this->cartRepository->findByWhere($conditions, ['*'], $relation);
 
         if (!$cart) {
             throw new Exception('Cart not found.');
