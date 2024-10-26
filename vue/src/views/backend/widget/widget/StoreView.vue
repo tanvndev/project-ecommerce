@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 h-screen min-h-screen pb-[100px]">
+      <div class="mx-10 min-h-screen pb-[100px]">
         <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
         <form @submit.prevent="onSubmit">
           <a-row :gutter="16">

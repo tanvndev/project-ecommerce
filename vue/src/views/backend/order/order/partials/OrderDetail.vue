@@ -106,7 +106,10 @@
     <span class="uppercase">
       <i
         class="fas fa-shopping-basket mr-2"
-        v-if="order?.order_status_code == ORDER_STATUS[0].value"
+        v-if="
+          order?.order_status_code == ORDER_STATUS[0].value ||
+          order?.order_status_code == ORDER_STATUS[4].value
+        "
       ></i>
       <i class="fas fa-check mr-2 text-green-500" v-else></i>
       {{ order?.order_status }}
@@ -152,7 +155,11 @@
       size="large"
       type="primary"
       @click="paymentStatusModal = true"
-      v-if="order?.payment_status_code == PAYMENT_STATUS[0].value"
+      v-if="
+        order?.order_status_code != ORDER_STATUS[4].value ||
+        (order?.payment_status_code == PAYMENT_STATUS[0].value &&
+          order?.order_status_code != ORDER_STATUS[4].value)
+      "
     >
       Xác nhận thanh toán
     </a-button>

@@ -1,14 +1,19 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 mb-10 h-screen min-h-screen">
+      <div class="mx-10 min-h-screen pb-10">
         <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
         <form @submit.prevent="onSubmit">
           <a-row :gutter="16" v-if="order">
             <a-col :span="18">
               <a-card class="mt-3">
                 <AleartError :errors="state.errors" />
-                <template #title> Đơn hàng #{{ order.code }} </template>
+                <template #title>
+                  <div class="flex items-center justify-between">
+                    <h3 class="font-medium capitalize">Đơn hàng #{{ order.code }}</h3>
+                    <a-tag :color="order.order_status_color"> {{ order.order_status }} </a-tag>
+                  </div>
+                </template>
                 <!-- Order detail -->
                 <OrderDetail :order="order" @update:status="fetchOne" />
 
@@ -22,7 +27,14 @@
               <CutomerInfo :order="order" />
 
               <!-- Start Status -->
-              <a-card class="mt-3" title="Trạng thái">
+              <a-card
+                class="mt-3"
+                title="Trạng thái"
+                v-if="
+                  order.order_status_code != ORDER_STATUS[3].value &&
+                  order.order_status_code != ORDER_STATUS[4].value
+                "
+              >
                 <AleartError :errors="state.errors" />
                 <a-row :gutter="[16, 16]">
                   <a-col span="24">
@@ -45,6 +57,43 @@
                     </a-button>
                   </a-col>
                 </a-row>
+              </a-card>
+              <a-card
+                class="mt-3"
+                title="Trạng thái"
+                v-if="order.order_status_code == ORDER_STATUS[3].value"
+              >
+                <div class="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    width="25"
+                    focusable="false"
+                    aria-hidden="true"
+                  >
+                    <g clip-path="url(#174__a)">
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        fill="#fff"
+                        stroke="#CFF6E7"
+                        stroke-width="4"
+                      ></circle>
+                      <path
+                        fill="#0DB473"
+                        fill-rule="evenodd"
+                        d="M4 12c0-4.416 3.584-8 8-8s8 3.584 8 8-3.584 8-8 8-8-3.584-8-8m6.4 1.736 5.272-5.272 1.128 1.136-6.4 6.4-3.2-3.2 1.128-1.128z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </g>
+                    <defs>
+                      <clipPath id="174__a"><path fill="#fff" d="M0 0h24v24h-24z"></path></clipPath>
+                    </defs>
+                  </svg>
+                  <h3 class="ms-2">Đã xử lý giao hàng</h3>
+                </div>
               </a-card>
             </a-col>
           </a-row>
