@@ -3,21 +3,21 @@
 namespace App\Http\Controllers\Api\V1\Product;
 
 use App\Enums\ResponseEnum;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Product\StoreProductRequest;
-use App\Http\Requests\Product\UpdateProductAttributeRequest;
-use App\Http\Requests\Product\UpdateProductRequest;
-use App\Http\Requests\Product\UpdateProductVariantRequest;
-use App\Http\Resources\Product\Client\ClientProductResource;
-use App\Http\Resources\Product\Client\ClientProductVariantCollection;
-use App\Http\Resources\Product\ProductCollection;
 use App\Http\Resources\Product\ProductResource;
+use App\Http\Resources\Product\ProductCollection;
+use App\Http\Requests\Product\StoreProductRequest;
+use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\Product\ProductVariantCollection;
-use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
+use App\Http\Requests\Product\UpdateProductVariantRequest;
+use App\Http\Requests\Product\UpdateProductAttributeRequest;
+use App\Http\Resources\Product\Client\ClientProductResource;
 use App\Services\Interfaces\Apriori\AprioriServiceInterface;
 use App\Services\Interfaces\Product\ProductServiceInterface;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
+use App\Http\Resources\Product\Client\ClientProductVariantCollection;
 
 class ProductController extends Controller
 {
@@ -149,5 +149,12 @@ class ProductController extends Controller
         $data = new ClientProductVariantCollection($response);
 
         return successResponse('', $data, true);
+    }
+
+    public function filterProducts(Request $request){
+// dd($request->toArray());
+        $response = $this->productService->filterProducts($request->toArray());
+
+        return successResponse('', $response, true);
     }
 }

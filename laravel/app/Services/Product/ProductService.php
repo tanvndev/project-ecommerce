@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductAttribute;
+use App\Models\ProductVariant;
 use App\Models\ProductVariantAttributeValue;
 use App\Repositories\Interfaces\Attribute\AttributeValueRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
@@ -626,5 +627,143 @@ class ProductService extends BaseService implements ProductServiceInterface
         $product = $this->productRepository->findById($productId);
 
         return $product;
+    }
+
+
+
+    public function filterProducts($data)
+    {
+        $catalogues = $this->getCatalogues($data);
+        $priceRange = $this->getPriceRange($data);
+        $sort = $data['sort'] ?? 'asc';
+        $search = $data['search'] ?? '';
+
+        $productVariants = $this->getProductVariantsFilter($catalogues, $priceRange, $sort, $search);
+
+        $formattedAttributes = $this->getFormattedAttributes($productVariants);
+
+        return [
+            'productVariants' => $productVariants,
+            'attributes' => $formattedAttributes
+        ];
+    }
+
+    // lấy ra mảnh danh mục
+    protected function getCatalogues($data)
+    {
+        return array_filter(explode(',', $data['catalogues'] ?? ''));
+    }
+
+    // lấy ra giá request
+    protected function getPriceRange($data)
+    {
+        return [
+            'min' => isset($data['min_price']) ? (float)$data['min_price'] : null,
+            'max' => isset($data['max_price']) ? (float)$data['max_price'] : null,
+        ];
+    }
+
+    // gọi các hàm lọc
+    protected function getProductVariantsFilter($catalogues, $priceRange, $sort, $search)
+    {
+        $query = ProductVariant::query();
+        $query = $this->filterByCatalogue($query, $catalogues);
+        $query = $this->filterByPrice($query, $priceRange);
+
+        if (!empty($search)) {
+            $query->where('product_variants.name', 'like', '%' . $search . '%');
+        }
+
+        $query->leftJoin('flash_sale_product_variants', function ($join) {
+            $join->on('product_variants.id', '=', 'flash_sale_product_variants.product_variant_id')
+                ->join('flash_sales', 'flash_sale_product_variants.flash_sale_id', '=', 'flash_sales.id')
+                ->where('flash_sales.start_date', '<=', now())
+                ->where('flash_sales.end_date', '>=', now())
+                ->where('flash_sales.publish', true)
+                ->where('flash_sale_product_variants.max_quantity', '>', 0);
+        });
+
+        $query->selectRaw('
+        product_variants.*,
+        COALESCE(flash_sale_product_variants.sale_price, product_variants.price) as effective_price
+    ');
+
+        if ($sort === 'desc') {
+            $query->orderBy('effective_price', 'desc');
+        } else {
+            $query->orderBy('effective_price', 'asc');
+        }
+
+        return $query->paginate(30);
+    }
+
+    // lấy ra danh sách attributes và values
+    protected function getFormattedAttributes($productVariants)
+    {
+        $variantIds = $productVariants->pluck('id');
+
+        $attributeValues = DB::table('product_variant_attribute_value')
+            ->whereIn('product_variant_id', $variantIds)
+            ->join('attribute_values', 'product_variant_attribute_value.attribute_value_id', '=', 'attribute_values.id')
+            ->join('attributes', 'attribute_values.attribute_id', '=', 'attributes.id')
+            ->select('attributes.id as attribute_id', 'attributes.name as attribute_name', 'attribute_values.id as value_id', 'attribute_values.name as value_name')
+            ->distinct()
+            ->get()
+            ->groupBy('attribute_id');
+
+        return $this->formatAttributes($attributeValues);
+    }
+
+    // format attributes
+    protected function formatAttributes($attributeValues)
+    {
+        $formatted = [
+            'attributes' => [],
+            'values' => []
+        ];
+
+        foreach ($attributeValues as $attributeId => $values) {
+            $formatted['attributes'][$attributeId] = [
+                'id' => $values[0]->attribute_id,
+                'name' => $values[0]->attribute_name,
+            ];
+
+            foreach ($values as $value) {
+                $formatted['values'][$attributeId][] = [
+                    'id' => $value->value_id,
+                    'name' => $value->value_name,
+                ];
+            }
+        }
+
+        return $formatted;
+    }
+
+    // lọc giá
+    protected function filterByPrice($query, $priceRange)
+    {
+        if ($priceRange['min'] !== null || $priceRange['max'] !== null) {
+            if ($priceRange['min'] !== null) {
+                $query->having('effective_price', '>=', $priceRange['min']);
+            }
+            if ($priceRange['max'] !== null) {
+                $query->having('effective_price', '<=', $priceRange['max']);
+            }
+        }
+
+        return $query;
+    }
+
+    // lọc danh mục
+    protected function filterByCatalogue($query, $catalogues)
+    {
+        if (!empty($catalogues)) {
+            $query->whereHas('product', function ($q) use ($catalogues) {
+                $q->whereHas('catalogues', function ($subQuery) use ($catalogues) {
+                    $subQuery->whereIn('product_catalogue_id', $catalogues);
+                });
+            });
+        }
+        return $query;
     }
 }
