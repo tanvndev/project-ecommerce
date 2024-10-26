@@ -231,8 +231,6 @@ onUnmounted(() => {
   </div>
 </template>
 
-
-
 <style scoped>
 .loader {
   display: block;

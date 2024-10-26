@@ -12070,16 +12070,17 @@ body .product-popup {
   margin: 0.8125rem 0 0.625rem;
 }
 .price-range input {
-  padding: 0.3125rem;
-  font-family: Poppins, sans-serif;
-  color: #999;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  width: 62px;
-  height: 37px;
-  line-height: 37px;
-  vertical-align: middle;
-  -webkit-appearance: textfield;
+    padding: 0.3125rem 12px;
+    font-family: Poppins, sans-serif;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 45%;
+    height: 37px;
+    line-height: 37px;
+    vertical-align: middle;
+    -webkit-appearance: textfield;
+    font-size: 13px;
+    color: #222222;
 }
 .price-range input::-webkit-outer-spin-button,
 .price-range input::-webkit-inner-spin-button {
@@ -12163,7 +12164,7 @@ body .product-popup {
   }
 }
 .filter-items.item-check .active > a::before {
-  content: '';
+  content: '✓';
   background-color: #336699;
   width: 20px;
   height: 20px;
@@ -21403,6 +21404,7 @@ aside .sp-sidebar-banner span {
   align-items: center;
   -ms-flex-wrap: wrap;
   flex-wrap: wrap;
+  justify-content: end;
 }
 .toolbox label,
 .toolbox-right label,

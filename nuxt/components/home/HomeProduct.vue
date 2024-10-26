@@ -51,7 +51,7 @@ const addToWishlist = async (variantId) => {
 </script>
 <template>
   <v-lazy
-    :min-height="600"
+    :min-height="500"
     :options="{ threshold: 0.5 }"
     transition="fade-transition"
   >

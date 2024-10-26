@@ -3,7 +3,6 @@ import { resizeImage } from '#imports'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation, Autoplay } from 'swiper/modules'
 import 'swiper/css'
-import { useProductCatalogueStore } from '~/stores/productCatalogue'
 
 const productCatalogueStore = useProductCatalogueStore()
 const modules = [Navigation, Autoplay]
@@ -106,7 +105,7 @@ const onSwiper = (swiper) => {
                   class="category category-classic category-absolute overlay-zoom br-xs mx-2"
                 >
                   <NuxtLink
-                    href="category"
+                    :to="`/category?catalogues=${productCatalogue.id}`"
                     class="category-media"
                     :title="productCatalogue.name"
                   >
@@ -119,7 +118,7 @@ const onSwiper = (swiper) => {
                     <h4 class="category-name">{{ productCatalogue.name }}</h4>
                     <NuxtLink
                       :title="productCatalogue.name"
-                      to="category"
+                      :to="`/category?catalogues=${productCatalogue.id}`"
                       class="btn btn-primary btn-link btn-underline"
                       >Xem ngay</NuxtLink
                     >
