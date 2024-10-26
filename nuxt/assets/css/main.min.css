@@ -9946,7 +9946,7 @@ body .product-popup {
 .filter-items {
   font-size: 0.8750rem;
 }
-.filter-items a {
+.filter-items .label-text {
   position: relative;
   display: block;
   color: inherit;
@@ -9955,10 +9955,10 @@ body .product-popup {
 .filter-items a:hover {
   color: #336699;
 }
-.filter-items.item-check a {
+.filter-items.item-check .label-text {
   padding-left: 1.7500rem !important;
 }
-.filter-items.item-check a::before {
+.filter-items.item-check .label-text::before {
   content: '';
   position: absolute;
   border: 1px solid;
@@ -9980,11 +9980,11 @@ body .product-popup {
 @media (-webkit-min-device-pixel-ratio: 1.5),
   (min--moz-device-pixel-ratio: 1.5),
   (min-device-pixel-ratio: 1.5) {
-  .filter-items.item-check a::before {
+  .filter-items.item-check .label-text::before {
     text-indent: 0;
   }
 }
-.filter-items.item-check .active > a::before {
+.filter-items.item-check .active > .label-text::before {
   content: '✓';
   background-color: #336699;
   width: 20px;

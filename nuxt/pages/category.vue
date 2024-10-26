@@ -4,6 +4,8 @@ import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Navigation, Autoplay } from 'swiper/modules'
 import 'swiper/css'
 import _ from 'lodash'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const modules = [Navigation, Autoplay]
 const { $axios } = useNuxtApp()
@@ -26,6 +28,8 @@ const priceRange = reactive({
   max: '',
 })
 const searchTerm = ref('')
+const selectedValues = ref([]) // Mảng để lưu trữ các giá trị đã chọn
+const router = useRouter()
 
 const filteredProducts = computed(() => {
   if (!searchTerm.value) products.value
@@ -68,6 +72,27 @@ const toggleCollapse = (id) => {
   }
   is_collapsed.value[id] = !is_collapsed.value[id]
 }
+
+const toggleValue = (valueId) => {
+  const index = selectedValues.value.indexOf(valueId)
+  if (index === -1) {
+    selectedValues.value.push(valueId) // Thêm giá trị vào mảng nếu chưa có
+  } else {
+    selectedValues.value.splice(index, 1) // Xóa giá trị khỏi mảng nếu đã có
+  }
+  console.log(selectedValues.value)
+}
+
+// Hàm để cập nhật query URL
+const updateQuery = () => {
+  const attributes = encodeURIComponent(selectedValues.value.join(',') || '')
+  const query = { ...route.query, attributes }
+
+  router.push({ query })
+}
+
+// Theo dõi sự thay đổi của selectedValues và cập nhật query URL
+watch(selectedValues, updateQuery, { deep: true })
 
 const getProducts = async () => {
   try {
@@ -211,12 +236,22 @@ onMounted(() => {
                 </h3>
                 <ul class="widget-body filter-items item-check mt-1">
                   <li
-                    class="active"
                     v-for="value in attribute.values"
                     :key="`values-${value.id}`"
+                    :class="{ active: selectedValues.includes(value.id) }"
                   >
-                    <input type="checkbox" class="d-none" :value="value.id" />
-                    <a href="#">{{ value.name }}</a>
+                    <input
+                      type="checkbox"
+                      class="d-none"
+                      :value="value.id"
+                      :checked="selectedValues.includes(value.id)"
+                    />
+                    <a
+                      href="#"
+                      class="label-text"
+                      @click.prevent="toggleValue(value.id)"
+                      >{{ value.name }}</a
+                    >
                   </li>
                 </ul>
               </div>

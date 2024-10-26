@@ -12131,13 +12131,13 @@ body .product-popup {
   color: inherit;
   padding: 0.625rem 0 0.625rem 0.125rem;
 }
-.filter-items a:hover {
+.filter-items .label-text:hover {
   color: #336699;
 }
-.filter-items.item-check a {
+.filter-items.item-check .label-text {
   padding-left: 1.75rem !important;
 }
-.filter-items.item-check a::before {
+.filter-items.item-check .label-text::before {
   content: '';
   position: absolute;
   border: 1px solid;
@@ -12159,11 +12159,11 @@ body .product-popup {
 @media (-webkit-min-device-pixel-ratio: 1.5),
   (min--moz-device-pixel-ratio: 1.5),
   (min-device-pixel-ratio: 1.5) {
-  .filter-items.item-check a::before {
+  .filter-items.item-check .label-text::before {
     text-indent: 0;
   }
 }
-.filter-items.item-check .active > a::before {
+.filter-items.item-check .active > .label-text::before {
   content: '✓';
   background-color: #336699;
   width: 20px;
@@ -14150,20 +14150,20 @@ body .product-popup {
 }
 
 .widget .widget-title {
-  position: relative;
-  margin: -0.0625rem 0;
-  padding: 0.875rem 1.5625rem 0.875rem 0;
-  font-weight: 600;
-  font-size: 1rem;
-  color: #333;
-  letter-spacing: 0;
-  border-bottom: 1px solid #eee;
-  text-transform: capitalize;
-  cursor: pointer;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+    position: relative;
+    margin: -0.0725rem 0;
+    padding: 0.8750rem 1.5625rem 0.6750rem 0;
+    font-weight: 600;
+    font-size: 1.0000rem;
+    color: #333;
+    letter-spacing: 0;
+    border-bottom: 1px solid #eee;
+    text-transform: capitalize;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 .widget .widget-body {
   padding: 0.4375rem 0 0.625rem;
   opacity: 1;
