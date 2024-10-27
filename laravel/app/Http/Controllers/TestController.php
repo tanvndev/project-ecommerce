@@ -17,11 +17,11 @@ class TestController extends Controller
     public function getOrder(Request $request)
     {
 
-        // $orders = $this->aprioriService->exportOrdersToCsv();
-        $response = $this->aprioriService->suggestProducts(208);
+        $orders = $this->aprioriService->exportOrdersToCsv();
+        // $response = $this->aprioriService->suggestProducts(54);
 
-        $data = new ClientProductVariantCollection($response);
+        // $data = new ClientProductVariantCollection($response);
 
-        return successResponse('', $data, true);
+        // return successResponse('', $data, true);
     }
 }

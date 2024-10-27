@@ -4,8 +4,12 @@ const ORDER_STATUS_TABS = [
     value: 'all',
   },
   {
-    title: 'Chờ thanh toán',
-    value: 'unpaid',
+    title: 'Chờ xác nhận',
+    value: 'pending',
+  },
+  {
+    title: 'Đang xử lý',
+    value: 'processing',
   },
   {
     title: 'Đang giao',
@@ -27,8 +31,12 @@ const ORDER_STATUS_TABS = [
 
 const ORDER_STATUS = [
   {
-    label: 'Chờ thanh toán',
+    title: 'Chờ xác nhận',
     value: 'pending',
+  },
+  {
+    title: 'Đang xử lý',
+    value: 'processing',
   },
   {
     label: 'Đang giao',
@@ -59,23 +67,4 @@ const PAYMENT_STATUS = [
   },
 ]
 
-const DELYVERY_STATUS = [
-  {
-    value: 'pending',
-    label: 'Chờ giao',
-  },
-  {
-    value: 'delivering',
-    label: 'Đang giao',
-  },
-  {
-    value: 'delivered',
-    label: 'Đã giao hàng',
-  },
-  {
-    value: 'failed',
-    label: 'Giao thất bại',
-  },
-]
-
-export { ORDER_STATUS_TABS, ORDER_STATUS, PAYMENT_STATUS, DELYVERY_STATUS }
+export { ORDER_STATUS_TABS, ORDER_STATUS, PAYMENT_STATUS }

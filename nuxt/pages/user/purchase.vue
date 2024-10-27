@@ -3,7 +3,6 @@ import {
   ORDER_STATUS_TABS,
   ORDER_STATUS,
   PAYMENT_STATUS,
-  DELYVERY_STATUS,
 } from '~/static/order'
 import { COD_ID } from '~/static/paymentMethod'
 import { useLoadingStore, useCartStore, useOrderStore } from '#imports'
@@ -25,13 +24,8 @@ const confirmCancelOrder = ref(false)
 const confirmCompleteOrder = ref(false)
 const orderIdToUpdateStatus = ref(null)
 const comment = ref('')
-const images = ref([])
-
-const handleProductReviewImage = () => {
-  if (images.value.length >= 3) {
-    return
-  }
-}
+const uploadedImages = ref([])
+const fileInput = ref(null)
 
 const handleOrderPayment = async (orderCode) => {
   if (!orderCode) {
@@ -60,15 +54,15 @@ const openReviewDialog = (orderId) => {
   orderItemRating.value = _.filter(order.order_items, (item) => {
     if (addedProductIds.has(item.product_id)) {
       return false
-    } else {
-      addedProductIds.add(item.product_id)
-      return true
     }
+    addedProductIds.add(item.product_id)
+    return !item.is_reviewed
   })
 
   if (_.isEmpty(orderItemRating.value)) {
     return
   }
+
   orderIdToUpdateStatus.value = orderId
   isReview.value = true
 }
@@ -124,14 +118,21 @@ const handleProductReview = async () => {
     return toast('Vui lòng tải lại trang.', 'error')
   }
 
-  const payload = {
-    rating: rating.value,
-    comment: comment.value,
-    product_id: chooseProductReview.value,
-    order_id: orderIdToUpdateStatus.value,
+  const formData = new FormData()
+  formData.append('rating', rating.value)
+  formData.append('comment', comment.value)
+  formData.append('product_id', chooseProductReview.value)
+  formData.append('order_id', orderIdToUpdateStatus.value)
+
+  for (let i = 0; i < uploadedImages.value.length; i++) {
+    const imageBlob = await fetch(uploadedImages.value[i]).then((res) =>
+      res.blob()
+    )
+    formData.append('images[]', imageBlob, `image_rating_${i}.png`)
   }
+
   try {
-    const response = await $axios.post('/product-reviews', payload)
+    const response = await $axios.post('/product-reviews', formData)
 
     if (response.status == 'success') {
       toast(response.messages)
@@ -139,6 +140,11 @@ const handleProductReview = async () => {
     }
   } catch (error) {
     toast(error?.response?.data?.messages || 'Thao tác thất bại', 'error')
+  } finally {
+    isReview.value = false
+    uploadedImages.value = []
+    comment.value = ''
+    rating.value = 5
   }
 }
 
@@ -188,6 +194,42 @@ const addToCart = async (orderId) => {
 
   cartStore.setCartCount(response.data?.items.length)
   toast(response.messages, response.status)
+}
+
+const handleFileChange = (event) => {
+  const files = event.target.files
+
+  if (uploadedImages.value?.length >= 3) {
+    return
+  }
+
+  if (files.length + uploadedImages.value.length > 3) {
+    return toast('Vui lòng chọn tối đa 3 hình ảnh.', 'error')
+  }
+
+  const filePromises = Array.from(files).map((file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+
+      reader.onload = (e) => {
+        resolve(e.target.result)
+      }
+
+      reader.readAsDataURL(file)
+    })
+  })
+
+  Promise.all(filePromises)
+    .then((imageData) => {
+      uploadedImages.value.push(...imageData)
+    })
+    .catch((error) => {
+      console.error('Error reading files:', error)
+    })
+}
+
+const removeImage = (index) => {
+  uploadedImages.value.splice(index, 1)
 }
 
 onMounted(async () => {
@@ -249,6 +291,7 @@ onMounted(async () => {
                       size="small"
                       prepend-icon="mdi-chat"
                       color="blue"
+                      @click="$router.push(`/chat`)"
                       >Chat</v-btn
                     >
                   </div>
@@ -318,14 +361,15 @@ onMounted(async () => {
                         cols="auto"
                         class="mr-2"
                         v-if="
-                          ORDER_STATUS[2].value == order.order_status_code &&
+                          ORDER_STATUS[3].value == order.order_status_code &&
                           order.payment_status_code ==
                             PAYMENT_STATUS[1].value &&
-                          DELYVERY_STATUS[2].value == order.delivery_status_code
+                          order?.order_items?.find(
+                            (item) => item.is_reviewed == false
+                          )
                         "
                       >
                         <v-btn
-                          size="large"
                           class="text-capitalize"
                           color="primary"
                           @click="openReviewDialog(order.id)"
@@ -337,16 +381,11 @@ onMounted(async () => {
                         cols="auto"
                         class="mr-2"
                         v-if="
-                          (DELYVERY_STATUS[0].value ==
-                            order.delivery_status_code &&
-                            ORDER_STATUS[0].value == order.order_status_code) ||
-                          (DELYVERY_STATUS[0].value ==
-                            order.delivery_status_code &&
-                            ORDER_STATUS[1].value == order.order_status_code)
+                          ORDER_STATUS[0].value == order.order_status_code ||
+                          ORDER_STATUS[1].value == order.order_status_code
                         "
                       >
                         <v-btn
-                          size="large"
                           variant="text"
                           class="text-capitalize border"
                           @click="
@@ -361,11 +400,10 @@ onMounted(async () => {
                       <v-col
                         cols="auto"
                         class="mr-2"
-                        v-if="ORDER_STATUS[2].value == order.order_status_code"
+                        v-if="ORDER_STATUS[3].value == order.order_status_code"
                       >
                         <v-btn
                           @click="addToCart(order.id)"
-                          size="large"
                           variant="text"
                           class="text-capitalize border"
                           >Mua lại</v-btn
@@ -373,9 +411,9 @@ onMounted(async () => {
                       </v-col>
                       <v-col cols="auto" class="mr-2">
                         <v-btn
-                          size="large"
                           variant="text"
                           class="text-capitalize border"
+                          @click="$router.push(`/chat`)"
                           >Liên hệ người bán</v-btn
                         >
                       </v-col>
@@ -383,17 +421,11 @@ onMounted(async () => {
                         cols="auto"
                         class="mr-2"
                         v-if="
-                          ORDER_STATUS[1].value == order.order_status_code &&
-                          PAYMENT_STATUS[1].value ==
-                            order.payment_status_code &&
-                          (DELYVERY_STATUS[1].value ==
-                            order.delivery_status_code ||
-                            DELYVERY_STATUS[2].value ==
-                              order.delivery_status_code)
+                          ORDER_STATUS[2].value == order.order_status_code &&
+                          PAYMENT_STATUS[1].value == order.payment_status_code
                         "
                       >
                         <v-btn
-                          size="large"
                           color="primary"
                           class="text-capitalize border"
                           @click="
@@ -501,12 +533,12 @@ onMounted(async () => {
 
                       <div class="order-product-info">
                         <div class="px-2 pt-1 product-title">
-                          <div class="title">
+                          <div class="title text-left">
                             <NuxtLink
+                              :title="item.product_variant_name"
                               :to="`/product/${item.slug}-${item.product_id}`"
                             >
-                              {{ item.product_variant_name }} toi laa con ga
-                              nami anasu chang ai co aisdkj asd
+                              {{ item.product_variant_name }}
                             </NuxtLink>
                           </div>
                           <div class="variant">
@@ -514,7 +546,7 @@ onMounted(async () => {
                           </div>
                         </div>
 
-                        <div class="w-50">
+                        <div>
                           <v-checkbox
                             v-model="chooseProductReview"
                             label="Chọn sản phẩm"
@@ -549,28 +581,43 @@ onMounted(async () => {
                     ></v-textarea>
                   </div>
                   <div>
-                    <a
-                      href="#"
-                      class="lh-1"
-                      @click.prevent="handleProductReviewImage"
-                    >
+                    <a href="#" @click="fileInput.click()" class="lh-1">
+                      <input
+                        type="file"
+                        ref="fileInput"
+                        accept="image/*"
+                        @change="handleFileChange"
+                        style="display: none"
+                        multiple
+                      />
                       <i class="mdi mdi-camera fs-19 lh-1"></i> Gửi ảnh thực tế
                       <span class="text-black">(Tối đa 3 ảnh)</span>
                     </a>
-                    <div class="mt-1 d-flex align-items-center">
+
+                    <div
+                      class="mt-1 d-flex align-items-center"
+                      v-if="uploadedImages?.length"
+                    >
                       <div
                         class="position-relative me-3"
-                        v-for="i in 3"
-                        :key="i"
+                        v-for="image in uploadedImages"
+                        :key="image"
                       >
-                        <img
-                          src="https://cdn.cosmicjs.com/5fe795a0-3eda-11ef-a504-63e081e4680f-snips.png"
+                        <v-img
+                          :src="image"
                           class="img-thumnail"
                           style="width: 50px; height: 50px; border-radius: 5px"
+                          width="50px"
+                          height="50px"
                           alt=""
                         />
                         <div class="image-icon">
-                          <v-btn icon="mdi-close" size="x-small"> </v-btn>
+                          <v-btn
+                            icon="mdi-close"
+                            @click="removeImage(image)"
+                            size="x-small"
+                          >
+                          </v-btn>
                         </div>
                       </div>
                     </div>
@@ -599,7 +646,6 @@ onMounted(async () => {
     </div>
   </div>
 </template>
-
 
 <style scoped>
 .product-title a {

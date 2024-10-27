@@ -85,17 +85,13 @@ return [
         'error' => [
             'create'  => 'Tạo đơn hàng thất bại vui lòng thử lại.',
             'payment' => 'Thanh toán đơn hàng thất bại vui lòng thử lại.',
+            'invalid'  => 'Bạn không thể hoàn tất đơn hàng khi các trạng thái khác chưa hoàn thành.',
+            'status'   => 'Cập nhập trạng thái đơn hàng thất bại.',
         ],
         'success' => [
             'create'   => 'Tạo đơn hàng thành công vui lòng kiểm tra email.',
             'payment'  => 'Thanh toán đơn hàng thành công.',
-            'create'   => 'Tạo đơn hàng thất bại vui lòng thử lại.',
-            'payment'  => 'Thanh toán đơn hàng thất bại vui lòng thử lại.',
-            'status'   => 'Cập nhập trạng thái đơn hàng thất bại.',
-            'invalid'  => 'Bạn không thể hoàn tất đơn hàng khi các trạng thái khác chưa hoàn thành.',
-        ],
-        'success' => [
-            'create'   => 'Tạo đơn hàng thành công vui lòng kiểm tra email.',
+            'create'   => 'Tạo đơn hàng thành công.',
             'payment'  => 'Thanh toán đơn hàng thành công.',
             'status'   => 'Cập nhập trạng thái đơn hàng thành công.',
         ],

@@ -40,16 +40,14 @@ return new class extends Migration
                 ->constrained('vouchers')
                 ->cascadeOnDelete()
                 ->cascadeOnUpdate();
-            $table->string('order_status', 50)->default('pending')->comment('pending', 'delivering', 'completed', 'cancelled', 'returned');
+            $table->string('order_status', 50)->default('pending')->comment('pending', 'processing', 'delivering', 'completed', 'cancelled', 'returned');
             $table->string('payment_status', 50)->default('unpaid')->comment('unpaid, paid');
-            $table->string('delivery_status', 50)->default('pending')->comment('pending', 'delivering', 'delivered', 'failed');
             $table->decimal('total_price', 15, 2);
             $table->decimal('shipping_fee', 15, 2);
             $table->decimal('discount', 15, 2)->nullable();
             $table->decimal('final_price', 15, 2);
             $table->timestamp('ordered_at');
             $table->timestamp('paid_at')->nullable();
-            $table->timestamp('delivered_at')->nullable();
             $table->json('additional_details')->nullable();
             $table->timestamps();
         });

@@ -9891,16 +9891,17 @@ body .product-popup {
   margin: 0.8125rem 0 0.6250rem;
 }
 .price-range input {
-  padding: 0.3125rem;
-  font-family: Poppins, sans-serif;
-  color: #999;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  width: 62px;
-  height: 37px;
-  line-height: 37px;
-  vertical-align: middle;
-  -webkit-appearance: textfield;
+    padding: 0.3125rem 12px;
+    font-family: Poppins, sans-serif;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 45%;
+    height: 37px;
+    line-height: 37px;
+    vertical-align: middle;
+    -webkit-appearance: textfield;
+    font-size: 13px;
+    color: #222222;
 }
 .price-range input::-webkit-outer-spin-button,
 .price-range input::-webkit-inner-spin-button {
@@ -9945,7 +9946,7 @@ body .product-popup {
 .filter-items {
   font-size: 0.8750rem;
 }
-.filter-items a {
+.filter-items .label-text {
   position: relative;
   display: block;
   color: inherit;
@@ -9954,10 +9955,10 @@ body .product-popup {
 .filter-items a:hover {
   color: #336699;
 }
-.filter-items.item-check a {
+.filter-items.item-check .label-text {
   padding-left: 1.7500rem !important;
 }
-.filter-items.item-check a::before {
+.filter-items.item-check .label-text::before {
   content: '';
   position: absolute;
   border: 1px solid;
@@ -9979,12 +9980,12 @@ body .product-popup {
 @media (-webkit-min-device-pixel-ratio: 1.5),
   (min--moz-device-pixel-ratio: 1.5),
   (min-device-pixel-ratio: 1.5) {
-  .filter-items.item-check a::before {
+  .filter-items.item-check .label-text::before {
     text-indent: 0;
   }
 }
-.filter-items.item-check .active > a::before {
-  content: '';
+.filter-items.item-check .active > .label-text::before {
+  content: '✓';
   background-color: #336699;
   width: 20px;
   height: 20px;
@@ -11633,8 +11634,8 @@ body .product-popup {
 
 .widget .widget-title {
   position: relative;
-  margin: -0.0625rem 0;
-  padding: 0.8750rem 1.5625rem 0.8750rem 0;
+  margin: -0.0725rem 0;
+  padding: 0.8750rem 1.5625rem 0.6750rem 0;
   font-weight: 600;
   font-size: 1.0000rem;
   color: #333;
@@ -12393,7 +12394,7 @@ body .product-popup {
   padding: 0.6250rem;
   width: 2.5000rem;
   height: 2.5000rem;
-  right: 0.9375rem;
+  right: 2rem;
   bottom: 0.9375rem;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
@@ -15799,8 +15800,8 @@ aside .sp-sidebar-banner span {
 }
 .product-widget .product-details {
   -webkit-box-flex: 0;
-  -ms-flex: 0 0 calc(100% - 7.1875rem);
-  flex: 0 0 calc(100% - 7.1875rem);
+  /* -ms-flex: 0 0 calc(100% - 7.1875rem);
+  flex: 0 0 calc(100% - 7.1875rem); */
   max-width: calc(100% - 7.1875rem);
 }
 .product-widget .product-name {

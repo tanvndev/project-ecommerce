@@ -16,7 +16,7 @@ const showScrollTop = ref(false)
 const progressIndicator = ref(null)
 const scrollTopRef = ref(null)
 
-const setSession_id = () => {
+const setSessionId = () => {
   if (authStore.isSignedIn) return
   if (Cookies.get('session_id')) return
 
@@ -89,7 +89,7 @@ watch(
 )
 
 onMounted(() => {
-  setSession_id()
+  setSessionId()
   window.addEventListener('scroll', checkScroll)
 })
 

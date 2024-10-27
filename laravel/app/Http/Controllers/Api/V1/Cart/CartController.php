@@ -55,7 +55,7 @@ class CartController extends Controller
     /**
      * Buy now.
      */
-    public function byNow(Request $request): JsonResponse
+    public function buyNow(Request $request): JsonResponse
     {
         $response = $this->cartService->buyNow($request);
 

@@ -51,7 +51,7 @@ const addToWishlist = async (variantId) => {
 </script>
 <template>
   <v-lazy
-    :min-height="600"
+    :min-height="500"
     :options="{ threshold: 0.5 }"
     transition="fade-transition"
   >
@@ -92,7 +92,7 @@ const addToWishlist = async (variantId) => {
                         :to="`product/${item.slug}-${item.product_id}`"
                       >
                         <img
-                          :src="resizeImage(item.image, 500, 400)"
+                          :src="resizeImage(item.image, 400, 300)"
                           :alt="item.name"
                           loading="lazy"
                         />
@@ -166,6 +166,7 @@ const addToWishlist = async (variantId) => {
   border-radius: 10px !important;
   transform: translateY(0);
   transition: all 0.3s linear;
+  padding: 0 20px;
 }
 .product-media img {
   object-fit: contain !important;

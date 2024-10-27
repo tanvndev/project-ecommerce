@@ -96,7 +96,7 @@
     <label class="mb-2 block text-[#222]">Ghi chú</label>
     <a-textarea
       v-model:value="note"
-      placeholder="Autosize height with minimum and maximum number of lines"
+      placeholder="Ghi chú của bạn cho người bán"
       :auto-size="{ minRows: 3, maxRows: 5 }"
     />
     <a-button size="large" class="mt-3" @click="handleUpdateNote"> Cập nhập </a-button>
@@ -106,7 +106,10 @@
     <span class="uppercase">
       <i
         class="fas fa-shopping-basket mr-2"
-        v-if="order?.order_status_code == ORDER_STATUS[0].value"
+        v-if="
+          order?.order_status_code == ORDER_STATUS[0].value ||
+          order?.order_status_code == ORDER_STATUS[4].value
+        "
       ></i>
       <i class="fas fa-check mr-2 text-green-500" v-else></i>
       {{ order?.order_status }}
@@ -152,7 +155,11 @@
       size="large"
       type="primary"
       @click="paymentStatusModal = true"
-      v-if="order?.payment_status_code == PAYMENT_STATUS[0].value"
+      v-if="
+        order?.order_status_code != ORDER_STATUS[4].value ||
+        (order?.payment_status_code == PAYMENT_STATUS[0].value &&
+          order?.order_status_code != ORDER_STATUS[4].value)
+      "
     >
       Xác nhận thanh toán
     </a-button>
@@ -175,64 +182,66 @@
     </a-modal>
   </div>
   <a-divider />
-  <div class="flex items-center justify-between">
-    <span class="uppercase">
-      <i
-        class="fas fa-truck mr-2"
-        v-if="order?.delivery_status_code == DELYVERY_STATUS[0].value"
-      ></i>
-      <i class="fas fa-check mr-2 text-green-500" v-else></i>
-      {{ order?.delivery_status }}
-    </span>
-  </div>
 </template>
 <script setup>
-import { ORDER_STATUS, PAYMENT_STATUS, DELYVERY_STATUS } from '@/static/order';
+import { ORDER_STATUS, PAYMENT_STATUS } from '@/static/order';
 import { ref, watch } from 'vue';
 import { formatCurrency } from '@/utils/format';
 import { AleartError } from '@/components/backend';
 import axios from '@/configs/axios';
 import { message } from 'ant-design-vue';
+import { getErrorMsg } from '@/utils/helpers';
 
 const errors = ref({});
 const paymentStatusModal = ref(false);
 const orderStatusModal = ref(false);
-const note = ref('');
 
 const props = defineProps({
   order: Object
 });
+const note = ref(props.order?.note);
 const emits = defineEmits(['update:status']);
 
 const handleUpdateNote = async () => {
-  const response = await axios.put(`/orders/${props.order.id}?method=PUT`, {
-    note: note.value
-  });
+  try {
+    const response = await axios.put(`/orders/${props.order.id}?method=PUT`, {
+      note: note.value
+    });
 
-  if (response.status == 'success') {
-    message.success(response.messages);
-    return emits('update:status');
+    if (response.status == 'success') {
+      message.success(response.messages);
+      return emits('update:status');
+    }
+  } catch (error) {
+    const msg = getErrorMsg(error);
+
+    message.error(msg);
+    errors.value = { msg };
   }
-  message.error(response.messages);
-  errors.value = response.messages;
 };
 
 const handleUpdateStatus = async (field) => {
-  orderStatusModal.value = false;
-  paymentStatusModal.value = false;
+  try {
+    orderStatusModal.value = false;
+    paymentStatusModal.value = false;
 
-  const payload = {
-    [field]: field === 'order_status' ? ORDER_STATUS[1].value : PAYMENT_STATUS[1].value
-  };
+    const payload = {
+      [field]: field === 'order_status' ? ORDER_STATUS[1].value : PAYMENT_STATUS[1].value
+    };
 
-  const response = await axios.put(`/orders/${props.order.id}?method=PUT`, payload);
+    const response = await axios.put(`/orders/${props.order.id}?method=PUT`, payload);
 
-  if (response.status == 'success') {
-    message.success(response.messages);
-    return emits('update:status');
+    errors.value = {};
+    if (response.status == 'success') {
+      message.success(response.messages);
+      return emits('update:status');
+    }
+  } catch (error) {
+    const msg = getErrorMsg(error);
+
+    message.error(msg);
+    errors.value = { msg };
   }
-  message.error(response.messages);
-  errors.value = response.messages;
 };
 
 watch(
