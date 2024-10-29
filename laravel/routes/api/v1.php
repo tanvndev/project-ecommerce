@@ -244,7 +244,7 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         Route::put('carts/handle-selected', 'handleSelected')->name('handle-selected');
         Route::delete('carts/delete-cart-selected', 'deleteCartSelected')->name('deleteCartSelected');
         Route::get('carts/add-paid-products', 'addPaidProductsToCart')->name('addPaidProducts');
-        route::put('carts/buy-now', 'buyNow')->name('buyNow');
+        route::post('carts/buy-now', 'buyNow')->name('buyNow');
     });
 
     // Statistics
