@@ -22,31 +22,31 @@ class UpdatePostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'              => 'required',
-            'canonical'         => 'unique:posts, canonical,' . $this->post,
-            'description'       => 'required',
-            'content'           => 'required',
-            'icon'              => 'required',
-            'order'             => 'required|integer',
-            'meta_title'        => 'required',
-            'meta_keyword'      => 'required',
-            'meta_description'  => 'required',
+            'name' => 'required',
+            'canonical' => 'unique:posts, canonical,' . $this->post,
+            'description' => 'required',
+            'content' => 'required',
+            'icon' => 'required',
+            'order' => 'required|integer',
+            'meta_title' => 'required',
+            'meta_keyword' => 'required',
+            'meta_description' => 'required',
         ];
     }
 
     public function attributes()
     {
         return [
-            'name'              => 'Tên bài viết',
-            'canonical'         => 'Đường dẫn',
-            'image'             => 'Hình ảnh',
-            'description'       => 'Mô tả',
-            'content'           => 'Nội dung',
-            'icon'              => 'Biểu tượng',
-            'order'             => 'Sắp xếp',
-            'meta_title'        => 'Tiêu đề',
-            'meta_keyword'      => 'Từ khóa',
-            'meta_description'  => 'Mô tả',
+            'name' => 'Tên bài viết',
+            'canonical' => 'Đường dẫn',
+            'image' => 'Hình ảnh',
+            'description' => 'Mô tả',
+            'content' => 'Nội dung',
+            'icon' => 'Biểu tượng',
+            'order' => 'Sắp xếp',
+            'meta_title' => 'Tiêu đề',
+            'meta_keyword' => 'Từ khóa',
+            'meta_description' => 'Mô tả',
         ];
     }
 
