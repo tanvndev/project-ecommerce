@@ -75,12 +75,7 @@
 
 <script setup>
 import { onMounted, reactive, watch } from 'vue';
-import {
-  BreadcrumbComponent,
-  MasterLayout,
-  FilterComponent,
-  ToolboxComponent
-} from '@/components/backend';
+import { BreadcrumbComponent, MasterLayout, ToolboxComponent } from '@/components/backend';
 import { useCRUD, usePagination } from '@/composables';
 import { formatCurrency } from '@/utils/format';
 

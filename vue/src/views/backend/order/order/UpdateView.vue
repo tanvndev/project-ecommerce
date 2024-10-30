@@ -118,7 +118,7 @@ import { useForm } from 'vee-validate';
 import { formatMessages } from '@/utils/format';
 import * as yup from 'yup';
 import router from '@/router';
-import { ORDER_STATUS, PAYMENT_STATUS, DELYVERY_STATUS } from '@/static/order';
+import { ORDER_STATUS, PAYMENT_STATUS } from '@/static/order';
 import { useCRUD } from '@/composables';
 import DeliveryStatus from './partials/DeliveryStatus.vue';
 import OrderDetail from './partials/OrderDetail.vue';
@@ -129,6 +129,7 @@ import { message } from 'ant-design-vue';
 const { getOne, update, messages, data } = useCRUD();
 const code = computed(() => router.currentRoute.value.params.code || null);
 
+
 // STATE
 const state = reactive({
   endpoint: 'orders',
@@ -137,6 +138,7 @@ const state = reactive({
   weight: 0
 });
 const order = ref(null);
+
 
 const { handleSubmit, setValues } = useForm({
   validationSchema: yup.object({
