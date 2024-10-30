@@ -756,23 +756,23 @@ class ProductService extends BaseService implements ProductServiceInterface
     }
 
     protected function filterByStars($query, $stars)
-{
-    if (!empty($stars)) {
-        $starArray = explode(',', $stars);
+    {
+        if (!empty($stars)) {
+            $starArray = explode(',', $stars);
 
-        $productIds = DB::table('product_reviews')
-            ->select('product_id')
-            ->groupBy('product_id')
-            ->havingRaw('ROUND(AVG(rating), 1) IN (' . implode(',', array_map('floatval', $starArray)) . ')')
-            ->pluck('product_id');
+            $productIds = DB::table('product_reviews')
+                ->select('product_id')
+                ->groupBy('product_id')
+                ->havingRaw('ROUND(AVG(rating), 1) IN (' . implode(',', array_map('floatval', $starArray)) . ')')
+                ->pluck('product_id');
 
-        $query->whereHas('product', function ($q) use ($productIds) {
-            $q->whereIn('id', $productIds);
-        });
+            $query->whereHas('product', function ($q) use ($productIds) {
+                $q->whereIn('id', $productIds);
+            });
+        }
+
+        return $query;
     }
-
-    return $query;
-}
 
 
     // Lấy ra danh sách các giá trị biến thể

@@ -2,7 +2,7 @@ const sidebar = [
   {
     id: 'dashboard_sidebar',
     icon: 'fas fa-home-lg-alt',
-    name: 'Dashboard',
+    name: 'Tổng quan',
     route: 'dashboard',
     subMenu: []
   },
