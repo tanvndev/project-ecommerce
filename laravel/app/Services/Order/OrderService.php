@@ -2,6 +2,10 @@
 
 namespace App\Services\Order;
 
+use App\Events\Order\OrderCancelledEvent;
+use App\Events\Order\OrderCompletedEvent;
+use App\Events\Order\OrderCreatedEvent;
+use App\Events\Order\OrderUpdatePaymentEvent;
 use Exception;
 use App\Models\Order;
 use App\Models\Voucher;
@@ -175,7 +179,7 @@ class OrderService extends BaseService implements OrderServiceInterface
         }
 
 
-
+        $this->sendMailUpdatePayment($order);
         return true;
     }
 
@@ -805,13 +809,25 @@ class OrderService extends BaseService implements OrderServiceInterface
     /**
      * Send mail to customer when update payment status of an order.
      */
-    private function sendMailUpdatePayment(Order $order): void {}
+    private function sendMailUpdatePayment(Order $order): void
+    {
+        event(new OrderUpdatePaymentEvent($order));
+    }
 
-    private function sendMailOrderCreated(Order $order): void {}
+    private function sendMailOrderCreated(Order $order): void
+    {
+        event(new OrderCreatedEvent($order));
+    }
 
-    private function sendMailOrderCompleted(Order $order): void {}
+    private function sendMailOrderCompleted(Order $order): void
+    {
+        event(new OrderCompletedEvent($order));
+    }
 
-    private function sendMailOrderCancelled(Order $order): void {}
+    private function sendMailOrderCancelled(Order $order): void
+    {
+        event(new OrderCancelledEvent($order));
+    }
 
     /**
      * Get an order by its code and the current user's id.
