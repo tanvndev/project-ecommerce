@@ -7,19 +7,7 @@ use App\Http\Controllers\Api\V1\Cart\CartController;
 use App\Http\Controllers\Api\V1\Chat\ChatController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\Post\PostController;
-<<<<<<< HEAD
 use App\Http\Controllers\Api\V1\Post\PostCatalogueController;
-use App\Http\Controllers\Api\V1\Product\ProductCatalogueController;
-use App\Http\Controllers\Api\V1\Product\ProductController;
-use App\Http\Controllers\Api\V1\Product\ProductReviewController;
-use App\Http\Controllers\Api\V1\ShippingMethod\ShippingMethodController;
-use App\Http\Controllers\Api\V1\Slider\SliderController;
-use App\Http\Controllers\Api\V1\SystemConfig\SystemConfigController;
-use App\Http\Controllers\Api\V1\Upload\UploadController;
-use App\Http\Controllers\Api\V1\User\UserAddressController;
-use App\Http\Controllers\Api\V1\User\UserCatalogueController;
-=======
->>>>>>> 293be90e70ab5d1f3a60e09c2a0e9133e9c597b3
 use App\Http\Controllers\Api\V1\User\UserController;
 use App\Http\Controllers\Api\V1\Brand\BrandController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
@@ -255,5 +243,4 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         ->group(function () {
             Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
         });
-
 });
