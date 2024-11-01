@@ -383,3 +383,71 @@
 .chat-container-wrapper .status-indicator-1.active {
   background-color: #ffc107; /* Màu vàng cho offline */
 }
+
+.text-generate-wrap {
+  position: relative;
+  max-height: 755px;
+  overflow-y: auto;
+  background-color: #f3f5f7;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 10px;
+}
+
+.text-generate-wrap h1 {
+  font-size: 32px; /* 2em */
+  font-weight: bold;
+  color: #333;
+  margin: 0.5em 0;
+}
+
+.text-generate-wrap h2 {
+  font-size: 24px; /* 1.5em */
+  font-weight: bold;
+  color: #444;
+  margin: 0.4em 0;
+}
+
+.text-generate-wrap h3 {
+  font-size: 20px; /* 1.17em */
+  font-weight: bold;
+  color: #555;
+  margin: 0.3em 0;
+}
+
+.text-generate-wrap h4 {
+  font-size: 16px; /* 1em */
+  font-weight: bold;
+  color: #666;
+  margin: 0.3em 0;
+}
+
+.text-generate-wrap h5 {
+  font-size: 13px; /* 0.83em */
+  font-weight: bold;
+  color: #777;
+  margin: 0.2em 0;
+}
+
+.text-generate-wrap h6 {
+  font-size: 11px; /* 0.67em */
+  font-weight: bold;
+  color: #888;
+  margin: 0.2em 0;
+}
+
+.text-generate-wrap p {
+  margin-bottom: 6px;
+}
+
+.text-generate-wrap a {
+  color: #1677ff;
+}
+.text-generate-wrap a:hover {
+    opacity: 0.7;
+}
+.text-generate-wrap ul {
+  padding-left: 30px;
+  list-style: disc;
+  margin-bottom: 6px;
+}

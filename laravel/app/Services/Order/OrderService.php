@@ -883,7 +883,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             ['order_items', 'product_reviews'],
         );
     }
-
+ 
     public function updateStatusOrderToCompleted(string $id)
     {
         return $this->executeInTransaction(function () use ($id) {

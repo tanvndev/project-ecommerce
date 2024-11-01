@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="h-screen mx-10">
+      <div class="mx-10 h-screen">
         <BreadcrumbComponent :titlePage="state.pageTitle" :routeCreate="state.routeCreate" />
 
         <!-- Toolbox -->
@@ -19,24 +19,24 @@
         <a-table
           bordered
           class="mt-2"
-            :columns="columns"
-            :data-source="state.dataSource"
-            :row-selection="rowSelection"
-            :pagination="pagination"
-            :loading="loading"
-            @change="handleTableChange"
-          >
-            <template #bodyCell="{ column, record }">
-              <template v-if="column.dataIndex === 'action'">
-                <ActionComponent
-                  @onDelete="onDelete"
-                  :id="record.id"
-                  :routeUpdate="state.routeUpdate"
-                  :endpoint="state.endpoint"
-                />
-              </template>
+          :columns="columns"
+          :data-source="state.dataSource"
+          :row-selection="rowSelection"
+          :pagination="pagination"
+          :loading="loading"
+          @change="handleTableChange"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'action'">
+              <ActionComponent
+                @onDelete="onDelete"
+                :id="record.id"
+                :routeUpdate="state.routeUpdate"
+                :endpoint="state.endpoint"
+              />
             </template>
-          </a-table>
+          </template>
+        </a-table>
         <!-- End table -->
       </div>
     </template>
@@ -48,7 +48,6 @@ import { onMounted, reactive, watch } from 'vue';
 import {
   BreadcrumbComponent,
   MasterLayout,
-
   ToolboxComponent,
   ActionComponent
 } from '@/components/backend';

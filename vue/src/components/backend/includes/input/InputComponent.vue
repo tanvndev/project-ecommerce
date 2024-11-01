@@ -166,14 +166,14 @@
 </template>
 
 <script setup>
-import { useField } from 'vee-validate';
-import { computed, reactive, ref, watch } from 'vue';
 import { TooltipComponent } from '@/components/backend';
+import { INDUSTRY, TEXT_STYLE_AI, TONE_AI } from '@/static/constants';
 import { generateRandomString } from '@/utils/helpers';
 import { message } from 'ant-design-vue';
 import axios from 'axios';
 import { marked } from 'marked';
-import { INDUSTRY, TONE_AI, TEXT_STYLE_AI } from '@/static/constants';
+import { useField } from 'vee-validate';
+import { computed, reactive, ref, watch } from 'vue';
 
 const props = defineProps({
   typeInput: {
@@ -281,6 +281,7 @@ const prompt = computed(() => {
     - Cung cấp thông tin có giá trị và phù hợp với ngành hàng.
     - Tối ưu hóa cho SEO nhưng vẫn đọc tự nhiên và hấp dẫn.
     - Đáp ứng các yêu cầu khác đã nêu (nếu có).
+    - Tên thương hiệu Wolmart
 
     Vui lòng tạo nội dung có cấu trúc rõ ràng, dễ đọc và tối ưu cho cả người dùng lẫn công cụ tìm kiếm.`;
 });
@@ -308,9 +309,10 @@ const handleGenerate = () => {
 };
 
 const handleGenerateAI = async () => {
-  const endpoint = import.meta.env.VITE_API_AI_GENERATE_TEXT;
+  const keyApi = import.meta.env.VITE_GEMINI_API_KEY;
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${keyApi}`;
 
-  if (!prompt.value || prompt.value.length == 0 || prompt.value == '') {
+  if (!prompt.value || prompt.value.length === 0) {
     return message.warn('Vui lòng không để trống.');
   }
 
@@ -318,34 +320,30 @@ const handleGenerateAI = async () => {
     isLoading.value = true;
     streamingContent.value = ''; // Reset content before starting
 
-    const response = await axios.get(`${endpoint}`, {
-      params: { prompt: prompt.value }
-    });
+    const content = {
+      contents: [{ parts: [{ text: prompt.value }] }]
+    };
 
-    const dataLines = response.data.split('\n').filter(Boolean);
-    let result = '';
+    const response = await axios.post(endpoint, content);
+    const result = response.data.candidates[0].content.parts[0].text;
 
-    for (const line of dataLines) {
-      try {
-        const cleanedLine = line.startsWith('data: ') ? line.slice(6) : line;
-        const json = JSON.parse(cleanedLine);
+    const htmlContent = marked(result);
 
-        if (json.response) {
-          for (const char of json.response) {
-            result += char;
-            streamingContent.value = marked(result);
-            await delay(10);
-          }
-        }
-      } catch (e) {
-        // console.error('Error parsing JSON:', e);
-      }
-    }
+    await typeWriterEffect(htmlContent);
   } catch (error) {
     console.error('Error:', error);
     message.error('Có lỗi xin vui lòng thử lại.');
   } finally {
     isLoading.value = false;
+  }
+};
+
+const typeWriterEffect = async (html) => {
+  let index = 0;
+  while (index < html.length) {
+    streamingContent.value += html[index];
+    index++;
+    await delay(5);
   }
 };
 
@@ -358,26 +356,7 @@ const handleApplyGenerateAI = () => {
 
 const resetContent = () => {
   streamingContent.value = '';
-  prompt.value = '';
+  formData.value.keywords = '';
+  formData.value.extra = '';
 };
 </script>
-
-<style scoped>
-ol,
-ul,
-menu {
-  /* list-style: none; */
-  margin: 0;
-  padding: 0;
-  margin-left: 30px;
-}
-
-.text-generate-wrap {
-  position: relative;
-  max-height: 755px;
-  overflow-y: auto;
-  background-color: #f3f5f7;
-  border-radius: 10px;
-  padding: 20px;
-}
-</style>
