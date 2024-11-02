@@ -68,7 +68,8 @@ class AppRepositoryProvider extends ServiceProvider
         'App\Repositories\Interfaces\Chat\ChatRepositoryInterface' => 'App\Repositories\Chat\ChatRepository',
         // FLASH SALE
         'App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface' => 'App\Repositories\FlashSale\FlashSaleRepository',
-
+        // SEARCH HISTORY
+        'App\Repositories\Interfaces\SearchHistory\SearchHistoryRepositoryInterface' => 'App\Repositories\SearchHistory\SearchHistoryRepository',
     ];
 
     public function register(): void

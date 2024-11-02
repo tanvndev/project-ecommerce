@@ -13,6 +13,7 @@ use App\Models\ProductVariantAttributeValue;
 use App\Repositories\Interfaces\Attribute\AttributeValueRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
+use App\Repositories\Interfaces\SearchHistory\SearchHistoryRepositoryInterface;
 use App\Services\BaseService;
 use App\Services\Interfaces\Product\ProductServiceInterface;
 use Carbon\Carbon;
@@ -26,7 +27,8 @@ class ProductService extends BaseService implements ProductServiceInterface
     public function __construct(
         protected ProductRepositoryInterface $productRepository,
         protected ProductVariantRepositoryInterface $productVariantRepository,
-        protected AttributeValueRepositoryInterface $attributeValueRepository
+        protected AttributeValueRepositoryInterface $attributeValueRepository,
+        protected SearchHistoryRepositoryInterface $searchHistoryRepository
     ) {}
 
     public function paginate()
@@ -670,7 +672,11 @@ class ProductService extends BaseService implements ProductServiceInterface
     protected function getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars)
     {
         $query = ProductVariant::query();
+
+        $query = $this->getPublicProductVariants($query);
+
         $query = $this->filterByCatalogue($query, $catalogues);
+        
         $query = $this->filterByPrice($query, $priceRange);
 
         $this->applySearch($query, $search);
@@ -686,10 +692,36 @@ class ProductService extends BaseService implements ProductServiceInterface
         return $query->paginate(30);
     }
 
+    protected function getPublicProductVariants($query)
+    {
+        $query->whereHas('product', function ($subQuery) {
+            $subQuery->where('publish', 1);
+        });
+
+        return $query;
+    }
+
     protected function applySearch($query, $search)
     {
+        $prohibitedWords = Cache::remember('prohibited_words', 3600, function () {
+            return file(storage_path('prohibited_words.txt'), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        });
+
         if (!empty($search)) {
             $query->where('product_variants.name', 'like', '%' . $search . '%');
+        }
+
+        $pattern = '/\b(' . implode('|', array_map('preg_quote', $prohibitedWords)) . ')\b/i';
+        $containsProhibitedWord = preg_match($pattern, $search);
+
+        if (!$containsProhibitedWord) {
+            $existingKeyword  = $this->searchHistoryRepository->findByWhere(['keyword' => $search]);
+            if ($existingKeyword) {
+                $existingKeyword->increment('count');
+                $existingKeyword->update(['updated_at' => now()]);
+            } else {
+                $this->searchHistoryRepository->create(['keyword' => $search, 'count' => 1]);
+            }
         }
     }
 
@@ -756,23 +788,23 @@ class ProductService extends BaseService implements ProductServiceInterface
     }
 
     protected function filterByStars($query, $stars)
-{
-    if (!empty($stars)) {
-        $starArray = explode(',', $stars);
+    {
+        if (!empty($stars)) {
+            $star = (float) $stars;
 
-        $productIds = DB::table('product_reviews')
-            ->select('product_id')
-            ->groupBy('product_id')
-            ->havingRaw('ROUND(AVG(rating), 1) IN (' . implode(',', array_map('floatval', $starArray)) . ')')
-            ->pluck('product_id');
+            $productIds = DB::table('product_reviews')
+                ->select('product_id')
+                ->groupBy('product_id')
+                ->havingRaw('ROUND(AVG(rating), 2) BETWEEN ? AND ?', [$star, $star + 0.91])
+                ->pluck('product_id');
 
-        $query->whereHas('product', function ($q) use ($productIds) {
-            $q->whereIn('id', $productIds);
-        });
+            $query->whereHas('product', function ($q) use ($productIds) {
+                $q->whereIn('id', $productIds);
+            });
+        }
+
+        return $query;
     }
-
-    return $query;
-}
 
 
     // Lấy ra danh sách các giá trị biến thể

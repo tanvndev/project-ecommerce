@@ -178,10 +178,12 @@ const deboucedFetchData = debounce(fetchData, 500);
 
 // Watchers
 watch(onChangePagination, fetchData);
+
 watch(selectedRows, () => {
   state.isShowToolbox = selectedRows.value.length > 0;
   state.modelIds = selectedRowKeys.value;
 });
+
 watch(
   () => route.query.archive,
   (newValue) => {
