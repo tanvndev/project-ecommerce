@@ -120,7 +120,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
 
                 $reviewData = array_merge($data, [
                     'product_id' => $productId,
-                    'images'     => json_encode($uploadedImages),
+                    'images'     => $uploadedImages,
                 ]);
 
                 $this->productReviewRepository->create($reviewData);
@@ -175,7 +175,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
             $data['order_id'] = $parentReview->order_id;
             $data['user_id'] = auth()->user()->id;
             $data['parent_id'] = $parentReview->id;
-            $data['images'] = json_encode($uploadedImages);
+            $data['images'] = $uploadedImages;
 
             $this->productReviewRepository->create($data);
 

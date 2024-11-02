@@ -2,7 +2,6 @@
 import _ from 'lodash'
 
 const { $axios } = useNuxtApp()
-const router = useRouter()
 const comboItem = ref({})
 const suggestedProducts = ref([])
 
@@ -14,6 +13,9 @@ const props = defineProps({
 })
 
 const getSuggestedProducts = async () => {
+  if (!props.variant?.id) {
+    return
+  }
   try {
     const response = await $axios.get(`/products/${props.variant?.id}/suggest`)
 
@@ -49,7 +51,10 @@ const handleBuyNow = () => {
       }))
       .filter((item) => item.quantity > 0)
 
-    console.log(payload)
+    payload.push({
+      product_variant_id: props.variant.id,
+      quantity: 1,
+    })
   }
 }
 
@@ -127,7 +132,11 @@ watch(
           <div class="col-lg-3">
             <div class="total-bill">
               <div>
-                <strong>{{ formatCurrency(totalPrice) }}</strong>
+                <strong>{{
+                  formatCurrency(
+                    totalPrice + Number(variant.sale_price || variant.price)
+                  )
+                }}</strong>
               </div>
               <a
                 href="buy-now"
