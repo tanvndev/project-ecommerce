@@ -8,6 +8,15 @@ use App\Http\Controllers\Api\V1\Chat\ChatController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\Post\PostController;
 use App\Http\Controllers\Api\V1\Post\PostCatalogueController;
+use App\Http\Controllers\Api\V1\Product\ProductCatalogueController;
+use App\Http\Controllers\Api\V1\Product\ProductController;
+use App\Http\Controllers\Api\V1\Product\ProductReviewController;
+use App\Http\Controllers\Api\V1\ShippingMethod\ShippingMethodController;
+use App\Http\Controllers\Api\V1\Slider\SliderController;
+use App\Http\Controllers\Api\V1\SystemConfig\SystemConfigController;
+use App\Http\Controllers\Api\V1\Upload\UploadController;
+use App\Http\Controllers\Api\V1\User\UserAddressController;
+use App\Http\Controllers\Api\V1\User\UserCatalogueController;
 use App\Http\Controllers\Api\V1\User\UserController;
 use App\Http\Controllers\Api\V1\Brand\BrandController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
@@ -166,6 +175,7 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
 
         // Flash Sale ROUTE
         Route::apiResource('flash-sales', FlashSaleController::class);
+        route::put('change-status-flash-sale/{id}', [FlashSaleController::class, 'changeStatus']);
 
         // SYSTEM CONFIG ROUTE
         Route::get('system-configs', [SystemConfigController::class, 'index']);
@@ -209,9 +219,11 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
 
         // PRODUCT REVIEW ROUTE
         Route::controller(ProductReviewController::class)->name('product-reviews.')->group(function () {
+            Route::get('product-reviews', 'getAllProductReviews')->name('getAllProductReviews');
             Route::get('product-reviews/{productId}', 'getReviewByProductId')->name('show');
+            Route::get('product-reviews/replies/{id}', 'adminGetReplies')->name('replies');
             Route::post('product-reviews', 'store')->name('store');
-            Route::post('product-reviews/{parentId}/replies', 'adminReply')->name('reply');
+            Route::post('product-reviews/replies/create', 'adminReply')->name('reply');
             Route::put('product-reviews/replies/{replyId}', 'adminUpdateReply')->name('updateReply');
         });
 
@@ -242,4 +254,5 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         ->group(function () {
             Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
         });
+
 });

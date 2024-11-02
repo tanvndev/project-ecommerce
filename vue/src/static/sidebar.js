@@ -113,6 +113,13 @@ const sidebar = [
         route: 'post.catalogue.index'
       }
     ]
+  },
+  {
+    id: 'evaluate_sidebar',
+    icon: 'fas fa-star',
+    name: 'Đánh giá',
+    route: 'evaluate.index',
+    subMenu: []
   }
 ];
 export default sidebar;
