@@ -507,10 +507,19 @@ onMounted(() => {
                   </h3>
                   <div class="ratings-container">
                     <div class="ratings-full">
-                      <span class="ratings" style="width: 80%"></span>
-                      <span class="tooltiptext tooltip-top">4</span>
+                      <span
+                        class="ratings"
+                        :style="`width: ${item?.reviews?.avg_percent}%`"
+                      ></span>
+                      <span class="tooltiptext tooltip-top">{{
+                        item?.reviews?.avg
+                      }}</span>
                     </div>
-                    <a href="#" class="rating-reviews">(5 đánh giá)</a>
+                    <NuxtLink
+                      :to="`product/${item.slug}-${item.product_id}`"
+                      class="rating-reviews"
+                      >({{ item?.reviews?.count }} đánh giá)</NuxtLink
+                    >
                   </div>
                   <div v-html="handleRenderPrice(item)"></div>
                 </div>

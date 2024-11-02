@@ -616,9 +616,6 @@ class ProductService extends BaseService implements ProductServiceInterface
         return $query;
     }
 
-
-
-
     // CLIENT API //
 
     public function getProduct(string $slug)
@@ -628,8 +625,6 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         return $product;
     }
-
-
 
     public function filterProducts()
     {
@@ -644,8 +639,6 @@ class ProductService extends BaseService implements ProductServiceInterface
         $pageSize = $request['pageSize'] ?? 20;
 
         $productVariants = $this->getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars, $pageSize);
-
-        // Lấy các giá trị biến thể (values) từ sản phẩm
         $formattedAttributes = $this->getFormattedAttributes($productVariants);
 
         return [
@@ -682,8 +675,6 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         $this->filterByStars($query, $stars);
 
-        $this->applyFlashSaleJoin($query);
-
         $this->applySorting($query, $sort);
 
         return $query->paginate($pageSize);
@@ -706,26 +697,10 @@ class ProductService extends BaseService implements ProductServiceInterface
         }
     }
 
-    protected function applyFlashSaleJoin($query)
-    {
-        $query->leftJoin('flash_sale_product_variants', function ($join) {
-            $join->on('product_variants.id', '=', 'flash_sale_product_variants.product_variant_id')
-                ->join('flash_sales', 'flash_sale_product_variants.flash_sale_id', '=', 'flash_sales.id')
-                ->where('flash_sales.start_date', '<=', now())
-                ->where('flash_sales.end_date', '>=', now())
-                ->where('flash_sales.publish', true)
-                ->where('flash_sale_product_variants.max_quantity', '>', 0);
-        });
-
-        $query->selectRaw('
-        product_variants.*,
-        COALESCE(flash_sale_product_variants.sale_price, product_variants.price) as effective_price
-    ');
-    }
 
     protected function applySorting($query, $sort)
     {
-        $query->orderBy('effective_price', $sort);
+        $query->orderBy('price', $sort);
     }
 
     // lọc giá
@@ -733,10 +708,10 @@ class ProductService extends BaseService implements ProductServiceInterface
     {
         if ($priceRange['min'] !== null || $priceRange['max'] !== null) {
             if ($priceRange['min'] !== null) {
-                $query->having('effective_price', '>=', $priceRange['min']);
+                $query->having('price', '>=', $priceRange['min']);
             }
             if ($priceRange['max'] !== null) {
-                $query->having('effective_price', '<=', $priceRange['max']);
+                $query->having('price', '<=', $priceRange['max']);
             }
         }
 

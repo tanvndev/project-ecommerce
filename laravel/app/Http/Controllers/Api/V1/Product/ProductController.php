@@ -18,6 +18,7 @@ use App\Services\Interfaces\Apriori\AprioriServiceInterface;
 use App\Services\Interfaces\Product\ProductServiceInterface;
 use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
 use App\Http\Resources\Product\Client\ClientProductVariantCollection;
+use App\Http\Resources\Product\Client\ClientProductVariantResource;
 
 class ProductController extends Controller
 {
@@ -155,6 +156,11 @@ class ProductController extends Controller
     {
         $response = $this->productService->filterProducts();
 
-        return successResponse('', $response, true);
+        $data = [
+            'product_variants' => new ClientProductVariantCollection($response['product_variants']),
+            'attributes' => $response['attributes'],
+        ];
+
+        return successResponse('', $data, true);
     }
 }
