@@ -15,9 +15,11 @@ class ProductReviewResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'key'           => $this->id,
             'id'            => $this->id,
             'product_id'    => $this->product_id,
             'product_name'  => $this->product->name,
+            'product_image' => $this->product->variants,
             'user_id'       => $this->user->id,
             'order_id'      => $this->order_id,
             'order_code'    => $this->order->code,

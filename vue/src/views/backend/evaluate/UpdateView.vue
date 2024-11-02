@@ -142,7 +142,7 @@ const state = reactive({
   replyExists: false // New state to track if reply exists
 });
 
-const { getOne, create, update, data } = useCRUD();
+const { getOne, create, update , messages, data } = useCRUD();
 
 const id = computed(() => router.currentRoute.value.params.id || null);
 
@@ -158,10 +158,10 @@ const onSubmit = handleSubmit(async (values) => {
     : await create(`${state.endpoint}/create`, { review_id: id.value, comment: values.reply });
 
   if (!response) {
-    return (state.errors = formatMessages(data.value));
+    return (state.errors = formatMessages(messages.value));
   }
 
-  message.success(data.value);
+  message.success(messages.value);
   router.push({ name: 'evaluate.index' });
 });
 

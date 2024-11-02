@@ -138,26 +138,6 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
         }, __('messages.create.error'));
     }
 
-    public function updateStatus()
-    {
-        return $this->executeInTransaction(function () {
-            $request = request();
-            $review = $this->productReviewRepository->findByWhere([
-                'id' => $request->modelId,
-            ]);
-
-            if (! $review) {
-                return errorResponse(__('messages.product_review.error.parent_not_found'));
-            }
-
-            $this->productReviewRepository->update($review->id, [
-                'publish' => $request->value,
-            ]);
-
-            return successResponse(__('messages.publish.success'));
-        }, __('messages.publish.error'));
-    }
-
     /**
      * Admin reply a product review.
      *
