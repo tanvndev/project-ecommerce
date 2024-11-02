@@ -237,7 +237,12 @@ const getErrorMsg = (error) => {
     return error?.response?.data?.messages || 'Something went wrong!';
   }
   return error?.message || 'Something went wrong!';
-}
+};
+
+const numberWithCommas = (x) => {
+  x = x.toString().replace(/[^0-9]/g, '');
+  return x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, '.');
+};
 
 export {
   debounce,
@@ -252,5 +257,6 @@ export {
   handleDateChangeToAnt,
   generateRandomString,
   timeAgo,
-  getErrorMsg
+  getErrorMsg,
+  numberWithCommas
 };

@@ -451,6 +451,11 @@ const timeAgo = (dateString) => {
 
   return 'vừa mới'
 }
+
+const numberWithCommas = (x) => {
+    x = x.toString().replace(/[^0-9]/g, '');
+    return x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, '.');
+};
 export {
   debounce,
   resizeImage,
@@ -476,4 +481,5 @@ export {
   formatTime,
   showNotification,
   timeAgo,
+  numberWithCommas
 }

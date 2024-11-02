@@ -631,23 +631,26 @@ class ProductService extends BaseService implements ProductServiceInterface
 
 
 
-    public function filterProducts($data)
+    public function filterProducts()
     {
-        $catalogues = $this->getCatalogues($data);
-        $priceRange = $this->getPriceRange($data);
-        $sort = $data['sort'] ?? 'asc';
-        $search = $data['search'] ?? '';
-        $values = $data['values'] ?? '';
-        $stars = $data['stars'] ?? '';
+        $request = request()->all();
+        $catalogues = $this->getCatalogues($request);
+        $priceRange = $this->getPriceRange($request);
 
-        $productVariants = $this->getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars);
+        $sort = $request['sort'] ?? 'asc';
+        $search = $request['search'] ?? '';
+        $values = $request['values'] ?? '';
+        $stars = $request['stars'] ?? '';
+        $pageSize = $request['pageSize'] ?? 20;
+
+        $productVariants = $this->getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars, $pageSize);
 
         // Lấy các giá trị biến thể (values) từ sản phẩm
-        $formattedValues = $this->getFormattedValues($productVariants);
+        $formattedAttributes = $this->getFormattedAttributes($productVariants);
 
         return [
             'product_variants' => $productVariants,
-            'values' => $formattedValues,
+            'attributes' => $formattedAttributes,
         ];
     }
 
@@ -667,7 +670,7 @@ class ProductService extends BaseService implements ProductServiceInterface
     }
 
     // gọi các hàm lọc
-    protected function getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars)
+    protected function getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars, $pageSize)
     {
         $query = ProductVariant::query();
         $query = $this->filterByCatalogue($query, $catalogues);
@@ -683,7 +686,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         $this->applySorting($query, $sort);
 
-        return $query->paginate(30);
+        return $query->paginate($pageSize);
     }
 
     protected function applySearch($query, $search)
@@ -774,19 +777,42 @@ class ProductService extends BaseService implements ProductServiceInterface
         return $query;
     }
 
-
-    // Lấy ra danh sách các giá trị biến thể
-    protected function getFormattedValues($productVariants)
+    protected function getFormattedAttributes($productVariants)
     {
         $variantIds = $productVariants->pluck('id');
 
         $attributeValues = DB::table('product_variant_attribute_value')
             ->whereIn('product_variant_id', $variantIds)
             ->join('attribute_values', 'product_variant_attribute_value.attribute_value_id', '=', 'attribute_values.id')
-            ->select('attribute_values.id as value_id', 'attribute_values.name as value_name')
+            ->join('attributes', 'attribute_values.attribute_id', '=', 'attributes.id')
+            ->select('attributes.id as attribute_id', 'attributes.name as attribute_name', 'attribute_values.id as value_id', 'attribute_values.name as value_name')
             ->distinct()
-            ->get();
+            ->get()
+            ->groupBy('attribute_id');
 
-        return $attributeValues;
+        return $this->formatAttributes($attributeValues);
+    }
+
+    // format attributes
+    protected function formatAttributes($attributeValues)
+    {
+        $formatted = [];
+
+        foreach ($attributeValues as $attributeId => $values) {
+            $formatted[$attributeId] = [
+                'id' => $values[0]->attribute_id,
+                'name' => $values[0]->attribute_name,
+                'values' => []
+            ];
+
+            foreach ($values as $value) {
+                $formatted[$attributeId]['values'][] = [
+                    'id' => $value->value_id,
+                    'name' => $value->value_name,
+                ];
+            }
+        }
+
+        return $formatted;
     }
 }
