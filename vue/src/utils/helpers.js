@@ -245,18 +245,18 @@ const numberWithCommas = (x) => {
 };
 
 export {
-  debounce,
-  resizeImage,
-  getBase64,
-  getFileNameFromUrl,
-  getFileFromFileList,
-  getImageToAnt,
-  isJSONString,
   cleanedData,
-  generateSlug,
-  handleDateChangeToAnt,
+  debounce,
   generateRandomString,
-  timeAgo,
+  generateSlug,
+  getBase64,
   getErrorMsg,
-  numberWithCommas
+  getFileFromFileList,
+  getFileNameFromUrl,
+  getImageToAnt,
+  handleDateChangeToAnt,
+  isJSONString,
+  numberWithCommas,
+  resizeImage,
+  timeAgo
 };

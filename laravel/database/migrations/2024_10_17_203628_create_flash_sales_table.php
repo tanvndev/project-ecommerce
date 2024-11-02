@@ -17,6 +17,7 @@ return new class extends Migration
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->tinyInteger('publish')->default(2);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

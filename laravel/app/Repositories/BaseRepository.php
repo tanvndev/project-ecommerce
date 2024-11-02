@@ -26,11 +26,11 @@ class BaseRepository implements BaseRepositoryInterface
     public function all(array $column = ['*'], array $relation = [], array $orderBy = [])
     {
         $query = $this->model->select($column);
-        if ( ! empty($orderBy)) {
+        if (! empty($orderBy)) {
             $query->customOrderBy($orderBy);
         }
 
-        if ( ! empty($relation)) {
+        if (! empty($relation)) {
             return $query->relation($relation)->get();
         }
 
@@ -42,11 +42,19 @@ class BaseRepository implements BaseRepositoryInterface
      *
      * @param  mixed  $modelId
      * @param  array|string  $column
+     * @param  array  $relation
+     * @param  bool  $lockForUpdate
      * @return mixed
      */
-    public function findById($modelId, $column = ['*'], array $relation = [])
+    public function findById($modelId, $column = ['*'], array $relation = [], bool $lockForUpdate = false)
     {
-        return $this->model->select($column)->with($relation)->findOrFail($modelId);
+        $query = $this->model->select($column)->with($relation);
+
+        if ($lockForUpdate) {
+            $query->lockForUpdate();
+        }
+
+        return $query->findOrFail($modelId);
     }
 
     /**
@@ -79,25 +87,25 @@ class BaseRepository implements BaseRepositoryInterface
     ) {
         $query = $this->model->select($column);
 
-        if ( ! empty($relation)) {
+        if (! empty($relation)) {
             $query->relation($relation);
         }
 
         $query->customWhere($conditions);
 
-        if ( ! empty($whereInParams)) {
+        if (! empty($whereInParams)) {
             $query->whereIn($whereInParams['field'], $whereInParams['value']);
         }
 
-        if ( ! empty($orderBy)) {
+        if (! empty($orderBy)) {
             $query->customOrderBy($orderBy);
         }
 
-        if ( ! empty($withCount)) {
+        if (! empty($withCount)) {
             $query->withCount($withCount);
         }
 
-        if ( ! empty($withWhereHas)) {
+        if (! empty($withWhereHas)) {
             // 'relation_name' => [
             //     ['field', 'operator', 'value'],
             // ]
@@ -125,15 +133,15 @@ class BaseRepository implements BaseRepositoryInterface
     ) {
         $query = $this->model->newQuery()->whereIn($field, $values);
 
-        if ( ! empty($columns)) {
+        if (! empty($columns)) {
             $query->select($columns);
         }
 
-        if ( ! empty($relations)) {
+        if (! empty($relations)) {
             $query->with($relations);
         }
 
-        if ( ! empty($relationConditions)) {
+        if (! empty($relationConditions)) {
             // 'relation_name' => [
             //     ['field', 'operator', 'value'],
             // ]
@@ -195,14 +203,14 @@ class BaseRepository implements BaseRepositoryInterface
             ->customGroupBy($groupBy ?? null)
             ->customOrderBy($orderBy ?? null);
 
-        if ( ! empty($withWhereHas)) {
+        if (! empty($withWhereHas)) {
             // Apply constraints to eager-loaded relationships
             foreach ($withWhereHas as $relation => $callback) {
                 $query->whereHas($relation, $callback);
             }
         }
 
-        if ( ! empty($condition['archive'] ?? null) && $condition['archive'] == true) {
+        if (! empty($condition['archive'] ?? null) && $condition['archive'] == true) {
             $query->onlyTrashed();
         }
 

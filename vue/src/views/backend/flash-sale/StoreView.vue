@@ -8,6 +8,7 @@
             <div class="col-span-9 space-y-3">
               <!-- Name Field -->
               <a-card title="Thông tin chung">
+                <AleartError :errors="state.error" />
                 <InputComponent
                   label="Tên Flash Sale"
                   :required="true"
@@ -17,6 +18,8 @@
               </a-card>
 
               <a-card title="Sản phẩm">
+                <AleartError :errors="state.error" />
+
                 <!-- Products Field -->
                 <div class="relative">
                   <input
@@ -94,7 +97,7 @@
                     <!-- Giá sản phẩm -->
                     <input
                       type="number"
-                      placeholder="Giá"
+                      placeholder="Giá khuyến mãi"
                       v-model="product.price"
                       @blur="handleBlur(`products.${index}.price`)"
                       @input="validateProductField('price', index)"
@@ -171,7 +174,12 @@
 
               <!-- Start Date Section -->
               <a-card title="Ngày bắt đầu">
-                <InputDateComponent :show-time="true" name="start_date" :required="true" placeholder="Ngày bắt đầu" />
+                <InputDateComponent
+                  :show-time="true"
+                  name="start_date"
+                  :required="true"
+                  placeholder="Ngày bắt đầu"
+                />
               </a-card>
 
               <!-- End Date Section -->
@@ -179,7 +187,7 @@
                 <InputDateComponent
                   name="end_date"
                   :required="true"
-                  :show-time="true" 
+                  :show-time="true"
                   placeholder="Chọn ngày kết thúc"
                 />
               </a-card>
@@ -193,6 +201,7 @@
 
 <script setup>
 import {
+  AleartError,
   InputComponent,
   InputDateComponent,
   MasterLayout,
@@ -204,6 +213,7 @@ import { PUBLISH } from '@/static/constants';
 import { formatCurrency, formatMessages } from '@/utils/format';
 import { debounce } from '@/utils/helpers';
 import { message } from 'ant-design-vue';
+import dayjs from 'dayjs';
 import { useForm } from 'vee-validate';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { validationSchema } from './validationSchema';
@@ -213,6 +223,10 @@ const isDropdownVisible = ref(false);
 const searchTerm = ref('');
 const selectedProducts = ref([]);
 const productInput = ref(null);
+const idOlds = ref('');
+const variantOlds = ref([]);
+
+const id = computed(() => router.currentRoute.value.params.id || null);
 
 const state = reactive({
   error: {}
@@ -239,7 +253,7 @@ const handleBlur = (field) => {
   form.validateField(field);
 };
 
-const { getAll, create, messages } = useCRUD();
+const { getAll, create, getOne, update, messages, data } = useCRUD();
 
 // Fetch products from the API
 const fetchProducts = async () => {
@@ -249,8 +263,26 @@ const fetchProducts = async () => {
       pageSize: 20,
       search: searchTerm.value
     };
+
+    if (!searchTerm.value && idOlds.value) {
+      payload.ids = idOlds.value;
+    }
     const response = await getAll('products/variants', payload);
     products.value = response.data;
+
+    if (!searchTerm.value && idOlds.value) {
+      response.forEach((item) => {
+        if (idOlds.value.includes(item.id)) {
+          const variant = variantOlds.value.find((v) => v.id === item.id);
+          item.orginal_price = item.sale_price || item.price;
+          item.price = parseInt(variant.sale_price);
+          item.quantity = variant.max_quantity;
+
+          selectedProducts.value.push(item);
+        }
+      });
+      console.log(selectedProducts.value);
+    }
   } catch (error) {
     console.error('Không thể lấy sản phẩm:', error);
   }
@@ -258,8 +290,7 @@ const fetchProducts = async () => {
 
 const submitForm = async (exitAfterSave = false) => {
   const isValid = await form.validate();
-
-  if (!isValid) {
+  if (!isValid.valid) {
     return;
   }
 
@@ -271,7 +302,7 @@ const submitForm = async (exitAfterSave = false) => {
     salePrices[product.id] = product.price;
   });
 
-  const dataToSend = {
+  const payload = {
     name: form.values.name,
     start_date: form.values.start_date,
     publish: form.values.publish,
@@ -283,7 +314,10 @@ const submitForm = async (exitAfterSave = false) => {
   state.error = {};
 
   try {
-    const response = await create('flash-sales', dataToSend);
+    const response =
+      id.value && id.value > 0
+        ? await update('flash-sales', id.value, payload)
+        : await create('flash-sales', payload);
     if (exitAfterSave) {
       if (!response) {
         return (state.error = formatMessages(messages.value));
@@ -298,12 +332,23 @@ const submitForm = async (exitAfterSave = false) => {
   }
 };
 
+const fetchOne = async () => {
+  await getOne('flash-sales', id.value);
+  form.setValues({
+    name: data.value.name,
+    publish: data.value.publish,
+    start_date: dayjs(data.value.origin_start_date),
+    end_date: dayjs(data.value.origin_end_date)
+  });
+  variantOlds.value = data.value.product_variants;
+  idOlds.value = data.value.product_variants.map((item) => item.id).join(',');
+};
+
 const selectProduct = (product) => {
   const orginalPrice = product.sale_price || product.price;
   const newProduct = JSON.parse(
     JSON.stringify({ ...product, price: '', quantity: '', orginal_price: orginalPrice })
   );
-  console.log(newProduct);
   selectedProducts.value.push(newProduct);
   form.setFieldValue('products', [...form.values.products, newProduct]);
   searchTerm.value = '';
@@ -329,6 +374,11 @@ watch(searchTerm, () => {
 
 // Khi component được mount
 onMounted(() => {
+  if (id.value && id.value > 0) {
+    state.pageTitle = 'Cập nhập nhóm sản phẩm.';
+    fetchOne();
+  }
+
   debounceFechProducts();
 });
 </script>
