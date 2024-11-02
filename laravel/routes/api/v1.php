@@ -138,7 +138,7 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         Route::prefix('/')->name('products.')->group(function () {
             Route::apiResource('products/catalogues', ProductCatalogueController::class);
         });
-        Route::get('products/report', [ProductController::class, 'getProductReport']);
+
 
         Route::get('products/variants', [ProductController::class, 'getProductVariants']);
         Route::put('products/variants/update', [ProductController::class, 'updateVariant']);
@@ -242,5 +242,6 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         ->name('statistic.')
         ->group(function () {
             Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
+            Route::get('product', [StatisticController::class, 'getProductReport']);
         });
 });

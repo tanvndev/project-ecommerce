@@ -27,4 +27,10 @@ class StatisticController extends Controller
         return successResponse('', $paginator, true);
     }
 
+    public function getProductReport()
+    {
+        $response = $this->statisticService->getProductReport();
+
+        return successResponse('', $response, true);
+    }
 }

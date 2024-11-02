@@ -179,7 +179,6 @@ class OrderService extends BaseService implements OrderServiceInterface
         }
 
 
-        $this->sendMailUpdatePayment($order);
         return true;
     }
 

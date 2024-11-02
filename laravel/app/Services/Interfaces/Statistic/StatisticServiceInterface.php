@@ -6,4 +6,5 @@ interface StatisticServiceInterface
 {
     public function paginate();
 
+    public function getProductReport();
 }
