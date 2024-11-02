@@ -253,6 +253,8 @@ class CartService extends BaseService implements CartServiceInterface
      */
     private function getUserOrSessionConditions($sessionId): array
     {
+        if (!auth()->check() && $sessionId == 'undefined')  throw new \Exception('Session id is not defined.');
+
         return auth()->check()
             ? ['user_id' => auth()->user()->id]
             : ['session_id' => $sessionId];
@@ -308,7 +310,7 @@ class CartService extends BaseService implements CartServiceInterface
     // Hàm xử lý mua nhiều sản phẩm
     public function buyNowMultiple($request)
     {
-        return $this->executeInTransaction(function () use (&$request) {
+        return $this->executeInTransaction(function () use ($request) {
             $cart = $this->initializeCart($request);
             $this->unselectAllCartItems($cart);
 

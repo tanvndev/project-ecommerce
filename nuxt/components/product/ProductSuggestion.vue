@@ -4,6 +4,8 @@ import _ from 'lodash'
 const { $axios } = useNuxtApp()
 const comboItem = ref({})
 const suggestedProducts = ref([])
+const cartStore = useCartStore()
+const router = useRouter()
 
 const props = defineProps({
   variant: {
@@ -42,19 +44,20 @@ const totalPrice = computed(() => {
   )
 })
 
-const handleBuyNow = () => {
+const handleBuyNow = async () => {
   if (totalPrice.value) {
-    const payload = _.toPairs(comboItem.value)
-      .map(([id, isSelected]) => ({
-        product_variant_id: parseInt(id),
-        quantity: isSelected ? 1 : 0,
-      }))
-      .filter((item) => item.quantity > 0)
+    const productVariantIds = _.toPairs(comboItem.value)
+      .map(([id, isSelected]) => {
+        if (isSelected) {
+          return parseInt(id)
+        }
+      })
+      .filter((item) => item)
 
-    payload.push({
-      product_variant_id: props.variant.id,
-      quantity: 1,
-    })
+    productVariantIds.push(props.variant.id)
+
+    await cartStore.buyNowMulti({ product_variant_id: productVariantIds })
+
   }
 }
 
