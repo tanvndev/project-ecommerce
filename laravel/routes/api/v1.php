@@ -7,19 +7,8 @@ use App\Http\Controllers\Api\V1\Cart\CartController;
 use App\Http\Controllers\Api\V1\Chat\ChatController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\Post\PostController;
-<<<<<<< HEAD
 use App\Http\Controllers\Api\V1\Post\PostCatalogueController;
-use App\Http\Controllers\Api\V1\Product\ProductCatalogueController;
-use App\Http\Controllers\Api\V1\Product\ProductController;
-use App\Http\Controllers\Api\V1\Product\ProductReviewController;
-use App\Http\Controllers\Api\V1\ShippingMethod\ShippingMethodController;
-use App\Http\Controllers\Api\V1\Slider\SliderController;
-use App\Http\Controllers\Api\V1\SystemConfig\SystemConfigController;
-use App\Http\Controllers\Api\V1\Upload\UploadController;
-use App\Http\Controllers\Api\V1\User\UserAddressController;
-use App\Http\Controllers\Api\V1\User\UserCatalogueController;
-=======
->>>>>>> 293be90e70ab5d1f3a60e09c2a0e9133e9c597b3
+
 use App\Http\Controllers\Api\V1\User\UserController;
 use App\Http\Controllers\Api\V1\Brand\BrandController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
@@ -222,9 +211,11 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
 
         // PRODUCT REVIEW ROUTE
         Route::controller(ProductReviewController::class)->name('product-reviews.')->group(function () {
+            Route::get('product-reviews', 'getAllProductReviews')->name('getAllProductReviews');
             Route::get('product-reviews/{productId}', 'getReviewByProductId')->name('show');
+            Route::get('product-reviews/replies/{id}', 'adminGetReplies')->name('replies');
             Route::post('product-reviews', 'store')->name('store');
-            Route::post('product-reviews/{parentId}/replies', 'adminReply')->name('reply');
+            Route::post('product-reviews/replies/create', 'adminReply')->name('reply');
             Route::put('product-reviews/replies/{replyId}', 'adminUpdateReply')->name('updateReply');
         });
 
