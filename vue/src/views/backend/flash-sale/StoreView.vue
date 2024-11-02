@@ -42,8 +42,29 @@
                       class="cursor-pointer border-b border-gray-200 px-4 py-3 hover:bg-gray-100"
                       @mousedown.prevent="selectProduct(product)"
                     >
-                      <img :src="product.image" alt="" class="mr-2 inline-block h-8 w-auto" />
-                      {{ product.name }}
+                      <div class="flex items-center justify-between space-x-2">
+                        <div class="flex items-center">
+                          <img :src="product.image" alt="" class="mr-2 inline-block h-8 w-auto" />
+                          <div class="inline-block">
+                            <span> {{ product.name }}</span>
+                            <span class="block text-xs text-gray-500">
+                              Tồn kho: {{ product.stock }}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div class="flex-end flex">
+                          <div class="font-bold">
+                            <span class="text-xs text-gray-500"> Giá nhập: </span>
+                            <span>{{ formatCurrency(product.cost_price) }}</span>
+                          </div>
+                          <div class="mx-2">--</div>
+                          <div class="font-bold">
+                            <span class="text-xs text-gray-500"> Giá cuối: </span>
+                            <span>{{ formatCurrency(product.sale_price || product.price) }}</span>
+                          </div>
+                        </div>
+                      </div>
                     </li>
                   </ul>
                 </div>
@@ -56,7 +77,19 @@
                     class="flex items-center space-x-2 rounded-lg bg-slate-50 px-4 py-3 transition-all duration-100 hover:bg-slate-100"
                   >
                     <img :src="product.image" alt="" class="mr-2 h-[50px] w-[50px]" />
-                    <span class="flex-1 text-blue-700">{{ product.name }}</span>
+                    <div class="flex flex-1 flex-col text-blue-700">
+                      <span>{{ product.name }}</span>
+                      <span class="text-xs text-gray-500"> Tồn kho: {{ product.stock }} </span>
+                    </div>
+                    <div class="flex-2 font-bold">
+                      <span class="text-xs text-gray-500"> Giá nhập: </span>
+                      <span>{{ formatCurrency(product.cost_price) }}</span>
+                    </div>
+                    <div>--</div>
+                    <div class="flex-1 font-bold">
+                      <span class="text-xs text-gray-500"> Giá cuối: </span>
+                      <span>{{ formatCurrency(product.orginal_price) }}</span>
+                    </div>
 
                     <!-- Giá sản phẩm -->
                     <input
@@ -81,7 +114,7 @@
                       v-model="product.quantity"
                       @blur="handleBlur(`products.${index}.quantity`)"
                       @input="validateProductField('quantity', index)"
-                      class="w-30 ml-2 rounded-[4px] border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                      class="ml-2 w-24 rounded-[4px] border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
                     />
                     <span
                       v-if="form.errors.products && form.errors.products[index]?.quantity"
@@ -138,7 +171,7 @@
 
               <!-- Start Date Section -->
               <a-card title="Ngày bắt đầu">
-                <InputDateComponent name="start_date" :required="true" placeholder="Ngày bắt đầu" />
+                <InputDateComponent :show-time="true" name="start_date" :required="true" placeholder="Ngày bắt đầu" />
               </a-card>
 
               <!-- End Date Section -->
@@ -146,6 +179,7 @@
                 <InputDateComponent
                   name="end_date"
                   :required="true"
+                  :show-time="true" 
                   placeholder="Chọn ngày kết thúc"
                 />
               </a-card>
@@ -159,20 +193,20 @@
 
 <script setup>
 import {
-  MasterLayout,
   InputComponent,
-  SelectComponent,
-  InputDateComponent
+  InputDateComponent,
+  MasterLayout,
+  SelectComponent
 } from '@/components/backend';
-import { ref, onMounted, computed, reactive, watch } from 'vue';
 import { useCRUD } from '@/composables';
-import { useForm } from 'vee-validate';
-import { validationSchema } from './validationSchema';
-import { PUBLISH } from '@/static/constants';
 import router from '@/router';
-import { message } from 'ant-design-vue';
-import { formatMessages } from '@/utils/format';
+import { PUBLISH } from '@/static/constants';
+import { formatCurrency, formatMessages } from '@/utils/format';
 import { debounce } from '@/utils/helpers';
+import { message } from 'ant-design-vue';
+import { useForm } from 'vee-validate';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { validationSchema } from './validationSchema';
 
 const products = ref([]);
 const isDropdownVisible = ref(false);
@@ -265,7 +299,11 @@ const submitForm = async (exitAfterSave = false) => {
 };
 
 const selectProduct = (product) => {
-  const newProduct = JSON.parse(JSON.stringify({ ...product, price: '', quantity: '' }));
+  const orginalPrice = product.sale_price || product.price;
+  const newProduct = JSON.parse(
+    JSON.stringify({ ...product, price: '', quantity: '', orginal_price: orginalPrice })
+  );
+  console.log(newProduct);
   selectedProducts.value.push(newProduct);
   form.setFieldValue('products', [...form.values.products, newProduct]);
   searchTerm.value = '';

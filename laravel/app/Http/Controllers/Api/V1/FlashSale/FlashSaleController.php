@@ -16,8 +16,10 @@ class FlashSaleController extends Controller
     protected $flashSaleService;
 
     protected $flashSaleRepository;
-    function __construct(FlashSaleServiceInterface $flashSaleService,  FlashSaleRepositoryInterface $flashSaleRepository)
-    {
+    public function __construct(
+        FlashSaleServiceInterface $flashSaleService,
+        FlashSaleRepositoryInterface $flashSaleRepository
+    ) {
         $this->flashSaleService = $flashSaleService;
         $this->flashSaleRepository = $flashSaleRepository;
     }
@@ -59,7 +61,7 @@ class FlashSaleController extends Controller
      */
     public function update(Request $request, string $id)
     {
-       $data = $this->flashSaleService->update($id, $request->all());
+        $data = $this->flashSaleService->update($id, $request->all());
 
         return successResponse('', $data, true);
     }
@@ -72,7 +74,8 @@ class FlashSaleController extends Controller
         //
     }
 
-    public function changeStatus(string $id){
+    public function changeStatus(string $id)
+    {
 
         $data = $this->flashSaleService->changeStatus($id);
 

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
-            $table->boolean('publish')->default(false);
+            $table->tinyInteger('publish')->default(2);
             $table->timestamps();
         });
     }

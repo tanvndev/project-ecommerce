@@ -21,7 +21,7 @@ class FlashSaleResource extends JsonResource
             'start_date'    => \Carbon\Carbon::parse($this->start_date)->format('d/m/Y'),
             'end_date'      => \Carbon\Carbon::parse($this->end_date)->format('d/m/Y'),
             'publish'       => $this->publish,
-            'productVariants' => FlashSaleProductVariantResource::collection($this->whenLoaded('productVariants')), // Load related data if present
+            'product_variants' => FlashSaleProductVariantResource::collection($this->whenLoaded('product_variants')), // Load related data if present
         ];
     }
 }
