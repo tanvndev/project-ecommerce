@@ -28,7 +28,7 @@
           <template #bodyCell="{ column, record }">
             <template v-if="column.dataIndex === 'product_name'">
               <RouterLink
-                :to="{ name: 'product.update', params: { id: record.product_id }}"
+                :to="{ name: 'product.update', params: { id: record.product_id } }"
                 class="text-blue-500"
               >
                 {{ record.product_name }}
@@ -37,22 +37,29 @@
 
             <template v-if="column.dataIndex === 'comment'">
               <RouterLink
-                :to="{ name: 'evaluate.replies', params: { id: record.id }}"
+                :to="{ name: 'evaluate.replies', params: { id: record.id } }"
                 class="text-blue-500"
               >
                 {{ record.comment }}
               </RouterLink>
             </template>
 
-            
+            <template v-if="column.dataIndex === 'status'">
+              <RouterLink
+                :to="{ name: 'evaluate.replies', params: { id: record.id } }"
+                class="text-blue-500"
+              >
+                <a-tag :color="record.status.color">{{ record.status.text }}</a-tag>
+              </RouterLink>
+            </template>
 
             <template v-if="column.dataIndex === 'image'">
               <div v-if="record.images && record.images.length" class="flex gap-2">
                 <img
-                  v-for="(img, index) in record.images"
+                  v-for="(img, index) in JSON.parse(record.images)"
                   :key="index"
                   :src="resizeImage(img, 100)"
-                  class="w-10 object-contain"
+                  class="w-14 rounded border bg-[#f7f8fb] object-contain p-[2px] shadow-sm"
                   alt="Product Image"
                 />
               </div>
@@ -87,14 +94,14 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, watch } from 'vue';
-import { columns } from './columns';
 import {
   BreadcrumbComponent,
   MasterLayout,
   StatusSwitchComponent,
   ToolboxComponent
 } from '@/components/backend';
+import { onMounted, reactive, watch } from 'vue';
+import { columns } from './columns';
 
 import { resizeImage } from '@/utils/helpers';
 
@@ -102,59 +109,59 @@ import { useCRUD, usePagination } from '@/composables';
 import { RouterLink } from 'vue-router';
 
 const state = reactive({
-    pageTitle: 'Danh sách đánh giá',
-    modelName: 'ProductReview',
-    routeUpdate: 'evaluate.replies',
-    endpoint: 'product-reviews',
-    isShowToolbox: false,
-    modelIds: [],
-    filterOptions: {},
-    dataSource: []
-  });
-  
-  // CRUD Operations
-  const { getAll, loading } = useCRUD();
-  
-  // Pagination
-  const {
-    pagination,
-    rowSelection,
-    onChangePagination,
-    selectedRowKeys,
-    selectedRows,
-    handleTableChange
-  } = usePagination();
+  pageTitle: 'Danh sách đánh giá',
+  modelName: 'ProductReview',
+  routeUpdate: 'evaluate.replies',
+  endpoint: 'product-reviews',
+  isShowToolbox: false,
+  modelIds: [],
+  filterOptions: {},
+  dataSource: []
+});
 
-  const fetchData = async () => {
-    const payload = {
-      page: pagination.current,
-      pageSize: pagination.pageSize,
-      ...state.filterOptions
-    };
-    const response = await getAll(state.endpoint, payload);
-    state.dataSource = response.data;
-    pagination.current = response.current_page;
-    pagination.total = response.total;
-    pagination.pageSize = response.per_page;
-  };
-  
-  // Watchers
-  watch(onChangePagination, fetchData);
-  watch(selectedRows, () => {
-    state.isShowToolbox = selectedRows.value.length > 0;
-    state.modelIds = selectedRowKeys.value;
-  });
+// CRUD Operations
+const { getAll, loading } = useCRUD();
 
-  // Event Handlers
-  const onFilterOptions = (filterValue) => {
-    state.filterOptions = filterValue;
-    fetchData();
+// Pagination
+const {
+  pagination,
+  rowSelection,
+  onChangePagination,
+  selectedRowKeys,
+  selectedRows,
+  handleTableChange
+} = usePagination();
+
+const fetchData = async () => {
+  const payload = {
+    page: pagination.current,
+    pageSize: pagination.pageSize,
+    ...state.filterOptions
   };
-  
-  const onChangeToolbox = () => {
-    fetchData();
-  };
-  
-  // Lifecycle Hook
-  onMounted(fetchData);
+  const response = await getAll(state.endpoint, payload);
+  state.dataSource = response.data;
+  pagination.current = response.current_page;
+  pagination.total = response.total;
+  pagination.pageSize = response.per_page;
+};
+
+// Watchers
+watch(onChangePagination, fetchData);
+watch(selectedRows, () => {
+  state.isShowToolbox = selectedRows.value.length > 0;
+  state.modelIds = selectedRowKeys.value;
+});
+
+// Event Handlers
+const onFilterOptions = (filterValue) => {
+  state.filterOptions = filterValue;
+  fetchData();
+};
+
+const onChangeToolbox = () => {
+  fetchData();
+};
+
+// Lifecycle Hook
+onMounted(fetchData);
 </script>

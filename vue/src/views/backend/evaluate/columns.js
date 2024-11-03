@@ -14,7 +14,7 @@ const columns = [
   {
     title: 'Đánh giá',
     dataIndex: 'rating',
-    key: 'rating',
+    key: 'rating'
   },
   {
     title: 'Bình luận',
@@ -25,14 +25,18 @@ const columns = [
   {
     title: 'Ảnh',
     dataIndex: 'image',
-    key: 'image',
+    key: 'image'
   },
   {
     title: 'Thời gian',
     dataIndex: 'created_at',
-    key: 'created_at',
+    key: 'created_at'
   },
-
+  {
+    title: 'Phản hồi',
+    dataIndex: 'status',
+    key: 'status'
+  },
   {
     title: 'Trạng thái',
     dataIndex: 'publish',
