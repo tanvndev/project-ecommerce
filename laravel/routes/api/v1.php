@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\V1\Attribute\AttributeValueController;
 use App\Http\Controllers\Api\V1\Product\ProductCatalogueController;
 use App\Http\Controllers\Api\V1\SystemConfig\SystemConfigController;
 use App\Http\Controllers\Api\V1\PaymentMethod\PaymentMethodController;
+use App\Http\Controllers\Api\V1\Post\PostCatalogueController;
 use App\Http\Controllers\Api\V1\ShippingMethod\ShippingMethodController;
 use App\Http\Controllers\Api\V1\Statistic\StatisticController;
 
@@ -62,6 +63,7 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
     Route::get('product-reviews', [ProductReviewController::class, 'getAllProductReviews'])->name('index');
     Route::get('posts/all', [PostController::class, 'getAllPost']);
     Route::get('posts/{canonical}/detail', [PostController::class, 'getPostByCanonical']);
+    Route::get('products/filter', [ProductController::class, 'filterProducts']);
 
     // Order
     Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
@@ -136,7 +138,7 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         Route::prefix('/')->name('products.')->group(function () {
             Route::apiResource('products/catalogues', ProductCatalogueController::class);
         });
-        Route::get('products/report', [ProductController::class, 'getProductReport']);
+
 
         Route::get('products/variants', [ProductController::class, 'getProductVariants']);
         Route::put('products/variants/update', [ProductController::class, 'updateVariant']);
@@ -164,6 +166,7 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
 
         // Flash Sale ROUTE
         Route::apiResource('flash-sales', FlashSaleController::class);
+        route::put('change-status-flash-sale/{id}', [FlashSaleController::class, 'changeStatus']);
 
         // SYSTEM CONFIG ROUTE
         Route::get('system-configs', [SystemConfigController::class, 'index']);
@@ -180,6 +183,9 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
 
         // POST ROUTE
         Route::apiResource('posts', PostController::class);
+        Route::prefix('/')->name('posts.')->group(function () {
+            Route::apiResource('posts/catalogues', PostCatalogueController::class);
+        });
 
         // WISHLIST ROUTE
         Route::get('wishlists', [WishListController::class, 'index']);
@@ -226,6 +232,7 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         Route::put('carts/handle-selected', 'handleSelected')->name('handle-selected');
         Route::delete('carts/delete-cart-selected', 'deleteCartSelected')->name('deleteCartSelected');
         Route::get('carts/add-paid-products', 'addPaidProductsToCart')->name('addPaidProducts');
+        route::post('carts/buy-now', 'buyNow')->name('buyNow');
     });
 
     // Statistics
@@ -236,11 +243,10 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         ->group(function () {
             Route::get('report-overview', 'reportOverview')->name('reportOverview');
             Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
+            Route::get('product', [StatisticController::class, 'getProductReport']);
+        });
             Route::get('popular-products', 'popularProducts')->name('popularProducts');
             Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
             Route::get('loyal-customers', 'loyalCustomers')->name('loyalCustomers');
         });
-
-
-    
 });

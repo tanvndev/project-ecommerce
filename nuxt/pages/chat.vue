@@ -88,9 +88,6 @@ const sendMessage = async () => {
     message.images = uploadedImages.value
   }
 
-  console.log(formData);
-
-
   try {
     await $axios.post(`chats/${selectedChatUser.value?.id}/send`, formData, {
       headers: {
@@ -112,16 +109,34 @@ const sendMessage = async () => {
 
 const handleFileChange = (event) => {
   const files = event.target.files
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i]
-    const reader = new FileReader()
 
-    reader.onload = (e) => {
-      uploadedImages.value.push(e.target.result)
-    }
-
-    reader.readAsDataURL(file)
+  if (uploadedImages.value?.length >= 5) {
+    return
   }
+
+  if (files.length + uploadedImages.value.length > 5) {
+    return toast('Vui lòng chọn tối đa 5 hình ảnh.', 'error')
+  }
+
+  const filePromises = Array.from(files).map((file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+
+      reader.onload = (e) => {
+        resolve(e.target.result)
+      }
+
+      reader.readAsDataURL(file)
+    })
+  })
+
+  Promise.all(filePromises)
+    .then((imageData) => {
+      uploadedImages.value.push(...imageData)
+    })
+    .catch((error) => {
+      console.error('Error reading files:', error)
+    })
 }
 
 const removeImage = (index) => {
@@ -141,7 +156,7 @@ onBeforeUnmount(() => {
   <section class="chat-section">
     <div class="py-3 container px-0">
       <div class="row w-100">
-        <div class="col-md-6 col-lg-5 col-xl-4 mb-4 mb-md-0 sidebar-chat">
+        <!-- <div class="col-md-6 col-lg-5 col-xl-4 mb-4 mb-md-0 sidebar-chat">
           <div class="p-3 mt-9">
             <div class="chat-wrap">
               <ul class="list-unstyled mb-0 chat-list">
@@ -177,8 +192,8 @@ onBeforeUnmount(() => {
               </ul>
             </div>
           </div>
-        </div>
-        <div class="col-md-6 col-lg-7 col-xl-8 pl-0">
+        </div> -->
+        <div class="col-md-12 col-lg-12 col-xl-12 pl-0">
           <div class="card-wrap">
             <div
               class="card-header d-flex justify-content-between align-items-center p-3"

@@ -19,6 +19,10 @@ const addWishlistToCart = async (product_variant_id) => {
 watch(page, () => {
   debounceHandleChangePage()
 })
+
+onMounted(async () => {
+  await wishlistStore.getAllWishlists(page.value)
+})
 </script>
 
 <template>
@@ -108,6 +112,14 @@ watch(page, () => {
             </tr>
           </tbody>
         </table>
+
+        <div v-if="!wishlists?.items?.length">
+          <v-empty-state
+            icon="mdi-magnify"
+            text="Sản phẩm ưa thích đang trống vui lòng chọn quay lại mua những sản phẩm mới nhất của chúng tôi."
+            title="Chưa có sản phẩm nào trong sản phẩm ưa thích."
+          ></v-empty-state>
+        </div>
         <div class="my-4" v-if="page > 1">
           <v-pagination
             v-model="page"

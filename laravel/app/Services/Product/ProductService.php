@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductAttribute;
+use App\Models\ProductVariant;
 use App\Models\ProductVariantAttributeValue;
 use App\Repositories\Interfaces\Attribute\AttributeValueRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
@@ -518,106 +519,6 @@ class ProductService extends BaseService implements ProductServiceInterface
     }
 
 
-    public function getProductReport()
-    {
-
-        $payload = $this->preparePayload();
-
-
-        $start_date = isset($payload['start_date']) ? $payload['start_date'] : Carbon::now()->startOfYear()->toDateString();
-        $end_date = isset($payload['end_date']) ? $payload['end_date'] : Carbon::now()->endOfYear()->toDateString();
-
-        $condition = $payload['condition'] ?? "product_sell_best";
-        // product_sell_top: sản phẩm có doanh thu cao nhất
-        // product_sell_best: sản phẩm bán chạy nhất (đã xong)
-        // product_sell_best_type: sản phẩm bán chạy theo loại
-        // product_return: sản phẩm có tỉ lệ hoàn trả cao nhất
-        // product_inventory_lowest: sản phẩm có lượng tồn kho thấp nhất
-
-        // Kiểm tra điều kiện và sắp xếp tương ứng
-        switch ($condition) {
-            case 'product_sell_best':
-                $query = $this->getProductSellTop($start_date, $end_date);
-                $result = $query->get()
-                    ->map(function ($item) {
-                        if (!$item->product_variant) {
-                            return null;
-                        }
-                        return [
-                            'product_variant_id' => $item->product_variant_id,
-                            'product_id' => $item->product_variant['product_id'],
-                            'product_name' => $item->product_variant['name'],
-                            'product_image' => $item->product_variant['image'],
-                            'product_price' => $item->product_variant['sale_price'] ?? $item->product_variant['price'],
-                            'product_cost_price' => $item->product_variant['cost_price'],
-                            'total_quantity_sold' => $item->total_quantity_sold,
-                            'total_revenue' => $item->total_revenue,
-                            'net_revenue' => (($item->product_variant['sale_price'] ?? $item->product_variant['price']) - $item->product_variant['cost_price']) * $item->total_quantity_sold,
-                        ];
-                    });
-                break;
-            case 'product_review_top':
-                $query = $this->getProductReviewTop($start_date, $end_date);
-                $result = $query->get()
-                    ->filter(function ($item) {
-
-                        return $item->review_count > 0 && !is_null($item->average_rating);
-                    })
-                    ->map(function ($item) {
-
-                        return [
-                            'id' => $item->id,
-                            'name' => $item->name,
-                            'review_count' => $item->review_count,
-                            'average_rating' => $item->average_rating,
-                            'reviews' => $item->reviews,
-                        ];
-                    });
-                break;
-        }
-
-
-
-        return $result;
-    }
-
-    // Top sản phẩm bán chạy nhất
-    private function getProductSellTop($start_date, $end_date)
-    {
-        $query = OrderItem::with(['order', 'product_variant'])
-            ->whereHas('order', function ($query) use ($start_date, $end_date) {
-                $query->where('order_status', 'completed')
-                    ->whereBetween('ordered_at', [$start_date, $end_date]);
-            })
-            ->join('product_variants', 'order_items.product_variant_id', '=', 'product_variants.id') // Join với product_variant
-            ->selectRaw('order_items.product_variant_id, SUM(order_items.quantity) as total_quantity_sold
-        , SUM(COALESCE(order_items.sale_price, order_items.price) * order_items.quantity) as total_revenue')
-            ->groupBy('order_items.product_variant_id')
-            ->orderBy('total_quantity_sold', 'DESC');
-        return $query;
-    }
-
-    // Top sản phẩm được đánh giá tốt nhất
-    private function getProductReviewTop($start_date, $end_date)
-    {
-        $query = Product::with('reviews')
-            ->select('id', 'name') // Chỉ lấy các trường id và name
-            ->withCount([
-                'reviews as review_count', // Đếm số lượng reviews
-                'reviews as average_rating' => function ($query) use ($start_date, $end_date) {
-                    $query->whereBetween('created_at', [$start_date, $end_date])
-                        ->select(DB::raw('AVG(rating)')); // Tính đánh giá trung bình
-                }
-            ])
-            ->orderByDesc('average_rating') // Sắp xếp theo điểm đánh giá trung bình giảm dần
-            ->orderByDesc('review_count');  // Sắp xếp theo số lượng đánh giá giảm dần
-
-        return $query;
-    }
-
-
-
-
     // CLIENT API //
 
     public function getProduct(string $slug)
@@ -626,5 +527,166 @@ class ProductService extends BaseService implements ProductServiceInterface
         $product = $this->productRepository->findById($productId);
 
         return $product;
+    }
+
+
+
+    public function filterProducts($data)
+    {
+        $catalogues = $this->getCatalogues($data);
+        $priceRange = $this->getPriceRange($data);
+        $sort = $data['sort'] ?? 'asc';
+        $search = $data['search'] ?? '';
+        $values = $data['values'] ?? '';
+        $stars = $data['stars'] ?? '';
+
+        $productVariants = $this->getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars);
+
+        // Lấy các giá trị biến thể (values) từ sản phẩm
+        $formattedValues = $this->getFormattedValues($productVariants);
+
+        return [
+            'product_variants' => $productVariants,
+            'values' => $formattedValues,
+        ];
+    }
+
+    // lấy ra mảnh danh mục
+    protected function getCatalogues($data)
+    {
+        return array_filter(explode(',', $data['catalogues'] ?? ''));
+    }
+
+    // lấy ra giá request
+    protected function getPriceRange($data)
+    {
+        return [
+            'min' => isset($data['min_price']) ? (float)$data['min_price'] : null,
+            'max' => isset($data['max_price']) ? (float)$data['max_price'] : null,
+        ];
+    }
+
+    // gọi các hàm lọc
+    protected function getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars)
+    {
+        $query = ProductVariant::query();
+        $query = $this->filterByCatalogue($query, $catalogues);
+        $query = $this->filterByPrice($query, $priceRange);
+
+        $this->applySearch($query, $search);
+
+        $this->applyValueFilter($query, $values);
+
+        $this->filterByStars($query, $stars);
+
+        $this->applyFlashSaleJoin($query);
+
+        $this->applySorting($query, $sort);
+
+        return $query->paginate(30);
+    }
+
+    protected function applySearch($query, $search)
+    {
+        if (!empty($search)) {
+            $query->where('product_variants.name', 'like', '%' . $search . '%');
+        }
+    }
+
+    protected function applyValueFilter($query, $values)
+    {
+        if (!empty($values)) {
+            $valueArray = explode(',', $values);
+            $query->whereHas('attribute_values', function ($q) use ($valueArray) {
+                $q->whereIn('attribute_values.id', $valueArray);
+            });
+        }
+    }
+
+    protected function applyFlashSaleJoin($query)
+    {
+        $query->leftJoin('flash_sale_product_variants', function ($join) {
+            $join->on('product_variants.id', '=', 'flash_sale_product_variants.product_variant_id')
+                ->join('flash_sales', 'flash_sale_product_variants.flash_sale_id', '=', 'flash_sales.id')
+                ->where('flash_sales.start_date', '<=', now())
+                ->where('flash_sales.end_date', '>=', now())
+                ->where('flash_sales.publish', true)
+                ->where('flash_sale_product_variants.max_quantity', '>', 0);
+        });
+
+        $query->selectRaw('
+        product_variants.*,
+        COALESCE(flash_sale_product_variants.sale_price, product_variants.price) as effective_price
+    ');
+    }
+
+    protected function applySorting($query, $sort)
+    {
+        $query->orderBy('effective_price', $sort);
+    }
+
+    // lọc giá
+    protected function filterByPrice($query, $priceRange)
+    {
+        if ($priceRange['min'] !== null || $priceRange['max'] !== null) {
+            if ($priceRange['min'] !== null) {
+                $query->having('effective_price', '>=', $priceRange['min']);
+            }
+            if ($priceRange['max'] !== null) {
+                $query->having('effective_price', '<=', $priceRange['max']);
+            }
+        }
+
+        return $query;
+    }
+
+    // lọc danh mục
+    protected function filterByCatalogue($query, $catalogues)
+    {
+        if (!empty($catalogues)) {
+            $query->where(function ($q) use ($catalogues) {
+                foreach ($catalogues as $catalogue) {
+                    $q->orWhereHas('product.catalogues', function ($subQuery) use ($catalogue) {
+                        $subQuery->where('product_catalogue_id', $catalogue);
+                    });
+                }
+            });
+        }
+        return $query;
+    }
+
+    protected function filterByStars($query, $stars)
+    {
+        if (!empty($stars)) {
+            $starArray = explode(',', $stars);
+
+            $productIds = DB::table('product_reviews')
+                ->select('product_id')
+                ->groupBy('product_id')
+                ->havingRaw('ROUND(AVG(rating), 1) IN (' . implode(',', array_map('floatval', $starArray)) . ')')
+                ->pluck('product_id');
+
+            $query->whereHas('product', function ($q) use ($productIds) {
+                $q->whereIn('id', $productIds);
+            });
+        }
+
+        return $query;
+    }
+
+
+    // Lấy ra danh sách các giá trị biến thể
+    protected function getFormattedValues($productVariants)
+    {
+        $variantIds = $productVariants->pluck('id');
+
+        $attributeValues = DB::table('product_variant_attribute_value')
+            ->whereIn('product_variant_id', $variantIds)
+            ->join('attribute_values', 'product_variant_attribute_value.attribute_value_id', '=', 'attribute_values.id')
+            ->select('attribute_values.id as value_id', 'attribute_values.name as value_name')
+            ->distinct()
+            ->get();
+
+        return $attributeValues;
     }
 }

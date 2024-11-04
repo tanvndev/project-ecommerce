@@ -1,7 +1,8 @@
 <script setup>
 import _ from 'lodash'
-const { $axios } = useNuxtApp()
 
+const { $axios } = useNuxtApp()
+const router = useRouter()
 const comboItem = ref({})
 const suggestedProducts = ref([])
 
@@ -38,6 +39,19 @@ const totalPrice = computed(() => {
     }
   )
 })
+
+const handleBuyNow = () => {
+  if (totalPrice.value) {
+    const payload = _.toPairs(comboItem.value)
+      .map(([id, isSelected]) => ({
+        product_variant_id: parseInt(id),
+        quantity: isSelected ? 1 : 0,
+      }))
+      .filter((item) => item.quantity > 0)
+
+    console.log(payload)
+  }
+}
 
 watch(
   () => props.variant,
@@ -116,8 +130,8 @@ watch(
                 <strong>{{ formatCurrency(totalPrice) }}</strong>
               </div>
               <a
-                href="#"
-                @click.prevent="() => false"
+                href="buy-now"
+                @click.prevent="handleBuyNow"
                 class="btn border-none btn-rounded btn-icon-right"
                 :class="{ disabled: totalPrice == 0 }"
                 >Mua <b>{{ comboItem?.length }}</b> sản phẩm</a

@@ -34,9 +34,6 @@ class OrderResource extends JsonResource
             'payment_status'              => Order::PAYMENT_STATUS[$this->payment_status],
             'payment_status_code'         => $this->payment_status,
             'payment_status_color'        => $this->getPaymentStatusColor(),
-            'delivery_status'             => Order::DELYVERY_STATUS[$this->delivery_status],
-            'delivery_status_code'        => $this->delivery_status,
-            'delivery_status_color'       => $this->getDeliveryStatusColor(),
             'payment_method_id'           => $this->payment_method_id,
             'total_price'                 => $this->total_price,
             'shipping_fee'                => $this->shipping_fee,
@@ -44,7 +41,6 @@ class OrderResource extends JsonResource
             'final_price'                 => $this->final_price,
             'ordered_at'                  => Carbon::parse($this->ordered_at)->format('d/m/Y H:i'),
             'paid_at'                     => $this->paid_at,
-            'delivered_at'                => $this->delivered_at,
             'additional_details'          => $this->additional_details,
             'province_name'               => $this->province->full_name,
             'district_name'               => $this->district->full_name,
@@ -99,24 +95,6 @@ class OrderResource extends JsonResource
 
             default:
                 return 'red';
-        }
-    }
-
-    /**
-     * Get the color of the delivery status.
-     *
-     * If the delivery status is delivered, return green. If the delivery status is failed, return red.
-     * Otherwise, return orange.
-     */
-    private function getDeliveryStatusColor(): string
-    {
-        switch ($this->delivery_status) {
-            case Order::DELYVERY_STATUS_DELIVERED:
-                return 'green';
-            case Order::DELYVERY_STATUS_FAILED:
-                return 'red';
-            default:
-                return 'orange';
         }
     }
 }

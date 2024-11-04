@@ -103,7 +103,7 @@ onUnmounted(() => {
       <span class="loader"></span>
     </div>
 
-    <v-lazy
+    <!-- <v-lazy
       :min-height="200"
       :options="{ threshold: 0.5 }"
       transition="fade-transition"
@@ -227,11 +227,9 @@ onUnmounted(() => {
           </div>
         </div>
       </div>
-    </v-lazy>
+    </v-lazy> -->
   </div>
 </template>
-
-
 
 <style scoped>
 .loader {

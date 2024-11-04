@@ -12070,16 +12070,17 @@ body .product-popup {
   margin: 0.8125rem 0 0.625rem;
 }
 .price-range input {
-  padding: 0.3125rem;
-  font-family: Poppins, sans-serif;
-  color: #999;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  width: 62px;
-  height: 37px;
-  line-height: 37px;
-  vertical-align: middle;
-  -webkit-appearance: textfield;
+    padding: 0.3125rem 12px;
+    font-family: Poppins, sans-serif;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 45%;
+    height: 37px;
+    line-height: 37px;
+    vertical-align: middle;
+    -webkit-appearance: textfield;
+    font-size: 13px;
+    color: #222222;
 }
 .price-range input::-webkit-outer-spin-button,
 .price-range input::-webkit-inner-spin-button {
@@ -12130,13 +12131,13 @@ body .product-popup {
   color: inherit;
   padding: 0.625rem 0 0.625rem 0.125rem;
 }
-.filter-items a:hover {
+.filter-items .label-text:hover {
   color: #336699;
 }
-.filter-items.item-check a {
+.filter-items.item-check .label-text {
   padding-left: 1.75rem !important;
 }
-.filter-items.item-check a::before {
+.filter-items.item-check .label-text::before {
   content: '';
   position: absolute;
   border: 1px solid;
@@ -12158,12 +12159,12 @@ body .product-popup {
 @media (-webkit-min-device-pixel-ratio: 1.5),
   (min--moz-device-pixel-ratio: 1.5),
   (min-device-pixel-ratio: 1.5) {
-  .filter-items.item-check a::before {
+  .filter-items.item-check .label-text::before {
     text-indent: 0;
   }
 }
-.filter-items.item-check .active > a::before {
-  content: '';
+.filter-items.item-check .active > .label-text::before {
+  content: '✓';
   background-color: #336699;
   width: 20px;
   height: 20px;
@@ -14149,20 +14150,20 @@ body .product-popup {
 }
 
 .widget .widget-title {
-  position: relative;
-  margin: -0.0625rem 0;
-  padding: 0.875rem 1.5625rem 0.875rem 0;
-  font-weight: 600;
-  font-size: 1rem;
-  color: #333;
-  letter-spacing: 0;
-  border-bottom: 1px solid #eee;
-  text-transform: capitalize;
-  cursor: pointer;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+    position: relative;
+    margin: -0.0725rem 0;
+    padding: 0.8750rem 1.5625rem 0.6750rem 0;
+    font-weight: 600;
+    font-size: 1.0000rem;
+    color: #333;
+    letter-spacing: 0;
+    border-bottom: 1px solid #eee;
+    text-transform: capitalize;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 .widget .widget-body {
   padding: 0.4375rem 0 0.625rem;
   opacity: 1;
@@ -20629,7 +20630,7 @@ body .product-popup {
   padding: 0.625rem;
   width: 2.5rem;
   height: 2.5rem;
-  right: 0.9375rem;
+  right: 2rem;
   bottom: 0.9375rem;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
@@ -21403,6 +21404,7 @@ aside .sp-sidebar-banner span {
   align-items: center;
   -ms-flex-wrap: wrap;
   flex-wrap: wrap;
+  justify-content: end;
 }
 .toolbox label,
 .toolbox-right label,

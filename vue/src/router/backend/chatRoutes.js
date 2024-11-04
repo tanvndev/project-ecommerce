@@ -1,12 +1,12 @@
 import { isLoggedIn } from '@/middlewares/authenticate';
 
-const liveChatRoutes = [
+const chatRoutes = [
   {
-    path: '/live-chat/index',
-    name: 'live-chat.index',
+    path: '/chat/index',
+    name: 'chat.index',
     component: () => import('@/views/backend/chat/IndexView.vue'),
     beforeEnter: [isLoggedIn]
   }
 ];
 
-export default liveChatRoutes;
+export default chatRoutes;

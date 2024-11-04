@@ -40,7 +40,7 @@ class CartService extends BaseService implements CartServiceInterface
     public function createOrUpdate($request)
     {
         return $this->executeInTransaction(function () use ($request) {
-            if ( ! $request->product_variant_id) {
+            if (! $request->product_variant_id) {
                 return errorResponse(__('messages.cart.error.not_found'));
             }
 
@@ -71,15 +71,24 @@ class CartService extends BaseService implements CartServiceInterface
         ]);
     }
 
-    private function updateCartItem($cart, $request)
+
+    private function updateCartItem($cart, $request, $is_by_now = false)
     {
         $cartItem = $cart->cart_items()->where('product_variant_id', $request->product_variant_id)->first();
         $quantity = $request->quantity ?? $cartItem->quantity + 1;
-        $cartItem->update([
+
+        $updateData = [
             'quantity'   => $quantity,
             'updated_at' => now(),
-        ]);
+        ];
+
+        if ($is_by_now) {
+            $updateData['is_selected'] = true;
+        }
+
+        $cartItem->update($updateData);
     }
+
 
     /**
      * Check stock of product variants in cart and update cart.
@@ -93,7 +102,7 @@ class CartService extends BaseService implements CartServiceInterface
     {
         $cart = $this->cartRepository->findByWhere($conditions);
 
-        if ( ! $cart) {
+        if (! $cart) {
             return;
         }
 
@@ -126,7 +135,7 @@ class CartService extends BaseService implements CartServiceInterface
             $conditions = $this->getUserOrSessionConditions($sessionId);
             $cart = $this->cartRepository->findByWhere($conditions);
 
-            if ( ! $cart) {
+            if (! $cart) {
                 return errorResponse(__('messages.cart.error.not_found'));
             }
 
@@ -151,7 +160,7 @@ class CartService extends BaseService implements CartServiceInterface
             $conditions = $this->getUserOrSessionConditions($sessionId);
             $cart = $this->cartRepository->findByWhere($conditions);
 
-            if ( ! $cart) {
+            if (! $cart) {
                 return errorResponse(__('messages.cart.error.not_found'));
             }
 
@@ -179,7 +188,7 @@ class CartService extends BaseService implements CartServiceInterface
             $conditions = $this->getUserOrSessionConditions($sessionId);
             $cart = $this->cartRepository->findByWhere($conditions);
 
-            if ( ! $cart) {
+            if (! $cart) {
                 return errorResponse(__('messages.cart.error.not_found'));
             }
 
@@ -208,7 +217,7 @@ class CartService extends BaseService implements CartServiceInterface
             $conditions = $this->getUserOrSessionConditions($sessionId);
             $cart = $this->cartRepository->findByWhere($conditions);
 
-            if ( ! $cart) {
+            if (! $cart) {
                 return errorResponse(__('messages.cart.error.not_found'));
             }
 
@@ -249,6 +258,98 @@ class CartService extends BaseService implements CartServiceInterface
             : ['session_id' => $sessionId];
     }
 
+    // public function buyNow($request)
+    // {
+    //     return $this->executeInTransaction(function () use ($request) {
+
+    //         $sessionId = $request->input('session_id', 0);
+    //         $conditions = $this->getUserOrSessionConditions($sessionId);
+    //         $cart = $this->cartRepository->findByWhere($conditions) ?? $this->cartRepository->create($conditions);
+
+    //         $productVariant = $this->productVariantRepository->findById($request->product_variant_id);
+    //         if ($productVariant->stock < $request->quantity) {
+    //             return errorResponse(__('messages.cart.error.max'));
+    //         }
+
+    //         $cart->cart_items()->update(['is_selected' => false, 'updated_at' => now()]);
+
+    //         $cart->cart_items()->where('product_variant_id', $request->product_variant_id)->exists()
+    //             ? $this->updateCartItem($cart, $request)
+    //             : $this->createCartItem($cart, $request);
+
+    //         return successResponse(__('messages.cart.success.buy_now'));
+    //     }, __('messages.cart.error.not_found'));
+    // }
+
+
+
+    public function buyNow($request)
+    {
+        if (is_array($request->product_variant_id)) {
+            return $this->buyNowMultiple($request);
+        } else {
+            return $this->buyNowSingle($request);
+        }
+    }
+
+    // Hàm xử lý mua một sản phẩm
+    public function buyNowSingle($request)
+    {
+        return $this->executeInTransaction(function () use (&$request) {
+            $cart = $this->initializeCart($request);
+            $this->unselectAllCartItems($cart);
+
+            $this->processCartItem($cart, $request);
+
+            return successResponse(__('messages.cart.success.buy_now'));
+        }, __('messages.cart.error.not_found'));
+    }
+
+    // Hàm xử lý mua nhiều sản phẩm
+    public function buyNowMultiple($request)
+    {
+        return $this->executeInTransaction(function () use (&$request) {
+            $cart = $this->initializeCart($request);
+            $this->unselectAllCartItems($cart);
+
+            foreach ($request->product_variant_id as $productVariantId) {
+                $productRequest = clone $request;
+                $productRequest->merge(['product_variant_id' => $productVariantId, 'quantity' => 1]);
+                $this->processCartItem($cart, $productRequest);
+            }
+
+            return successResponse(__('messages.cart.success.buy_now'));
+        }, __('messages.cart.error.not_found'));
+    }
+
+    // Hàm khởi tạo giỏ hàng hoặc lấy giỏ hàng đã tồn tại
+    private function initializeCart($request)
+    {
+        $sessionId = $request->input('session_id', 0);
+        $conditions = $this->getUserOrSessionConditions($sessionId);
+        return $this->cartRepository->findByWhere($conditions) ?? $this->cartRepository->create($conditions);
+    }
+
+    // Hàm đặt tất cả các mục trong giỏ hàng thành chưa chọn
+    private function unselectAllCartItems($cart)
+    {
+        $cart->cart_items()->update(['is_selected' => false, 'updated_at' => now()]);
+    }
+
+    // Hàm xử lý thêm hoặc cập nhật sản phẩm
+    private function processCartItem($cart, $request)
+    {
+        $productVariant = $this->productVariantRepository->findById($request->product_variant_id);
+        if ($productVariant->stock < $request->quantity) {
+            return errorResponse(__('messages.cart.error.max'));
+        }
+
+        $cart->cart_items()->where('product_variant_id', $request->product_variant_id)->exists()
+            ? $this->updateCartItem($cart, $request, true)
+            : $this->createCartItem($cart, $request);
+    }
+
+
     /**
      * Merge session cart to user cart when user logged in.
      *
@@ -256,7 +357,7 @@ class CartService extends BaseService implements CartServiceInterface
      */
     public function mergeSessionCartToUserCart($sessionId): void
     {
-        if ( ! auth()->check()) {
+        if (! auth()->check()) {
             return;
         }
 
@@ -264,11 +365,11 @@ class CartService extends BaseService implements CartServiceInterface
         $userCart = $this->cartRepository->findByWhere(['user_id' => $userId]);
         $sessionCart = $this->cartRepository->findByWhere(['session_id' => $sessionId]);
 
-        if ( ! $sessionCart) {
+        if (! $sessionCart) {
             return;
         }
 
-        if ( ! $userCart) {
+        if (! $userCart) {
             $userCart = $this->cartRepository->create(['user_id' => $userId]);
         }
 

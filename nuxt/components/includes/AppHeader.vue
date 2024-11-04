@@ -17,8 +17,11 @@ const cartCount = computed(() => cartStore.getCartCount)
 const wishlistCount = computed(() => wishlistStore.getWishlistCount)
 const notifications = computed(() => notificationStore.getNotifications)
 const chatCount = computed(() => chatStore.getChatCount)
+const isSignedIn = computed(() => authStore.isSignedIn)
 const isShowBell = ref(false)
 const config = useRuntimeConfig()
+const router = useRouter()
+const search = ref('')
 
 let lastScrollPosition = 0
 
@@ -57,6 +60,12 @@ const listenForVoucherNotifications = async () => {
   })
 }
 
+const handleSearchProduct = () => {
+  if (search.value) {
+    router.push({ name: 'category', query: { search: search.value } })
+  }
+}
+
 const getChats = async () => {
   await chatStore.getAllChats()
 }
@@ -93,7 +102,7 @@ onUnmounted(() => {
         <div class="header-right">
           <!-- End of Dropdown Menu -->
           <span class="d-lg-show"></span>
-          <div class="header-notification">
+          <div class="header-notification" v-if="isSignedIn">
             <NuxtLink to="/post/catalogue" class="d-lg-show notification-link">
               <i class="fas fa-bell fs-1" :class="{ shake: isShowBell }"></i>
               <span class="notification-text"> Thông báo </span>
@@ -128,7 +137,9 @@ onUnmounted(() => {
           </div>
           <NuxtLink to="/post/catalogue" class="d-lg-show">Bài viết</NuxtLink>
           <NuxtLink to="/contact" class="d-lg-show">Liên hệ</NuxtLink>
-          <NuxtLink to="/user/profile" class="d-lg-show">Tài khoản</NuxtLink>
+          <NuxtLink to="/user/profile" class="d-lg-show" v-if="isSignedIn"
+            >Tài khoản</NuxtLink
+          >
           <a
             v-if="!authStore.isSignedIn"
             :href="`${config.public.VUE_APP_URL}/login`"
@@ -175,23 +186,25 @@ onUnmounted(() => {
                 height="45"
               />
             </NuxtLink>
-            <form
-              method="get"
-              action="#"
+            <div
               class="header-search hs-expanded hs-round d-none d-md-flex input-wrapper"
             >
               <input
                 type="text"
+                v-model="search"
                 class="form-control"
-                name="search"
-                id="search"
-                placeholder="Search in..."
+                placeholder="Tìm kiếm ở đây..."
                 required
+                @keyup.enter="handleSearchProduct"
               />
-              <button class="btn btn-search" type="submit">
+              <button
+                class="btn btn-search"
+                type="button"
+                @click="handleSearchProduct"
+              >
                 <i class="w-icon-search"></i>
               </button>
-            </form>
+            </div>
           </div>
           <div class="header-right ml-4">
             <div class="header-call d-xs-show d-lg-flex align-items-center">
@@ -213,11 +226,16 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <div class="dropdown cart-dropdown cart-offcanvas mr-0 mr-lg-2">
+            <div
+              class="dropdown cart-dropdown cart-offcanvas mr-0 mr-lg-2"
+              v-if="isSignedIn"
+            >
               <div class="cart-overlay"></div>
               <NuxtLink to="/chat" class="cart-toggle label-down link">
                 <i class="w-icon-chat">
-                  <span class="cart-count" v-if="chatCount">{{ chatCount }}</span>
+                  <span class="cart-count" v-if="chatCount">{{
+                    chatCount
+                  }}</span>
                 </i>
                 <span class="cart-label">Tin nhắn</span>
               </NuxtLink>

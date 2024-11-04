@@ -31,6 +31,7 @@ class CreateOrderRequest extends FormRequest
             'shipping_address'   => 'required',
             'payment_method_id'  => 'required',
             'shipping_method_id' => 'required',
+            'order_items'        => 'required|array',
         ];
     }
 
@@ -46,6 +47,7 @@ class CreateOrderRequest extends FormRequest
             'shipping_address'      => 'Địa chỉ giao hàng',
             'payment_method_id'     => 'Phương thức thanh toán',
             'shipping_method_id'    => 'Hình thức vận chuyển',
+            'order_items'           => 'Sản phẩm',
         ];
     }
 

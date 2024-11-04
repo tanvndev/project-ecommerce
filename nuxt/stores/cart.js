@@ -65,6 +65,25 @@ export const useCartStore = defineStore('cart', {
       this.setCartCount(response.data?.items.length)
       toast(response.messages, response.status)
     },
+
+    async buyNowMulti(payload) {
+      const { $axios } = useNuxtApp()
+      const authStore = useAuthStore()
+      const session_id = Cookies.get('session_id')
+
+      const endpoint = authStore.isSignedIn
+        ? '/carts/buy-now'
+        : '/carts/buy-now?session_id=' + session_id
+
+      if (!payload?.product_variant_id) {
+        return toast('Có lỗi vui lòng thử lại.', 'error')
+      }
+
+      const response = await $axios.post(endpoint, payload)
+
+      this.setCartCount(response.data?.items.length)
+      toast(response.messages, response.status)
+    },
     removeAllCarts() {
       this.carts = []
       this.cartCount = 0

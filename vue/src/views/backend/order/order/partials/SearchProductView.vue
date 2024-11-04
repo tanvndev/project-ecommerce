@@ -249,8 +249,6 @@ const handleSearch = () => {
   debounceHandleSearch();
 };
 
-const { value } = useField('model_ids');
-
 const handleOk = () => {
   const newSelectedIds = Array.isArray(selectedRowKeys.value) ? selectedRowKeys.value : [];
   state.productVariantIds = [...new Set([...state.productVariantIds, ...newSelectedIds])];
@@ -261,8 +259,12 @@ const handleOk = () => {
   );
 
   state.productVariants = [...state.productVariants, ...newVariants];
-  value.value = state.productVariantIds;
 
+  handleChangeQuantity();
+  state.open = false;
+};
+
+const handleChangeQuantity = () => {
   const quantities =
     state.productVariants?.map((item) => {
       return {
@@ -273,14 +275,12 @@ const handleOk = () => {
     }) ?? [];
 
   emits('onSave', quantities);
-  state.open = false;
 };
-
 
 watch(
   state.quantities,
   () => {
-    handleOk()
+    handleChangeQuantity();
   },
   { deep: true }
 );
@@ -288,7 +288,7 @@ watch(
 const handleDeleteRow = (id) => {
   state.productVariants = state.productVariants.filter((variant) => variant.id != id);
   state.productVariantIds = state.productVariantIds.filter((variantId) => variantId != id);
-  value.value = state.productVariantIds;
+  handleChangeQuantity();
 };
 
 // Add this function to fetch product variants by IDs
