@@ -38,43 +38,19 @@ class CartResource extends JsonResource
 
         $flashSaleProductVariant = DB::table('flash_sale_product_variants')
             ->join('flash_sales', 'flash_sale_product_variants.flash_sale_id', '=', 'flash_sales.id')
-            ->where([
-                'flash_sale_product_variants.product_variant_id' => $productVariant->id,
-                'flash_sales.start_date' => '<=',
-                now(),
-                'flash_sales.end_date' => '>=',
-                now(),
-                'flash_sales.publish' => true,
-                'flash_sale_product_variants.max_quantity' => '>',
-                0
-            ])
+            ->where('flash_sale_product_variants.product_variant_id', $productVariant->id)
+            ->where('flash_sales.start_date', '<=', now())
+            ->where('flash_sales.end_date', '>=', now())
+            ->where('flash_sales.publish', true)
+            ->where('flash_sale_product_variants.max_quantity', '>', 0)
             ->first();
+
 
         if ($flashSaleProductVariant) {
             return $flashSaleProductVariant->sale_price;
         }
 
         return null;
-
-        // if (! $productVariant->sale_price || ! $productVariant->price) {
-        //     return null;
-        // }
-
-        // if (
-        //     $productVariant->is_discount_time
-        //     && $productVariant->sale_price_start_at
-        //     && $productVariant->sale_price_end_at
-        // ) {
-        //     $now = new DateTime;
-        //     $start = new DateTime($productVariant->sale_price_start_at);
-        //     $end = new DateTime($productVariant->sale_price_end_at);
-
-        //     if ($now < $start || $now > $end) {
-        //         return null;
-        //     }
-        // }
-
-        // return $productVariant->sale_price;
     }
 
 
