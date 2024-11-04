@@ -16,6 +16,10 @@ const sidebar = [
       {
         name: 'Danh sách đơn hàng',
         route: 'order.index'
+      },
+      {
+        name: 'Tạo mới đơn hàng',
+        route: 'order.store'
       }
     ]
   },
@@ -66,15 +70,15 @@ const sidebar = [
   {
     id: 'live_chat_sidebar',
     icon: 'fas fa-comments',
-    name: 'Nhắn tin',
-    route: 'live-chat.index',
+    name: 'Tin nhắn',
+    route: 'chat.index',
     subMenu: []
   },
   {
     id: 'marketing_sidebar',
     icon: 'fas fa-bullhorn',
     name: 'Marketing',
-    active: ['voucher', 'widget'],
+    active: ['voucher', 'widget', 'flash-sale'],
     subMenu: [
       {
         name: 'Danh sách khuyến mại',
@@ -83,6 +87,14 @@ const sidebar = [
       {
         name: 'Danh sách widget',
         route: 'widget.index'
+      },
+      {
+        name: 'Danh sách Flash sale',
+        route: 'flash-sale.index'
+      },
+      {
+        name: 'Tạo mới Flash sale',
+        route: 'flash-sale.create'
       }
     ]
   },

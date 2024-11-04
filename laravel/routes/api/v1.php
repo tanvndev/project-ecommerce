@@ -241,10 +241,7 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
             Route::get('popular-products', 'popularProducts')->name('popularProducts');
             // Thống kê khách hàng trung thành
             Route::get('loyal-customers', 'loyalCustomers')->name('loyalCustomers');
-            
+
             // Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
         });
-
-
-
 });

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignIdFor(ProductVariant::class)->constrained()->cascadeOnDelete();
             $table->integer('max_quantity');
             $table->integer('sold_quantity')->default(0);
+            $table->decimal('sale_price', 15, 2);
             $table->timestamps();
         });
     }

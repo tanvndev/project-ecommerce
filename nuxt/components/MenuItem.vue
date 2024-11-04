@@ -6,7 +6,7 @@ const props = defineProps({
 <!-- components/MenuItem.vue -->
 <template>
   <li :class="['menu-item', { 'menu-item-has-children': item.childrens }]">
-    <a href="#" class="ct-menu-link">
+    <NuxtLink :to="`/category?catalogues=${item.id}`" class="ct-menu-link">
       {{ item.name }}
       <span v-if="item.childrens" class="ct-toggle-dropdown-desktop">
         <!-- v -->
@@ -22,7 +22,7 @@ const props = defineProps({
           ></path>
         </svg>
       </span>
-    </a>
+    </NuxtLink>
     <ul v-if="item.childrens?.length" class="sub-menu">
       <MenuItem
         v-for="child in item.childrens"

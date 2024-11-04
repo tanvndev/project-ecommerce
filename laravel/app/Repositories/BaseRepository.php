@@ -74,7 +74,8 @@ class BaseRepository implements BaseRepositoryInterface
         array $orderBy = [],
         array $whereInParams = [],
         array $withWhereHas = [],
-        array $withCount = []
+        array $withCount = [],
+        bool $lockForUpdate = false
     ) {
         $query = $this->model->select($column);
 
@@ -101,6 +102,10 @@ class BaseRepository implements BaseRepositoryInterface
             //     ['field', 'operator', 'value'],
             // ]
             $query->whereHasRelations($withWhereHas);
+        }
+
+        if ($lockForUpdate) {
+            $query->lockForUpdate();
         }
 
         return $all ? $query->get() : $query->first();

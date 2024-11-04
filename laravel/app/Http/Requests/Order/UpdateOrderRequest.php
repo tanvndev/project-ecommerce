@@ -30,10 +30,6 @@ class UpdateOrderRequest extends FormRequest
             $rules['payment_status'] = 'required';
         }
 
-        if ($this->has('delivery_status')) {
-            $rules['delivery_status'] = 'required';
-        }
-
         return $rules;
     }
 
@@ -42,7 +38,6 @@ class UpdateOrderRequest extends FormRequest
         return [
             'order_status'      => 'Trạng thái đơn hàng',
             'payment_status'    => 'Trạng thái thanh toán',
-            'delivery_status'   => 'Trạng thái giao hàng',
         ];
     }
 
