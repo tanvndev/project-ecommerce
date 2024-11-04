@@ -17,6 +17,7 @@ export { default as SEOComponent } from './includes/SEOComponent.vue';
 export { default as EditOrderComponent } from './includes/EditOrderComponent.vue';
 export { default as RadioComponent } from './includes/RadioComponent.vue';
 export { default as RecaptchaComponent } from './includes/RecaptchaComponent.vue';
+export { default as ToolboxFilter } from './includes/ToolboxFilter.vue';
 
 export { default as HeaderComponent } from './layouts/HeaderComponent.vue';
 export { default as MasterLayout } from './layouts/MasterLayout.vue';

@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 min-h-screen pb-24">
+      <div class="mx-10 mb-5 min-h-screen pb-24">
         <form>
           <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
           <a-card class="mt-3" title="Dữ liệu thuộc tính">
@@ -51,18 +51,18 @@
 
 <script setup>
 import {
-  MasterLayout,
-  BreadcrumbComponent,
   AleartError,
-  InputComponent
+  BreadcrumbComponent,
+  InputComponent,
+  MasterLayout
 } from '@/components/backend';
-import { computed, onMounted, reactive } from 'vue';
-import { useForm } from 'vee-validate';
+import { useCRUD } from '@/composables';
+import router from '@/router';
 import { formatMessages } from '@/utils/format';
+import { useForm } from 'vee-validate';
+import { computed, onMounted, reactive } from 'vue';
 import { useStore } from 'vuex';
 import * as yup from 'yup';
-import router from '@/router';
-import { useCRUD } from '@/composables';
 import ValueView from './partials/ValueView.vue';
 
 // STATE

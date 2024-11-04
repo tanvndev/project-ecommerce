@@ -6,6 +6,21 @@ const sidebar = [
     route: 'dashboard',
     subMenu: []
   },
+  {
+    id: 'report_sidebar',
+    icon: 'fas fa-chart-bar',
+    name: 'Báo cáo',
+    route: 'report.index',
+    subMenu: []
+  },
+
+  {
+    id: 'live_chat_sidebar',
+    icon: 'fas fa-comments',
+    name: 'Tin nhắn',
+    route: 'chat.index',
+    subMenu: []
+  },
 
   {
     id: 'order_sidebar',
@@ -71,13 +86,7 @@ const sidebar = [
       }
     ]
   },
-  {
-    id: 'live_chat_sidebar',
-    icon: 'fas fa-comments',
-    name: 'Tin nhắn',
-    route: 'chat.index',
-    subMenu: []
-  },
+
   {
     id: 'marketing_sidebar',
     icon: 'fas fa-bullhorn',
