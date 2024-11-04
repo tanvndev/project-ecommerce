@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Api\V1\Product;
 
 use App\Enums\ResponseEnum;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Product\ProductReviewResource;
-use App\Http\Resources\Product\ProductReviewCollection;
 use App\Http\Requests\Product\StoreProductReviewRequest;
-use App\Services\Interfaces\Product\ProductReviewServiceInterface;
 use App\Http\Resources\Product\Client\ClientProductReviewCollection;
+use App\Http\Resources\Product\ProductReviewCollection;
 use App\Repositories\Interfaces\Product\ProductReviewRepositoryInterface;
+use App\Services\Interfaces\Product\ProductReviewServiceInterface;
+use Illuminate\Http\JsonResponse;
 
 class ProductReviewController extends Controller
 {
@@ -39,22 +38,13 @@ class ProductReviewController extends Controller
         return successResponse('', $data, true);
     }
 
-    public function adminGetReplies(string $id): JsonResponse{
-
-        $replies = $this->productReviewService->getReplies($id);
-
-        $data = new ProductReviewResource($replies);
-
-        return successResponse('', $data, true);
-    }
-
     /**
      * Get all product reviews
      */
     public function getAllProductReviews(): JsonResponse
     {
 
-        $productReviews = $this->productReviewService->paginate();
+        $productReviews = $this->productReviewService->getAllProductReviews();
 
         $data = new ProductReviewCollection($productReviews);
 
@@ -74,12 +64,11 @@ class ProductReviewController extends Controller
     /**
      * Admin reply a product review.
      */
-    public function adminReply(StoreProductReviewRequest $request): JsonResponse
+    public function adminReply(StoreProductReviewRequest $request, string $parentId): JsonResponse
     {
-        $response = $this->productReviewService->adminReply($request->all());
+        $response = $this->productReviewService->adminReply($request->all(), $parentId);
 
-        // return handleResponse($response, ResponseEnum::CREATED);
-        return handleResponse($response);
+        return handleResponse($response, ResponseEnum::CREATED);
     }
 
     /**
@@ -89,6 +78,6 @@ class ProductReviewController extends Controller
     {
         $response = $this->productReviewService->adminUpdateReply($request->all(), $replyId);
 
-        return handleResponse($response);
+        return handleResponse($response, ResponseEnum::CREATED);
     }
 }
