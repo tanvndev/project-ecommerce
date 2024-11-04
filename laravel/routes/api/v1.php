@@ -8,7 +8,6 @@ use App\Http\Controllers\Api\V1\Chat\ChatController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\Post\PostController;
 use App\Http\Controllers\Api\V1\Post\PostCatalogueController;
-
 use App\Http\Controllers\Api\V1\User\UserController;
 use App\Http\Controllers\Api\V1\Brand\BrandController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
@@ -244,7 +243,11 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         ->prefix('statistic')
         ->name('statistic.')
         ->group(function () {
+            Route::get('report-overview', 'reportOverview')->name('reportOverview');
             Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
+            Route::get('product', [StatisticController::class, 'getProductReport']);
+            Route::get('popular-products', 'popularProducts')->name('popularProducts');
+            Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
+            Route::get('loyal-customers', 'loyalCustomers')->name('loyalCustomers');
         });
-
 });

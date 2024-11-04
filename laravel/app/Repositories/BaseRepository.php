@@ -26,11 +26,11 @@ class BaseRepository implements BaseRepositoryInterface
     public function all(array $column = ['*'], array $relation = [], array $orderBy = [])
     {
         $query = $this->model->select($column);
-        if ( ! empty($orderBy)) {
+        if (!empty($orderBy)) {
             $query->customOrderBy($orderBy);
         }
 
-        if ( ! empty($relation)) {
+        if (!empty($relation)) {
             return $query->relation($relation)->get();
         }
 
@@ -42,11 +42,19 @@ class BaseRepository implements BaseRepositoryInterface
      *
      * @param  mixed  $modelId
      * @param  array|string  $column
+     * @param  array  $relation
+     * @param  bool  $lockForUpdate
      * @return mixed
      */
-    public function findById($modelId, $column = ['*'], array $relation = [])
+    public function findById($modelId, $column = ['*'], array $relation = [], bool $lockForUpdate = false)
     {
-        return $this->model->select($column)->with($relation)->findOrFail($modelId);
+        $query = $this->model->select($column)->with($relation);
+
+        if ($lockForUpdate) {
+            $query->lockForUpdate();
+        }
+
+        return $query->findOrFail($modelId);
     }
 
     /**

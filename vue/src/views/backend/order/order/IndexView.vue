@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 h-screen">
+      <div class="mx-10 mb-5 min-h-screen">
         <BreadcrumbComponent :titlePage="state.pageTitle" :routeCreate="state.routeCreate" />
 
         <!-- Toolbox -->
@@ -74,15 +74,10 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, watch } from 'vue';
-import {
-  BreadcrumbComponent,
-  MasterLayout,
-  FilterComponent,
-  ToolboxComponent
-} from '@/components/backend';
+import { BreadcrumbComponent, MasterLayout, ToolboxComponent } from '@/components/backend';
 import { useCRUD, usePagination } from '@/composables';
 import { formatCurrency } from '@/utils/format';
+import { onMounted, reactive, watch } from 'vue';
 
 // STATE
 const state = reactive({

@@ -13,7 +13,7 @@ use App\Models\ProductVariantAttributeValue;
 use App\Repositories\Interfaces\Attribute\AttributeValueRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
-use App\Repositories\Interfaces\SearchHistory\SearchHistoryRepositoryInterface;
+use App\Repositories\Interfaces\Product\SearchHistoryRepositoryInterface;
 use App\Services\BaseService;
 use App\Services\Interfaces\Product\ProductServiceInterface;
 use Carbon\Carbon;
@@ -631,25 +631,24 @@ class ProductService extends BaseService implements ProductServiceInterface
         return $product;
     }
 
-
-
-    public function filterProducts($data)
+    public function filterProducts()
     {
-        $catalogues = $this->getCatalogues($data);
-        $priceRange = $this->getPriceRange($data);
-        $sort = $data['sort'] ?? 'asc';
-        $search = $data['search'] ?? '';
-        $values = $data['values'] ?? '';
-        $stars = $data['stars'] ?? '';
+        $request = request()->all();
+        $catalogues = $this->getCatalogues($request);
+        $priceRange = $this->getPriceRange($request);
 
-        $productVariants = $this->getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars);
+        $sort = $request['sort'] ?? 'asc';
+        $search = $request['search'] ?? '';
+        $values = $request['values'] ?? '';
+        $stars = $request['stars'] ?? '';
+        $pageSize = $request['pageSize'] ?? 20;
 
-        // Lấy các giá trị biến thể (values) từ sản phẩm
-        $formattedValues = $this->getFormattedValues($productVariants);
+        $productVariants = $this->getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars, $pageSize);
+        $formattedAttributes = $this->getFormattedAttributes($productVariants);
 
         return [
             'product_variants' => $productVariants,
-            'values' => $formattedValues,
+            'attributes' => $formattedAttributes,
         ];
     }
 
@@ -669,14 +668,14 @@ class ProductService extends BaseService implements ProductServiceInterface
     }
 
     // gọi các hàm lọc
-    protected function getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars)
+    protected function getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars, $pageSize)
     {
         $query = ProductVariant::query();
 
         $query = $this->getPublicProductVariants($query);
 
         $query = $this->filterByCatalogue($query, $catalogues);
-        
+
         $query = $this->filterByPrice($query, $priceRange);
 
         $this->applySearch($query, $search);
@@ -685,11 +684,9 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         $this->filterByStars($query, $stars);
 
-        $this->applyFlashSaleJoin($query);
-
         $this->applySorting($query, $sort);
 
-        return $query->paginate(30);
+        return $query->paginate($pageSize);
     }
 
     protected function getPublicProductVariants($query)
@@ -735,26 +732,10 @@ class ProductService extends BaseService implements ProductServiceInterface
         }
     }
 
-    protected function applyFlashSaleJoin($query)
-    {
-        $query->leftJoin('flash_sale_product_variants', function ($join) {
-            $join->on('product_variants.id', '=', 'flash_sale_product_variants.product_variant_id')
-                ->join('flash_sales', 'flash_sale_product_variants.flash_sale_id', '=', 'flash_sales.id')
-                ->where('flash_sales.start_date', '<=', now())
-                ->where('flash_sales.end_date', '>=', now())
-                ->where('flash_sales.publish', true)
-                ->where('flash_sale_product_variants.max_quantity', '>', 0);
-        });
-
-        $query->selectRaw('
-        product_variants.*,
-        COALESCE(flash_sale_product_variants.sale_price, product_variants.price) as effective_price
-    ');
-    }
 
     protected function applySorting($query, $sort)
     {
-        $query->orderBy('effective_price', $sort);
+        $query->orderBy('price', $sort);
     }
 
     // lọc giá
@@ -762,10 +743,10 @@ class ProductService extends BaseService implements ProductServiceInterface
     {
         if ($priceRange['min'] !== null || $priceRange['max'] !== null) {
             if ($priceRange['min'] !== null) {
-                $query->having('effective_price', '>=', $priceRange['min']);
+                $query->having('price', '>=', $priceRange['min']);
             }
             if ($priceRange['max'] !== null) {
-                $query->having('effective_price', '<=', $priceRange['max']);
+                $query->having('price', '<=', $priceRange['max']);
             }
         }
 
@@ -806,19 +787,42 @@ class ProductService extends BaseService implements ProductServiceInterface
         return $query;
     }
 
-
-    // Lấy ra danh sách các giá trị biến thể
-    protected function getFormattedValues($productVariants)
+    protected function getFormattedAttributes($productVariants)
     {
         $variantIds = $productVariants->pluck('id');
 
         $attributeValues = DB::table('product_variant_attribute_value')
             ->whereIn('product_variant_id', $variantIds)
             ->join('attribute_values', 'product_variant_attribute_value.attribute_value_id', '=', 'attribute_values.id')
-            ->select('attribute_values.id as value_id', 'attribute_values.name as value_name')
+            ->join('attributes', 'attribute_values.attribute_id', '=', 'attributes.id')
+            ->select('attributes.id as attribute_id', 'attributes.name as attribute_name', 'attribute_values.id as value_id', 'attribute_values.name as value_name')
             ->distinct()
-            ->get();
+            ->get()
+            ->groupBy('attribute_id');
 
-        return $attributeValues;
+        return $this->formatAttributes($attributeValues);
+    }
+
+    // format attributes
+    protected function formatAttributes($attributeValues)
+    {
+        $formatted = [];
+
+        foreach ($attributeValues as $attributeId => $values) {
+            $formatted[$attributeId] = [
+                'id' => $values[0]->attribute_id,
+                'name' => $values[0]->attribute_name,
+                'values' => []
+            ];
+
+            foreach ($values as $value) {
+                $formatted[$attributeId]['values'][] = [
+                    'id' => $value->value_id,
+                    'name' => $value->value_name,
+                ];
+            }
+        }
+
+        return $formatted;
     }
 }

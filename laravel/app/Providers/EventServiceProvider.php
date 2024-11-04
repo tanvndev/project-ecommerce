@@ -25,6 +25,18 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\Order\OrderShippedEvent' => [
             'App\Listeners\Order\SendOrderShippedEmailListener',
         ],
+        'App\Events\Order\OrderCreatedEvent' => [
+            'App\Listeners\Order\SendMailOrderCreatedListener',
+        ],
+        'App\Events\Order\OrderUpdatePaymentEvent' => [
+            'App\Listeners\Order\SendMailOrderUpdatePaymentListener',
+        ],
+        'App\Events\Order\OrderCompletedEvent' => [
+            'App\Listeners\Order\SendMailOrderCompletedListener',
+        ],
+        'App\Events\Order\OrderCancelledEvent' => [
+            'App\Listeners\Order\SendMailOrderCancelledListener',
+        ],
         'App\Events\Wishlist\WishListEvent' => [
             'App\Listeners\Wishlist\SendWishListEmailListener',
         ],

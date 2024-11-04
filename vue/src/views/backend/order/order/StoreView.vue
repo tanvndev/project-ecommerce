@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 h-screen">
+      <div class="mx-10 mb-5 min-h-screen">
         <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
         <form @submit.prevent="onSubmit">
           <a-row :gutter="16">
@@ -94,22 +94,22 @@
 
 <script setup>
 import {
-  MasterLayout,
-  BreadcrumbComponent,
   AleartError,
+  BreadcrumbComponent,
   InputComponent,
+  MasterLayout,
   SelectComponent
 } from '@/components/backend';
-import { computed, onMounted, reactive, ref } from 'vue';
-import { useForm } from 'vee-validate';
-import { formatCurrency, formatDataToSelect, formatMessages } from '@/utils/format';
-import * as yup from 'yup';
-import { useRouter } from 'vue-router';
 import { useCRUD } from '@/composables';
+import { formatCurrency, formatDataToSelect, formatMessages } from '@/utils/format';
+import { message } from 'ant-design-vue';
+import _ from 'lodash';
+import { useForm } from 'vee-validate';
+import { computed, onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import * as yup from 'yup';
 import SearchProductView from './partials/SearchProductView.vue';
 import SearchUser from './partials/SearchUser.vue';
-import { message } from 'ant-design-vue';
-import  _ from 'lodash';
 
 const { create, messages, data, getAll } = useCRUD();
 const router = useRouter();

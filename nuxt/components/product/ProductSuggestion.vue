@@ -2,9 +2,10 @@
 import _ from 'lodash'
 
 const { $axios } = useNuxtApp()
-const router = useRouter()
 const comboItem = ref({})
 const suggestedProducts = ref([])
+const cartStore = useCartStore()
+const router = useRouter()
 
 const props = defineProps({
   variant: {
@@ -14,6 +15,9 @@ const props = defineProps({
 })
 
 const getSuggestedProducts = async () => {
+  if (!props.variant?.id) {
+    return
+  }
   try {
     const response = await $axios.get(`/products/${props.variant?.id}/suggest`)
 
@@ -40,16 +44,20 @@ const totalPrice = computed(() => {
   )
 })
 
-const handleBuyNow = () => {
+const handleBuyNow = async () => {
   if (totalPrice.value) {
-    const payload = _.toPairs(comboItem.value)
-      .map(([id, isSelected]) => ({
-        product_variant_id: parseInt(id),
-        quantity: isSelected ? 1 : 0,
-      }))
-      .filter((item) => item.quantity > 0)
+    const productVariantIds = _.toPairs(comboItem.value)
+      .map(([id, isSelected]) => {
+        if (isSelected) {
+          return parseInt(id)
+        }
+      })
+      .filter((item) => item)
 
-    console.log(payload)
+    productVariantIds.push(props.variant.id)
+
+    await cartStore.buyNowMulti({ product_variant_id: productVariantIds })
+
   }
 }
 
@@ -127,7 +135,11 @@ watch(
           <div class="col-lg-3">
             <div class="total-bill">
               <div>
-                <strong>{{ formatCurrency(totalPrice) }}</strong>
+                <strong>{{
+                  formatCurrency(
+                    totalPrice + Number(variant.sale_price || variant.price)
+                  )
+                }}</strong>
               </div>
               <a
                 href="buy-now"

@@ -44,6 +44,8 @@ class AppRepositoryProvider extends ServiceProvider
         'App\Repositories\Interfaces\PaymentMethod\PaymentMethodRepositoryInterface' => 'App\Repositories\PaymentMethod\PaymentMethodRepository',
         // Cart
         'App\Repositories\Interfaces\Cart\CartRepositoryInterface' => 'App\Repositories\Cart\CartRepository',
+        // CartItem
+        'App\Repositories\Interfaces\Cart\CartItemRepositoryInterface' => 'App\Repositories\Cart\CartItemRepository',
         // Widget
         'App\Repositories\Interfaces\Widget\WidgetRepositoryInterface' => 'App\Repositories\Widget\WidgetRepository',
         // Voucher
@@ -58,6 +60,8 @@ class AppRepositoryProvider extends ServiceProvider
         'App\Repositories\Interfaces\Order\OrderItemRepositoryInterface' => 'App\Repositories\Order\OrderItemRepository',
         // Post
         'App\Repositories\Interfaces\Post\PostRepositoryInterface' => 'App\Repositories\Post\PostRepository',
+        // PostCatalogue
+        'App\Repositories\Interfaces\Post\PostCatalogueRepositoryInterface' => 'App\Repositories\Post\PostCatalogueRepository',
         // UserAddress
         'App\Repositories\Interfaces\User\UserAddressRepositoryInterface' => 'App\Repositories\User\UserAddressRepository',
         // PRODUCT REVIEW
@@ -68,8 +72,9 @@ class AppRepositoryProvider extends ServiceProvider
         'App\Repositories\Interfaces\Chat\ChatRepositoryInterface' => 'App\Repositories\Chat\ChatRepository',
         // FLASH SALE
         'App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface' => 'App\Repositories\FlashSale\FlashSaleRepository',
-        // SEARCH HISTORY
-        'App\Repositories\Interfaces\SearchHistory\SearchHistoryRepositoryInterface' => 'App\Repositories\SearchHistory\SearchHistoryRepository',
+        // Search History
+        'App\Repositories\Interfaces\Product\SearchHistoryRepositoryInterface' => 'App\Repositories\Product\SearchHistoryRepository',
+
     ];
 
     public function register(): void
@@ -82,7 +87,5 @@ class AppRepositoryProvider extends ServiceProvider
     /**
      * Bootstrap services.
      */
-    public function boot(): void
-    {
-    }
+    public function boot(): void {}
 }

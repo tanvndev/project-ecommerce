@@ -20,7 +20,7 @@ class ProductReviewCollection extends ResourceCollection
         ) {
             return [
                 'data' => $this->collection->map(function ($product) {
-                    return new ProductReviewResource($product);
+                    return new ProductResource($product);
                 }),
                 'total'        => $this->total(),
                 'per_page'     => $this->perPage(),

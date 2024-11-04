@@ -1,8 +1,8 @@
 <script setup>
-import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Navigation, Autoplay, Grid } from 'swiper/modules'
+import { handleRenderPrice, resizeImage } from '#imports'
 import 'swiper/css'
-import { resizeImage, handleRenderPrice } from '#imports'
+import { Autoplay, Grid, Navigation } from 'swiper/modules'
+import { Swiper, SwiperSlide } from 'swiper/vue'
 const modules = [Navigation, Autoplay, Grid]
 const slider = ref(null)
 
@@ -115,8 +115,13 @@ const onSwiper = (swiper) => {
                         </h4>
                         <div class="ratings-container">
                           <div class="ratings-full">
-                            <span class="ratings" style="width: 100%"></span>
-                            <span class="tooltiptext tooltip-top"></span>
+                            <span
+                              class="ratings"
+                              :style="`width: ${item?.reviews?.avg_percent}%`"
+                            ></span>
+                            <span class="tooltiptext tooltip-top">{{
+                              item?.reviews?.count
+                            }}</span>
                           </div>
                         </div>
                         <div v-html="handleRenderPrice(item)"></div>

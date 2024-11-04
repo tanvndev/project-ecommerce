@@ -1,10 +1,15 @@
 <script setup>
-import { resizeImage, handleRenderPrice, toast } from '#imports'
-import { ref } from 'vue'
-import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Navigation, Autoplay, Grid } from 'swiper/modules'
+import {
+  handleRenderPrice,
+  resizeImage,
+  toast,
+  useCartStore,
+  useWishlistStore,
+} from '#imports'
 import 'swiper/css'
-import { useCartStore, useWishlistStore } from '#imports'
+import { Autoplay, Grid, Navigation } from 'swiper/modules'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { ref } from 'vue'
 
 const props = defineProps({
   items: {
@@ -127,10 +132,19 @@ const addToWishlist = async (variantId) => {
                       </h4>
                       <div class="ratings-container">
                         <div class="ratings-full">
-                          <span class="ratings" style="width: 60%"></span>
-                          <span class="tooltiptext tooltip-top">3</span>
+                          <span
+                            class="ratings"
+                            :style="`width: ${item?.reviews?.avg_percent}%`"
+                          ></span>
+                          <span class="tooltiptext tooltip-top">{{
+                            item?.reviews?.avg
+                          }}</span>
                         </div>
-                        <a href="#" class="rating-reviews">(3 đánh giá)</a>
+                        <NuxtLink
+                          :to="`product/${item.slug}-${item.product_id}`"
+                          class="rating-reviews"
+                          >({{ item?.reviews?.count }} đánh giá)</NuxtLink
+                        >
                       </div>
                       <div v-html="handleRenderPrice(item)"></div>
                     </div>

@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\QueryScopes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CartItem extends Model
 {
-    use HasFactory;
+    use HasFactory,QueryScopes;
 
     protected $fillable = ['cart_id', 'product_variant_id', 'quantity', 'is_selected'];
 

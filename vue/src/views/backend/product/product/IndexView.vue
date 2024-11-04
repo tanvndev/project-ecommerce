@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 h-screen">
+      <div class="mx-10 mb-5 min-h-screen">
         <BreadcrumbComponent :titlePage="state.pageTitle" :routeCreate="state.routeCreate" />
 
         <!-- Toolbox -->
@@ -119,9 +119,6 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, watch } from 'vue';
-import { PRODUCT_TYPE } from '@/static/constants';
-import { columns, innerColumns } from './columns';
 import {
   BreadcrumbComponent,
   MasterLayout,
@@ -129,9 +126,12 @@ import {
   ToolboxComponent
 } from '@/components/backend';
 import { useCRUD, usePagination } from '@/composables';
-import { RouterLink, useRoute } from 'vue-router';
-import { debounce, resizeImage } from '@/utils/helpers';
+import { PRODUCT_TYPE } from '@/static/constants';
 import { formatCurrency } from '@/utils/format';
+import { debounce, resizeImage } from '@/utils/helpers';
+import { onMounted, reactive, watch } from 'vue';
+import { RouterLink, useRoute } from 'vue-router';
+import { columns, innerColumns } from './columns';
 
 // STATE
 const state = reactive({
@@ -178,12 +178,10 @@ const deboucedFetchData = debounce(fetchData, 500);
 
 // Watchers
 watch(onChangePagination, fetchData);
-
 watch(selectedRows, () => {
   state.isShowToolbox = selectedRows.value.length > 0;
   state.modelIds = selectedRowKeys.value;
 });
-
 watch(
   () => route.query.archive,
   (newValue) => {

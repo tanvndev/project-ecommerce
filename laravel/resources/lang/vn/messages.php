@@ -157,6 +157,7 @@ return [
             'not_found'          => 'Flash sale không tồn tại!',
             'out_of_stock'       => 'Không tìm thấy mẫu mã sản phẩm trong đợt giảm giá này!',
             'already_on_sale'    => 'Có biến thể đã tham giá flash sale khác!',
+            'time_exist'         => 'Trong cùng thời điểm không được trùng lặp thời gian giảm giá, Vui lòng kiểm tra lại thời gian giảm giá trước đó!',
         ],
     ],
 ];

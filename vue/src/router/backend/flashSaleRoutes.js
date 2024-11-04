@@ -16,7 +16,7 @@ const flashSaleRoutes = [
   {
     path: '/flash-sale/update/:id(\\d+)',
     name: 'flash-sale.update',
-    component: () => import('@/views/backend/flash-sale/UpdateView.vue'),
+    component: () => import('@/views/backend/flash-sale/StoreView.vue'),
     beforeEnter: [isLoggedIn]
   }
 ];

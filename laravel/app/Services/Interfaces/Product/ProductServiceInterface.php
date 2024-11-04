@@ -26,5 +26,5 @@ interface ProductServiceInterface
 
     public function getProductReport();
 
-    public function filterProducts( $criteria );
+    public function filterProducts( );
 }

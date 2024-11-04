@@ -1,6 +1,7 @@
-import { defineStore } from 'pinia'
-import { useLoadingStore, useAuthStore } from '#imports'
+import { useAuthStore, useLoadingStore } from '#imports'
 import Cookies from 'js-cookie'
+import { defineStore } from 'pinia'
+import { getErrorMsg } from '~/utils/helpers'
 
 export const useCartStore = defineStore('cart', {
   state: () => {
@@ -52,37 +53,49 @@ export const useCartStore = defineStore('cart', {
       const authStore = useAuthStore()
       const session_id = Cookies.get('session_id')
 
-      const endpoint = authStore.isSignedIn
-        ? '/carts'
-        : '/carts?session_id=' + session_id
+      try {
+        const endpoint = authStore.isSignedIn
+          ? '/carts'
+          : '/carts?session_id=' + session_id
 
-      if (!payload?.product_variant_id) {
-        return toast('Có lỗi vui lòng thử lại.', 'error')
+        if (!payload?.product_variant_id) {
+          return toast('Có lỗi vui lòng thử lại.', 'error')
+        }
+
+        const response = await $axios.post(endpoint, payload)
+
+        this.setCartCount(response.data?.items.length)
+        toast(response.messages, response.status)
+      } catch (error) {
+        toast(getErrorMsg(error), 'error')
       }
-
-      const response = await $axios.post(endpoint, payload)
-
-      this.setCartCount(response.data?.items.length)
-      toast(response.messages, response.status)
     },
 
     async buyNowMulti(payload) {
       const { $axios } = useNuxtApp()
       const authStore = useAuthStore()
       const session_id = Cookies.get('session_id')
+      const router = useRouter()
 
-      const endpoint = authStore.isSignedIn
-        ? '/carts/buy-now'
-        : '/carts/buy-now?session_id=' + session_id
+      try {
+        const endpoint = authStore.isSignedIn
+          ? '/carts/buy-now'
+          : '/carts/buy-now?session_id=' + session_id
 
-      if (!payload?.product_variant_id) {
-        return toast('Có lỗi vui lòng thử lại.', 'error')
+        if (!payload?.product_variant_id) {
+          return toast('Có lỗi vui lòng thử lại.', 'error')
+        }
+
+        await $axios.post(endpoint, payload)
+
+        this.getAllCarts()
+
+        setTimeout(() => {
+          router.push('/checkout')
+        }, 1000)
+      } catch (error) {
+        toast(getErrorMsg(error), 'error')
       }
-
-      const response = await $axios.post(endpoint, payload)
-
-      this.setCartCount(response.data?.items.length)
-      toast(response.messages, response.status)
     },
     removeAllCarts() {
       this.carts = []

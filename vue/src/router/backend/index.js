@@ -10,3 +10,4 @@ export { default as postRoutes } from './postRoutes';
 export { default as chatRoutes } from './chatRoutes';
 export { default as flashSaleRoutes } from './flashSaleRoutes';
 export { default as evaluateRoutes } from './evaluateRoutes';
+export { default as reportRoutes } from './reportRoutes';
