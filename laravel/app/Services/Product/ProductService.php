@@ -13,7 +13,7 @@ use App\Models\ProductVariantAttributeValue;
 use App\Repositories\Interfaces\Attribute\AttributeValueRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
-use App\Repositories\Interfaces\SearchHistory\SearchHistoryRepositoryInterface;
+use App\Repositories\Interfaces\Product\SearchHistoryRepositoryInterface;
 use App\Services\BaseService;
 use App\Services\Interfaces\Product\ProductServiceInterface;
 use Carbon\Carbon;
