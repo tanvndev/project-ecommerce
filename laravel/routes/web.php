@@ -44,6 +44,6 @@ Route::get('stringee/answer', [StringeeController::class, 'answer']);
 
 Route::get('test/order', [TestController::class, 'getOrder']);
 
-Route::get('test', [StatisticController::class, 'revenueByDate']);
+Route::get('test', [StatisticController::class, 'popularProducts']);
 
 
