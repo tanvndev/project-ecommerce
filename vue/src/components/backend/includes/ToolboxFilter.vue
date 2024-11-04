@@ -1,50 +1,48 @@
 <template>
-  <div>
-    <div class="relative">
-      <div
-        class="toolbox-filter"
-        :class="{ active: openDatePicker }"
-        @click="openDatePicker = !openDatePicker"
-      >
-        <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
-        <span>{{ dateText }}</span>
-        <i class="fal fa-angle-down ml-2 pr-1 text-gray-400" v-if="!openDatePicker"></i>
-        <i class="fal fa-angle-up ml-2 pr-1 text-gray-400" v-else></i>
-      </div>
+  <div class="relative">
+    <div
+      class="toolbox-filter"
+      :class="{ active: openDatePicker }"
+      @click="openDatePicker = !openDatePicker"
+    >
+      <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
+      <span>{{ dateText }}</span>
+      <i class="fal fa-angle-down ml-2 pr-1 text-gray-400" v-if="!openDatePicker"></i>
+      <i class="fal fa-angle-up ml-2 pr-1 text-gray-400" v-else></i>
+    </div>
 
-      <div class="list-box-filter" v-if="openDatePicker">
-        <div>
-          <div class="flex flex-col items-center gap-2">
-            <div
-              class="item-box-filter"
-              v-for="(filterDateOption, index) in filterDateOptions"
-              :key="index"
+    <div class="list-box-filter" v-if="openDatePicker">
+      <div>
+        <div class="flex flex-col items-center gap-2">
+          <div
+            class="item-box-filter"
+            v-for="(filterDateOption, index) in filterDateOptions"
+            :key="index"
+          >
+            <button
+              class="button-filter"
+              :class="{ active: optionActive == item.active }"
+              v-for="item in filterDateOption"
+              :key="item.value"
+              @click="handleChangeDate(item)"
             >
-              <button
-                class="button-filter"
-                :class="{ active: optionActive == item.active }"
-                v-for="item in filterDateOption"
-                :key="item.value"
-                @click="handleChangeDate(item)"
-              >
-                <span>{{ item.label }}</span>
-              </button>
+              <span>{{ item.label }}</span>
+            </button>
+          </div>
+          <div class="item-box-filter item-box-filter-custom">
+            <button
+              class="button-filter"
+              :class="{ active: optionActive == 'custom' }"
+              @click="handleChangeDate({ active: 'custom', value: '', label: 'Tuỳ chọn' })"
+            >
+              <span>Tùy chọn</span>
+            </button>
+            <div v-if="optionActive == 'custom'">
+              <a-range-picker v-model:value="dateCustomRange" />
             </div>
-            <div class="item-box-filter item-box-filter-custom">
-              <button
-                class="button-filter"
-                :class="{ active: optionActive == 'custom' }"
-                @click="handleChangeDate({ active: 'custom', value: '', label: 'Tuỳ chọn' })"
-              >
-                <span>Tùy chọn</span>
-              </button>
-              <div>
-                <a-range-picker v-model:value="dateCustomRange" />
-              </div>
-            </div>
-            <div class="item-box-filter mt-2">
-              <a-button class="w-full" type="primary" @click="handleFilter"> Lọc</a-button>
-            </div>
+          </div>
+          <div class="item-box-filter mt-2">
+            <a-button class="w-full" type="primary" @click="handleFilter"> Lọc</a-button>
           </div>
         </div>
       </div>
@@ -53,17 +51,25 @@
 </template>
 <script setup>
 import dayjs from 'dayjs';
+import _ from 'lodash';
 import { onMounted, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
 
 const router = useRouter();
+const route = useRoute();
 const today = dayjs();
-const query = router.currentRoute.value.query;
+const query = route.query;
 const dateCustomRange = ref(null);
-const dateFilter = ref(null);
 const dateText = ref('');
 const optionActive = ref(query.date);
 const openDatePicker = ref(false);
+const emits = defineEmits(['onChangeDate']);
 
 // Tính toán các ngày cần thiết
 const yesterday = today.subtract(1, 'day');
@@ -75,7 +81,6 @@ const lastYear = today.subtract(1, 'year');
 
 // Hàm định dạng ngày
 const formatDate = (date) => date.format('DD/MM/YYYY');
-const formatDate2 = (date) => date.format('DD/MM');
 
 // Tính toán ngày đầu và cuối của tháng
 const startOfThisMonth = today.startOf('month');
@@ -105,19 +110,19 @@ const filterDateOptions = ref([
   [
     {
       label: '7 ngày qua',
-      value: `${formatDate2(sevenDaysAgo)} - ${formatDate(today)}`,
+      value: `${formatDate(sevenDaysAgo)} - ${formatDate(today)}`,
       active: 'last_7_days'
     },
     {
       label: '30 ngày qua',
-      value: `${formatDate2(thirtyDaysAgo)} - ${formatDate(today)}`,
+      value: `${formatDate(thirtyDaysAgo)} - ${formatDate(today)}`,
       active: 'last_30_days'
     }
   ],
   [
     {
       label: 'Tuần trước',
-      value: `${formatDate2(lastWeek)} - ${formatDate(today)}`,
+      value: `${formatDate(lastWeek)} - ${formatDate(today)}`,
       active: 'last_week'
     },
     {
@@ -129,24 +134,24 @@ const filterDateOptions = ref([
   [
     {
       label: 'Tháng trước',
-      value: `${formatDate2(startOfLastMonth)} - ${formatDate(endOfLastMonth)}`,
+      value: `${formatDate(startOfLastMonth)} - ${formatDate(endOfLastMonth)}`,
       active: 'last_month'
     },
     {
       label: 'Tháng này',
-      value: `${formatDate2(startOfThisMonth)} - ${formatDate(endOfThisMonth)}`,
+      value: `${formatDate(startOfThisMonth)} - ${formatDate(endOfThisMonth)}`,
       active: 'this_month'
     }
   ],
   [
     {
       label: 'Năm trước',
-      value: `${formatDate2(startOfLastYear)} - ${formatDate(endOfLastYear)}`,
+      value: `${formatDate(startOfLastYear)} - ${formatDate(endOfLastYear)}`,
       active: 'last_year'
     },
     {
       label: 'Năm này',
-      value: `${formatDate2(startOfThisYear)} - ${formatDate(endOfThisYear)}`,
+      value: `${formatDate(startOfThisYear)} - ${formatDate(endOfThisYear)}`,
       active: 'this_year'
     }
   ]
@@ -169,17 +174,39 @@ const handleChangeDate = ({ active, value, label }) => {
 };
 
 const handleFilter = () => {
-  console.log(dateCustomRange.value);
-  console.log(formatDate(dateCustomRange.value[0]));
-};
+  const filterOption = filterDateOptions.value
+    .flat()
+    .find((option) => option.active === optionActive.value);
 
+  let data;
+
+  if (optionActive.value === 'custom' && !_.isEmpty(dateCustomRange.value)) {
+    const startDate = dateCustomRange.value[0] || null;
+    const endDate = dateCustomRange.value[1] || null;
+
+    data = {
+      active: 'custom',
+      label: 'Tuỳ chọn',
+      value:
+        startDate && endDate
+          ? `${formatDate(startDate)} - ${formatDate(endDate)}`
+          : 'Không xác định'
+    };
+  } else {
+    data = filterOption;
+  }
+  if (!_.isEmpty(data) && data.value) {
+    emits('onChangeDate', { data, allDay: getAllDates(data.value) });
+  }
+};
 watch(
   dateCustomRange,
   (newValue) => {
     if (!newValue) return;
-    const startDate = newValue[0];
-    const endDate = newValue[1];
-    dateText.value = `Tùy chọn (${formatDate(startDate)} - ${formatDate(endDate)})`;
+    const startDate = formatDate(newValue[0]);
+    const endDate = formatDate(newValue[1]);
+
+    dateText.value = `Tùy chọn (${startDate} - ${endDate})`;
 
     router.push({
       query: {
@@ -193,18 +220,39 @@ watch(
   { immediate: true }
 );
 
+const getAllDates = (range) => {
+  let start, end;
+
+  if (range.includes(' - ')) {
+    const [startDate, endDate] = range.split(' - ').map((date) => date.trim());
+    start = dayjs(startDate, 'DD/MM/YYYY');
+    end = dayjs(endDate, 'DD/MM/YYYY');
+  } else {
+    start = dayjs(range.trim(), 'DD/MM/YYYY');
+    end = start;
+  }
+
+  const dates = [];
+
+  for (let date = start; date.isSameOrBefore(end); date = date.add(1, 'day')) {
+    dates.push(date.format('DD/MM'));
+  }
+
+  return dates;
+};
+
 onMounted(() => {
-  if (query.date) {
-    optionActive.value = query.date;
-    const filterOption = filterDateOptions.value
-      .flat()
-      .find((option) => option.active === query.date);
+  const { date, start_date, end_date } = query;
+  optionActive.value = date || 'today';
 
-    if (filterOption) {
-      dateText.value = `${filterOption.label} (${filterOption.value})`;
-    }
+  const filterOption = filterDateOptions.value
+    .flat()
+    .find((option) => option.active === optionActive.value);
 
-    dateFilter.value = query.date;
+  if (date === 'custom') {
+    dateText.value = `Tuỳ chọn (${start_date} - ${end_date})`;
+  } else if (filterOption) {
+    dateText.value = `${filterOption.label} (${filterOption.value})`;
   } else {
     handleChangeDate({
       label: 'Hôm nay',
@@ -212,6 +260,17 @@ onMounted(() => {
       active: 'today'
     });
   }
+
+  const data =
+    date === 'custom'
+      ? {
+          active: 'custom',
+          label: 'Tuỳ chọn',
+          value: `${start_date} - ${end_date}`
+        }
+      : filterOption;
+
+  emits('onChangeDate', { data, allDay: getAllDates(data.value) });
 });
 </script>
 <style scoped>
