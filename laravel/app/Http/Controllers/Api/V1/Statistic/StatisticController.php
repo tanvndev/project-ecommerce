@@ -20,6 +20,12 @@ class StatisticController extends Controller
     /**
      * Display a listing of the Statistics.
      */
+    public function reportOverview(): JsonResponse
+    {
+        $paginator = $this->statisticService->reportOverview();
+
+        return successResponse('', $paginator, true);
+    }
     public function revenueByDate(): JsonResponse
     {
         $paginator = $this->statisticService->revenueByDate();
@@ -35,7 +41,7 @@ class StatisticController extends Controller
     public function popularProducts(): JsonResponse
     {
         $paginator = $this->statisticService->popularProducts();
-        
+
         return successResponse('', $paginator, true);
     }
     public function loyalCustomers(): JsonResponse
