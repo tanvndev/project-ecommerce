@@ -8,11 +8,12 @@ use App\Http\Controllers\Api\V1\Chat\ChatController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\Post\PostController;
 use App\Http\Controllers\Api\V1\Post\PostCatalogueController;
-use App\Http\Controllers\Api\V1\Slider\SliderController;
+
 use App\Http\Controllers\Api\V1\User\UserController;
 use App\Http\Controllers\Api\V1\Brand\BrandController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
 use App\Http\Controllers\Api\V1\NotificationController;
+use App\Http\Controllers\Api\V1\Slider\SliderController;
 use App\Http\Controllers\Api\V1\Upload\UploadController;
 use App\Http\Controllers\Api\V1\Widget\WidgetController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
@@ -245,4 +246,5 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         ->group(function () {
             Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
         });
+
 });
