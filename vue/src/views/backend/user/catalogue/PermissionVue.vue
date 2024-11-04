@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 h-screen">
+      <div class="mx-10 mb-5 min-h-screen">
         <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
         <a-card class="mt-3">
           <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
@@ -62,9 +62,9 @@
 </template>
 
 <script setup>
-import { onMounted, reactive } from 'vue';
 import { BreadcrumbComponent, MasterLayout } from '@/components/backend';
 import { useCRUD } from '@/composables';
+import { onMounted, reactive } from 'vue';
 import { useStore } from 'vuex';
 
 const store = useStore();

@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 h-screen">
+      <div class="mx-10 mb-5 min-h-screen">
         <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
         <form @submit.prevent="onSubmit">
           <a-row :gutter="16">
@@ -52,20 +52,20 @@
 
 <script setup>
 import {
-  MasterLayout,
-  BreadcrumbComponent,
   AleartError,
+  BreadcrumbComponent,
   InputComponent,
   InputFinderComponent,
+  MasterLayout,
   SEOComponent
 } from '@/components/backend';
-import { computed, onMounted, reactive } from 'vue';
-import { useForm } from 'vee-validate';
-import { formatMessages } from '@/utils/format';
-import * as yup from 'yup';
-import router from '@/router';
 import { useCRUD } from '@/composables';
+import router from '@/router';
+import { formatMessages } from '@/utils/format';
 import { message } from 'ant-design-vue';
+import { useForm } from 'vee-validate';
+import { computed, onMounted, reactive } from 'vue';
+import * as yup from 'yup';
 
 // VARIABLES
 

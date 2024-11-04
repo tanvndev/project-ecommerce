@@ -28,7 +28,7 @@ class ClientProductResource extends JsonResource
             'key'                       => $this->id,
             'name'                      => $this->name,
             'brand_id'                  => $this->brand_id,
-            'brand_name'                => $this->brand->name,
+            'brand_name'                => $this->brand->name ?? '',
             'description'               => $this->description,
             'excerpt'                   => $this->excerpt,
             'upsells'                   => ClientProductVariantResource::collection($productVariants),

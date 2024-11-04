@@ -12,7 +12,9 @@ import {
   orderRoutes,
   chatRoutes,
   postRoutes,
-  flashSaleRoutes
+  flashSaleRoutes,
+  evaluateRoutes,
+  reportRoutes
 } from './backend';
 
 import { isLoggedIn } from '@/middlewares/authenticate';
@@ -51,7 +53,9 @@ const routes = [
   ...orderRoutes,
   ...postRoutes,
   ...chatRoutes,
-  ...flashSaleRoutes
+  ...flashSaleRoutes,
+  ...evaluateRoutes,
+  ...reportRoutes
 ];
 
 const router = createRouter({

@@ -18,7 +18,7 @@ interface BaseRepositoryInterface
      * @param  array|string  $column
      * @return mixed
      */
-    public function findById($modelId, $column = ['*'], array $relation = []);
+    public function findById($modelId, $column = ['*'], array $relation = [], bool $lockForUpdate = false);
 
     /**
      * Find records by specified conditions.

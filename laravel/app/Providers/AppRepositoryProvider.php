@@ -60,6 +60,8 @@ class AppRepositoryProvider extends ServiceProvider
         'App\Repositories\Interfaces\Order\OrderItemRepositoryInterface' => 'App\Repositories\Order\OrderItemRepository',
         // Post
         'App\Repositories\Interfaces\Post\PostRepositoryInterface' => 'App\Repositories\Post\PostRepository',
+        // PostCatalogue
+        'App\Repositories\Interfaces\Post\PostCatalogueRepositoryInterface' => 'App\Repositories\Post\PostCatalogueRepository',
         // UserAddress
         'App\Repositories\Interfaces\User\UserAddressRepositoryInterface' => 'App\Repositories\User\UserAddressRepository',
         // PRODUCT REVIEW
@@ -70,6 +72,8 @@ class AppRepositoryProvider extends ServiceProvider
         'App\Repositories\Interfaces\Chat\ChatRepositoryInterface' => 'App\Repositories\Chat\ChatRepository',
         // FLASH SALE
         'App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface' => 'App\Repositories\FlashSale\FlashSaleRepository',
+        // Search History
+        'App\Repositories\Interfaces\Product\SearchHistoryRepositoryInterface' => 'App\Repositories\Product\SearchHistoryRepository',
 
     ];
 
@@ -83,7 +87,5 @@ class AppRepositoryProvider extends ServiceProvider
     /**
      * Bootstrap services.
      */
-    public function boot(): void
-    {
-    }
+    public function boot(): void {}
 }

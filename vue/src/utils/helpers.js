@@ -237,20 +237,26 @@ const getErrorMsg = (error) => {
     return error?.response?.data?.messages || 'Something went wrong!';
   }
   return error?.message || 'Something went wrong!';
-}
+};
+
+const numberWithCommas = (x) => {
+  x = x.toString().replace(/[^0-9]/g, '');
+  return x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, '.');
+};
 
 export {
-  debounce,
-  resizeImage,
-  getBase64,
-  getFileNameFromUrl,
-  getFileFromFileList,
-  getImageToAnt,
-  isJSONString,
   cleanedData,
-  generateSlug,
-  handleDateChangeToAnt,
+  debounce,
   generateRandomString,
-  timeAgo,
-  getErrorMsg
+  generateSlug,
+  getBase64,
+  getErrorMsg,
+  getFileFromFileList,
+  getFileNameFromUrl,
+  getImageToAnt,
+  handleDateChangeToAnt,
+  isJSONString,
+  numberWithCommas,
+  resizeImage,
+  timeAgo
 };

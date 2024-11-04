@@ -1,8 +1,15 @@
 <script setup>
-import { useRouter, useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();
 const route = useRoute();
+const removeSave = () => {
+  const routeHide = ['evaluate.index'];
+  if (routeHide.includes(route.name)) {
+    return false;
+  }
+  return true;
+};
 
 const emits = defineEmits(['onSave']);
 defineProps({
@@ -48,7 +55,12 @@ defineProps({
           Thêm mới
         </a-button>
 
-        <a-button size="large" type="primary" @click="() => emits('onSave')" v-else>
+        <a-button
+          size="large"
+          type="primary"
+          @click="() => emits('onSave')"
+          v-if="!routeCreate && removeSave()"
+        >
           <i class="fas fa-save mr-2 text-[14px]"></i>
           Lưu thông tin
         </a-button>

@@ -49,7 +49,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
         $columns = [
             DB::raw('COUNT(id) as total_orders'), // Số lượng đơn hàng
-            DB::raw('SUM(total_price) as total_price'), // Tổng tiền hàng 
+            DB::raw('SUM(total_price) as total_price'), // Tổng tiền hàng
             DB::raw('SUM(discount) as total_discount'), // Tổng tiền giảm giá
             DB::raw('CAST(0 AS DECIMAL(15,2)) as money_returned'), // Tổng tiền hàng trả lại
             DB::raw('CAST(0 AS DECIMAL(15,2)) as net_revenue'), // Tổng doanh thu thuần

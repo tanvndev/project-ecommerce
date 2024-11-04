@@ -8,6 +8,7 @@
             <div class="col-span-9 space-y-3">
               <!-- Name Field -->
               <a-card title="Thông tin chung">
+                <AleartError :errors="state.error" />
                 <InputComponent
                   label="Tên Flash Sale"
                   :required="true"
@@ -17,6 +18,8 @@
               </a-card>
 
               <a-card title="Sản phẩm">
+                <AleartError :errors="state.error" />
+
                 <!-- Products Field -->
                 <div class="relative">
                   <input
@@ -42,8 +45,29 @@
                       class="cursor-pointer border-b border-gray-200 px-4 py-3 hover:bg-gray-100"
                       @mousedown.prevent="selectProduct(product)"
                     >
-                      <img :src="product.image" alt="" class="mr-2 inline-block h-8 w-auto" />
-                      {{ product.name }}
+                      <div class="flex items-center justify-between space-x-2">
+                        <div class="flex items-center">
+                          <img :src="product.image" alt="" class="mr-2 inline-block h-8 w-auto" />
+                          <div class="inline-block">
+                            <span> {{ product.name }}</span>
+                            <span class="block text-xs text-gray-500">
+                              Tồn kho: {{ product.stock }}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div class="flex-end flex">
+                          <div class="font-bold">
+                            <span class="text-xs text-gray-500"> Giá nhập: </span>
+                            <span>{{ formatCurrency(product.cost_price) }}</span>
+                          </div>
+                          <div class="mx-2">--</div>
+                          <div class="font-bold">
+                            <span class="text-xs text-gray-500"> Giá cuối: </span>
+                            <span>{{ formatCurrency(product.sale_price || product.price) }}</span>
+                          </div>
+                        </div>
+                      </div>
                     </li>
                   </ul>
                 </div>
@@ -56,12 +80,24 @@
                     class="flex items-center space-x-2 rounded-lg bg-slate-50 px-4 py-3 transition-all duration-100 hover:bg-slate-100"
                   >
                     <img :src="product.image" alt="" class="mr-2 h-[50px] w-[50px]" />
-                    <span class="flex-1 text-blue-700">{{ product.name }}</span>
+                    <div class="flex flex-1 flex-col text-blue-700">
+                      <span>{{ product.name }}</span>
+                      <span class="text-xs text-gray-500"> Tồn kho: {{ product.stock }} </span>
+                    </div>
+                    <div class="flex-2 font-bold">
+                      <span class="text-xs text-gray-500"> Giá nhập: </span>
+                      <span>{{ formatCurrency(product.cost_price) }}</span>
+                    </div>
+                    <div>--</div>
+                    <div class="flex-1 font-bold">
+                      <span class="text-xs text-gray-500"> Giá cuối: </span>
+                      <span>{{ formatCurrency(product.orginal_price) }}</span>
+                    </div>
 
                     <!-- Giá sản phẩm -->
                     <input
                       type="number"
-                      placeholder="Giá"
+                      placeholder="Giá khuyến mãi"
                       v-model="product.price"
                       @blur="handleBlur(`products.${index}.price`)"
                       @input="validateProductField('price', index)"
@@ -81,7 +117,7 @@
                       v-model="product.quantity"
                       @blur="handleBlur(`products.${index}.quantity`)"
                       @input="validateProductField('quantity', index)"
-                      class="w-30 ml-2 rounded-[4px] border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                      class="ml-2 w-24 rounded-[4px] border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
                     />
                     <span
                       v-if="form.errors.products && form.errors.products[index]?.quantity"
@@ -138,7 +174,12 @@
 
               <!-- Start Date Section -->
               <a-card title="Ngày bắt đầu">
-                <InputDateComponent name="start_date" :required="true" placeholder="Ngày bắt đầu" />
+                <InputDateComponent
+                  :show-time="true"
+                  name="start_date"
+                  :required="true"
+                  placeholder="Ngày bắt đầu"
+                />
               </a-card>
 
               <!-- End Date Section -->
@@ -146,6 +187,7 @@
                 <InputDateComponent
                   name="end_date"
                   :required="true"
+                  :show-time="true"
                   placeholder="Chọn ngày kết thúc"
                 />
               </a-card>
@@ -159,26 +201,32 @@
 
 <script setup>
 import {
-  MasterLayout,
+  AleartError,
   InputComponent,
-  SelectComponent,
-  InputDateComponent
+  InputDateComponent,
+  MasterLayout,
+  SelectComponent
 } from '@/components/backend';
-import { ref, onMounted, computed, reactive, watch } from 'vue';
 import { useCRUD } from '@/composables';
-import { useForm } from 'vee-validate';
-import { validationSchema } from './validationSchema';
-import { PUBLISH } from '@/static/constants';
 import router from '@/router';
-import { message } from 'ant-design-vue';
-import { formatMessages } from '@/utils/format';
+import { PUBLISH } from '@/static/constants';
+import { formatCurrency, formatMessages } from '@/utils/format';
 import { debounce } from '@/utils/helpers';
+import { message } from 'ant-design-vue';
+import dayjs from 'dayjs';
+import { useForm } from 'vee-validate';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { validationSchema } from './validationSchema';
 
 const products = ref([]);
 const isDropdownVisible = ref(false);
 const searchTerm = ref('');
 const selectedProducts = ref([]);
 const productInput = ref(null);
+const idOlds = ref('');
+const variantOlds = ref([]);
+
+const id = computed(() => router.currentRoute.value.params.id || null);
 
 const state = reactive({
   error: {}
@@ -205,7 +253,7 @@ const handleBlur = (field) => {
   form.validateField(field);
 };
 
-const { getAll, create, messages } = useCRUD();
+const { getAll, create, getOne, update, messages, data } = useCRUD();
 
 // Fetch products from the API
 const fetchProducts = async () => {
@@ -215,8 +263,26 @@ const fetchProducts = async () => {
       pageSize: 20,
       search: searchTerm.value
     };
+
+    if (!searchTerm.value && idOlds.value) {
+      payload.ids = idOlds.value;
+    }
     const response = await getAll('products/variants', payload);
     products.value = response.data;
+
+    if (!searchTerm.value && idOlds.value) {
+      response.forEach((item) => {
+        if (idOlds.value.includes(item.id)) {
+          const variant = variantOlds.value.find((v) => v.id === item.id);
+          item.orginal_price = item.sale_price || item.price;
+          item.price = parseInt(variant.sale_price);
+          item.quantity = variant.max_quantity;
+
+          selectedProducts.value.push(item);
+        }
+      });
+      console.log(selectedProducts.value);
+    }
   } catch (error) {
     console.error('Không thể lấy sản phẩm:', error);
   }
@@ -224,8 +290,7 @@ const fetchProducts = async () => {
 
 const submitForm = async (exitAfterSave = false) => {
   const isValid = await form.validate();
-
-  if (!isValid) {
+  if (!isValid.valid) {
     return;
   }
 
@@ -237,7 +302,7 @@ const submitForm = async (exitAfterSave = false) => {
     salePrices[product.id] = product.price;
   });
 
-  const dataToSend = {
+  const payload = {
     name: form.values.name,
     start_date: form.values.start_date,
     publish: form.values.publish,
@@ -249,7 +314,10 @@ const submitForm = async (exitAfterSave = false) => {
   state.error = {};
 
   try {
-    const response = await create('flash-sales', dataToSend);
+    const response =
+      id.value && id.value > 0
+        ? await update('flash-sales', id.value, payload)
+        : await create('flash-sales', payload);
     if (exitAfterSave) {
       if (!response) {
         return (state.error = formatMessages(messages.value));
@@ -264,8 +332,23 @@ const submitForm = async (exitAfterSave = false) => {
   }
 };
 
+const fetchOne = async () => {
+  await getOne('flash-sales', id.value);
+  form.setValues({
+    name: data.value.name,
+    publish: data.value.publish,
+    start_date: dayjs(data.value.origin_start_date),
+    end_date: dayjs(data.value.origin_end_date)
+  });
+  variantOlds.value = data.value.product_variants;
+  idOlds.value = data.value.product_variants.map((item) => item.id).join(',');
+};
+
 const selectProduct = (product) => {
-  const newProduct = JSON.parse(JSON.stringify({ ...product, price: '', quantity: '' }));
+  const orginalPrice = product.sale_price || product.price;
+  const newProduct = JSON.parse(
+    JSON.stringify({ ...product, price: '', quantity: '', orginal_price: orginalPrice })
+  );
   selectedProducts.value.push(newProduct);
   form.setFieldValue('products', [...form.values.products, newProduct]);
   searchTerm.value = '';
@@ -291,6 +374,11 @@ watch(searchTerm, () => {
 
 // Khi component được mount
 onMounted(() => {
+  if (id.value && id.value > 0) {
+    state.pageTitle = 'Cập nhập nhóm sản phẩm.';
+    fetchOne();
+  }
+
   debounceFechProducts();
 });
 </script>

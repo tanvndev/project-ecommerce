@@ -35,7 +35,7 @@ const columns = [
 
 const innerColumns = [
   {
-    title: 'Tên biến thể',
+    title: 'Tên sản phẩm',
     dataIndex: 'name',
     key: 'name'
   },
@@ -71,4 +71,4 @@ const innerColumns = [
   }
 ];
 
-export { innerColumns, columns };
+export { columns, innerColumns };

@@ -2,8 +2,23 @@ const sidebar = [
   {
     id: 'dashboard_sidebar',
     icon: 'fas fa-home-lg-alt',
-    name: 'Dashboard',
+    name: 'Tổng quan',
     route: 'dashboard',
+    subMenu: []
+  },
+  {
+    id: 'report_sidebar',
+    icon: 'fas fa-chart-bar',
+    name: 'Báo cáo',
+    route: 'report.index',
+    subMenu: []
+  },
+
+  {
+    id: 'live_chat_sidebar',
+    icon: 'fas fa-comments',
+    name: 'Tin nhắn',
+    route: 'chat.index',
     subMenu: []
   },
 
@@ -64,16 +79,14 @@ const sidebar = [
       {
         name: 'Nhóm sản phẩm',
         route: 'product.catalogue.index'
+      },
+      {
+        name: 'Đánh giá sản phẩm',
+        route: 'evaluate.index'
       }
     ]
   },
-  {
-    id: 'live_chat_sidebar',
-    icon: 'fas fa-comments',
-    name: 'Tin nhắn',
-    route: 'chat.index',
-    subMenu: []
-  },
+
   {
     id: 'marketing_sidebar',
     icon: 'fas fa-bullhorn',
