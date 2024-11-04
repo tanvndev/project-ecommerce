@@ -229,18 +229,22 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
     });
 
     // Statistics
-
     Route::controller(StatisticController::class)
         ->prefix('statistic')
         ->name('statistic.')
         ->group(function () {
+            // Thống kê tổng quan
             Route::get('report-overview', 'reportOverview')->name('reportOverview');
+            // Thống kê doanh thu theo ngày
             Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
+            // Thống kê sản phẩm phổ biến được thêm vào giỏ hàng
             Route::get('popular-products', 'popularProducts')->name('popularProducts');
-            Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
+            // Thống kê khách hàng trung thành
             Route::get('loyal-customers', 'loyalCustomers')->name('loyalCustomers');
+            
+            // Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
         });
 
 
-    
+
 });
