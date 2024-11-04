@@ -194,7 +194,6 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
     public function getReplies(string $id)
     {
         return $this->productReviewRepository->findById($id, ['*'], ['replies', 'user']);
-
     }
 
     /**

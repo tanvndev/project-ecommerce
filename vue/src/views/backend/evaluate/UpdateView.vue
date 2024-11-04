@@ -44,7 +44,7 @@
                 <a-col :span="24" class="mt-2">
                   <a-space>
                     <img
-                      v-for="(image, index) in review.images"
+                      v-for="(image, index) in JSON.parse(review.images)"
                       :key="index"
                       :src="image"
                       alt="review image"

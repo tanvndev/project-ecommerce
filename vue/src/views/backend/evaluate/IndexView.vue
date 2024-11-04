@@ -49,7 +49,7 @@
             <template v-if="column.dataIndex === 'image'">
               <div v-if="record.images && record.images.length" class="flex gap-2">
                 <img
-                  v-for="(img, index) in record.images"
+                  v-for="(img, index) in JSON.parse(record.images)"
                   :key="index"
                   :src="resizeImage(img, 100)"
                   class="w-10 object-contain"
