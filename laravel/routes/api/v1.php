@@ -243,6 +243,7 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         ->prefix('statistic')
         ->name('statistic.')
         ->group(function () {
+            Route::get('report-overview', 'reportOverview')->name('reportOverview');
             Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
             Route::get('product', [StatisticController::class, 'getProductReport']);
             Route::get('popular-products', 'popularProducts')->name('popularProducts');
