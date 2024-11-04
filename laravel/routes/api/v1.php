@@ -7,8 +7,6 @@ use App\Http\Controllers\Api\V1\Cart\CartController;
 use App\Http\Controllers\Api\V1\Chat\ChatController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\Post\PostController;
-use App\Http\Controllers\Api\V1\Post\PostCatalogueController;
-
 use App\Http\Controllers\Api\V1\User\UserController;
 use App\Http\Controllers\Api\V1\Brand\BrandController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
@@ -31,6 +29,7 @@ use App\Http\Controllers\Api\V1\Attribute\AttributeValueController;
 use App\Http\Controllers\Api\V1\Product\ProductCatalogueController;
 use App\Http\Controllers\Api\V1\SystemConfig\SystemConfigController;
 use App\Http\Controllers\Api\V1\PaymentMethod\PaymentMethodController;
+use App\Http\Controllers\Api\V1\Post\PostCatalogueController;
 use App\Http\Controllers\Api\V1\ShippingMethod\ShippingMethodController;
 use App\Http\Controllers\Api\V1\Statistic\StatisticController;
 
@@ -139,7 +138,7 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         Route::prefix('/')->name('products.')->group(function () {
             Route::apiResource('products/catalogues', ProductCatalogueController::class);
         });
-        Route::get('products/report', [ProductController::class, 'getProductReport']);
+
 
         Route::get('products/variants', [ProductController::class, 'getProductVariants']);
         Route::put('products/variants/update', [ProductController::class, 'updateVariant']);
@@ -211,11 +210,9 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
 
         // PRODUCT REVIEW ROUTE
         Route::controller(ProductReviewController::class)->name('product-reviews.')->group(function () {
-            Route::get('product-reviews', 'getAllProductReviews')->name('getAllProductReviews');
             Route::get('product-reviews/{productId}', 'getReviewByProductId')->name('show');
-            Route::get('product-reviews/replies/{id}', 'adminGetReplies')->name('replies');
             Route::post('product-reviews', 'store')->name('store');
-            Route::post('product-reviews/replies/create', 'adminReply')->name('reply');
+            Route::post('product-reviews/{parentId}/replies', 'adminReply')->name('reply');
             Route::put('product-reviews/replies/{replyId}', 'adminUpdateReply')->name('updateReply');
         });
 
@@ -245,11 +242,10 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         ->name('statistic.')
         ->group(function () {
             Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
+            Route::get('product', [StatisticController::class, 'getProductReport']);
+        });
             Route::get('popular-products', 'popularProducts')->name('popularProducts');
             Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
             Route::get('loyal-customers', 'loyalCustomers')->name('loyalCustomers');
         });
-
-
-    
 });

@@ -122,12 +122,7 @@ class ProductController extends Controller
         return handleResponse($response);
     }
 
-    public function getProductReport()
-    {
-        $response = $this->productService->getProductReport();
 
-        return successResponse('', $response, true);
-    }
 
     // CLIENT API //
 
@@ -153,6 +148,7 @@ class ProductController extends Controller
 
     public function filterProducts(Request $request)
     {
+        // dd($request->toArray());
         $response = $this->productService->filterProducts($request->toArray());
 
         return successResponse('', $response, true);

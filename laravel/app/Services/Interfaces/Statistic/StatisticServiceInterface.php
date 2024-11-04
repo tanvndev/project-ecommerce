@@ -10,4 +10,5 @@ interface StatisticServiceInterface
     public function loyalCustomers();
 
 
+    public function getProductReport();
 }
