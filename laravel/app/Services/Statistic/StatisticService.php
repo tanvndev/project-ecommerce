@@ -4,12 +4,15 @@
 
 namespace App\Services\Statistic;
 
+
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\WishList;
+use App\Repositories\Interfaces\Cart\CartItemRepositoryInterface;
 use App\Repositories\Interfaces\Order\OrderItemRepositoryInterface;
 use App\Repositories\Interfaces\Order\OrderRepositoryInterface;
+use App\Repositories\Interfaces\User\UserRepositoryInterface;
 use App\Services\BaseService;
 use App\Services\Interfaces\Statistic\StatisticServiceInterface;
 use Carbon\Carbon;
@@ -21,15 +24,23 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
     protected $orderItemRepository;
 
+    protected $cartItemRepository;
+    protected $userRepository;
+
+
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         OrderItemRepositoryInterface $orderItemRepository,
+        CartItemRepositoryInterface $cartItemRepository,
+        UserRepositoryInterface $userRepository,
     ) {
         $this->orderRepository = $orderRepository;
         $this->orderItemRepository = $orderItemRepository;
+        $this->cartItemRepository = $cartItemRepository;
+        $this->userRepository = $userRepository;
     }
 
-    public function paginate()
+    public function revenueByDate()
     {
         $request = request();
 
@@ -145,6 +156,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
         return $data;
     }
+
 
     private function preparePayload(): array
     {
@@ -474,4 +486,96 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             ->limit(10);
         return $topWishlistProducts;
     }
+
+    public function seasonalSale()
+    {
+        // $request = request();
+
+
+    }
+
+    public function popularProducts()
+    {
+        $request = request();
+
+        $columns = [
+            'cart_items.product_variant_id',
+            'product_variants.name',
+            DB::raw('COUNT(cart_items.product_variant_id) AS frequency_of_appearance'),
+        ];
+
+        $conditions = [
+            'search' => addslashes($request->search),
+            'publish' => $request->publish,
+            'archive' => $request->boolean('archive'),
+        ];
+
+        $orderBy = ['frequency_of_appearance' => 'DESC'];
+
+        $groupBy = ['cart_items.product_variant_id'];
+
+        $join = ['product_variants' => ['product_variants.id', 'cart_items.product_variant_id']];
+
+        $popularProducts = $this->cartItemRepository->pagination(
+            $columns,
+            $conditions,
+            20,
+            $orderBy,
+            $join,
+            [],
+            $groupBy,
+            [],
+            []
+        );
+
+        return $popularProducts;
+    }
+
+    public function loyalCustomers()
+    {
+        $request = request();
+
+        // Khách hàng có 5 đơn hàng trở lên là khách hàng trung thành
+
+        $columns = [
+            DB::raw('users.id AS customer_id'),
+            DB::raw('users.fullname AS customer_name'),
+            DB::raw('COUNT(orders.id) AS total_orders'),
+            DB::raw('SUM(orders.final_price) AS total_spent'),
+            DB::raw('AVG(orders.final_price) AS average_spent')
+        ];
+
+        $conditions = [
+            'search' => addslashes($request->search),
+            'publish' => $request->publish,
+            'archive' => $request->boolean('archive'),
+        ];
+
+        $orderBy = ['total_spent' => 'DESC'];
+
+        $join = ['orders' => ['orders.user_id', 'users.id']];
+
+        $rawQuery = [
+            'whereRaw' => [
+                ['orders.order_status = ? GROUP BY users.id HAVING COUNT(orders.id) > ?', ['completed', 5]],
+            ],
+        ];
+
+        $loyalCustomers = $this->userRepository->pagination(
+            $columns,
+            $conditions,
+            null,
+            $orderBy,
+            $join,
+            [],
+            [],
+            [],
+            $rawQuery
+        );
+
+        return $loyalCustomers;
+    }
+
+
+
 }

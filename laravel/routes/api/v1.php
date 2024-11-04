@@ -244,4 +244,8 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
             Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
             Route::get('product', [StatisticController::class, 'getProductReport']);
         });
+            Route::get('popular-products', 'popularProducts')->name('popularProducts');
+            Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
+            Route::get('loyal-customers', 'loyalCustomers')->name('loyalCustomers');
+        });
 });

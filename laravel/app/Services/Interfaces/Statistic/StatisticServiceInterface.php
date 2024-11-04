@@ -4,7 +4,11 @@ namespace App\Services\Interfaces\Statistic;
 
 interface StatisticServiceInterface
 {
-    public function paginate();
+    public function revenueByDate();
+    public function seasonalSale();
+    public function popularProducts();
+    public function loyalCustomers();
+
 
     public function getProductReport();
 }

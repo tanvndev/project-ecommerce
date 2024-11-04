@@ -22,7 +22,25 @@ class StatisticController extends Controller
      */
     public function revenueByDate(): JsonResponse
     {
-        $paginator = $this->statisticService->paginate();
+        $paginator = $this->statisticService->revenueByDate();
+
+        return successResponse('', $paginator, true);
+    }
+    public function seasonalSale(): JsonResponse
+    {
+        $paginator = $this->statisticService->seasonalSale();
+
+        return successResponse('', $paginator, true);
+    }
+    public function popularProducts(): JsonResponse
+    {
+        $paginator = $this->statisticService->popularProducts();
+        
+        return successResponse('', $paginator, true);
+    }
+    public function loyalCustomers(): JsonResponse
+    {
+        $paginator = $this->statisticService->loyalCustomers();
 
         return successResponse('', $paginator, true);
     }
