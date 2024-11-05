@@ -183,6 +183,11 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
         }, __('messages.create.error'));
     }
 
+    public function getReplies(string $id)
+    {
+        return $this->productReviewRepository->findById($id, ['*'], ['replies', 'user']);
+    }
+
     /**
      * Update a reply product review as admin.
      *
