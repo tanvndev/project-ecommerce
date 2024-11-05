@@ -105,7 +105,7 @@
         </div>
 
         <div>
-          <Line id="my-chart-id" :options="chartOptions" :data="chartData" style="height: 400px" />
+          <canvas id="my-chart-id-1" style="height: 400px"></canvas>
         </div>
       </a-card>
     </a-col>
@@ -124,7 +124,7 @@
           <h3 class="mb-0 text-xl font-bold">750,000₫</h3>
         </div>
         <div>
-          <Line :options="chartOptions" :data="chartData" style="height: 400px" />
+          <canvas id="my-chart-id-2" style="height: 400px"></canvas>
         </div>
       </a-card>
     </a-col>
@@ -143,7 +143,7 @@
           <h3 class="mb-0 text-xl font-bold">750,000₫</h3>
         </div>
         <div>
-          <Line :options="chartOptions" :data="chartData" style="height: 400px" />
+          <canvas id="my-chart-id-3" style="height: 400px"></canvas>
         </div>
       </a-card>
     </a-col>
@@ -162,7 +162,7 @@
           <h3 class="mb-0 text-xl font-bold">750,000₫</h3>
         </div>
         <div>
-          <Line id="my-chart-id" :options="chartOptions" :data="chartData" style="height: 400px" />
+          <canvas id="my-chart-id-4" style="height: 400px"></canvas>
         </div>
       </a-card>
     </a-col>
@@ -213,5 +213,86 @@ const getOverviewData = async () => {
 };
 onMounted(async () => {
   getOverviewData();
+
+  const ctx = document.getElementById('my-chart-id-1').getContext('2d');
+  const ctx2 = document.getElementById('my-chart-id-2').getContext('2d');
+  const ctx3 = document.getElementById('my-chart-id-3').getContext('2d');
+  const ctx4 = document.getElementById('my-chart-id-4').getContext('2d');
+
+  // eslint-disable-next-line no-undef
+  const myChart = new Chart(ctx, {
+    type: 'line',
+    data: chartData.value,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        title: {
+          display: true,
+          text: 'Tổng số đơn hàng'
+        }
+      }
+    }
+  });
+
+  // eslint-disable-next-line no-undef
+  const myChart2 = new Chart(ctx2, {
+    type: 'line',
+    data: chartData.value,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        title: {
+          display: true,
+          text: 'Tổng số đơn hàng'
+        }
+      }
+    }
+  });
+
+  // eslint-disable-next-line no-undef
+  const myChart3 = new Chart(ctx3, {
+    type: 'line',
+    data: chartData.value,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        title: {
+          display: true,
+          text: 'Tổng số đơn hàng'
+        }
+      }
+    }
+  });
+
+  // eslint-disable-next-line no-undef
+  const myChart4 = new Chart(ctx4, {
+    type: 'line',
+    data: chartData.value,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        title: {
+          display: true,
+          text: 'Tổng số đơn hàng'
+        }
+      }
+    }
+  });
 });
 </script>
