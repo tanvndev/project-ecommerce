@@ -20,7 +20,6 @@ class ClientProductReviewResource extends JsonResource
             'product_id'   => $this->product_id,
             'fullname'     => $user->fullname,
             'image'        => $user->image,
-            'images'       => $this->images,
             'rating'       => $this->rating,
             'percent_rate' => starsToPercent($this->rating),
             'comment'      => $this->comment,

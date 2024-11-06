@@ -37,24 +37,12 @@ class ClientProductVariantResource extends JsonResource
             'stock'                   => $this->stock ?? 0,
             'attributes'              => AttributeValueResource::collection($this->attribute_values),
             'attribute_values'        => $this->attribute_values->pluck('name')->implode(' - ') ?? 'Default',
-            'reviews'                 => $this->getReview($this->product->reviews),
-        ];
-    }
-
-    private function getReview($reviews)
-    {
-        $avgRating = $reviews->avg('rating');
-
-        return [
-            'avg'         => $avgRating,
-            'avg_percent' => starsToPercent($avgRating),
-            'count'       => $reviews->count(),
         ];
     }
 
     private function handleDiscountValue()
     {
-        if (! $this->sale_price || ! $this->price) {
+        if ( ! $this->sale_price || ! $this->price) {
             return null;
         }
 

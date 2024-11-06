@@ -10,22 +10,6 @@ class ClientProductVariantCollection extends ResourceCollection
 
     public function toArray(Request $request): array
     {
-        if (
-            $this->resource instanceof \Illuminate\Pagination\LengthAwarePaginator ||
-            $this->resource instanceof \Illuminate\Pagination\Paginator
-        ) {
-
-            return [
-                'data' => $this->collection->map(function ($product) {
-                    return $product;
-                }),
-                'total'        => $this->total(),
-                'per_page'     => $this->perPage(),
-                'current_page' => $this->currentPage(),
-                'last_page'    => $this->lastPage(),
-            ];
-        }
-
         return parent::toArray($request);
     }
 }
