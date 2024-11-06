@@ -44,7 +44,7 @@ use App\Http\Controllers\Api\V1\Statistic\StatisticController;
 |
 */
 
-Route::middleware(['log.request.response', 'api'])->group(function () {
+Route::middleware(['api'])->group(function () {
 
     // ROUTE TEST
     Route::post('test/index', [TestApiController::class, 'upload']);

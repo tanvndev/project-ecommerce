@@ -30,12 +30,6 @@
           <h3 class="mb-2 font-bold">Tổng doanh thu</h3>
 
           <div>
-            <!-- <Bar
-              :data="dataChart"
-              ref="barChartRef"
-              :options="chartOptions"
-              style="height: 400px"
-            /> -->
             <canvas id="bar-chart"></canvas>
           </div>
         </a-card>
