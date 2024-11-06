@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 min-h-screen pb-[100px]">
+      <div class="mx-10 mb-5 min-h-screen pb-[100px]">
         <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
         <form @submit.prevent="onSubmit">
           <a-row :gutter="16">
@@ -73,22 +73,22 @@
 
 <script setup>
 import {
-  MasterLayout,
-  BreadcrumbComponent,
   AleartError,
+  BreadcrumbComponent,
   InputComponent,
+  MasterLayout,
   SelectComponent
 } from '@/components/backend';
-import { computed, onMounted, reactive } from 'vue';
-import { useForm } from 'vee-validate';
+import { useCRUD } from '@/composables';
+import router from '@/router';
+import { WIDGET_TYPE } from '@/static/constants';
 import { formatMessages } from '@/utils/format';
+import { useForm } from 'vee-validate';
+import { computed, onMounted, reactive } from 'vue';
 import { useStore } from 'vuex';
 import * as yup from 'yup';
-import router from '@/router';
-import { useCRUD } from '@/composables';
-import { WIDGET_TYPE } from '@/static/constants';
-import SearchProductView from './partials/SearchProductView.vue';
 import AdvertisementView from './partials/AdvertisementView.vue';
+import SearchProductView from './partials/SearchProductView.vue';
 
 // VARIABLES
 

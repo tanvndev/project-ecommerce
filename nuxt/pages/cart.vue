@@ -1,10 +1,15 @@
 <script setup>
-import { onMounted, watch } from 'vue'
-import { formatCurrency } from '#imports'
-import QuantityComponent from '~/components/includes/QuantityComponent.vue'
-import { debounce, resizeImage, toast } from '#imports'
-import { useCartStore, useAuthStore } from '#imports'
+import {
+  debounce,
+  formatCurrency,
+  resizeImage,
+  toast,
+  useAuthStore,
+  useCartStore,
+} from '#imports'
 import Cookies from 'js-cookie'
+import { onMounted, watch } from 'vue'
+import QuantityComponent from '~/components/includes/QuantityComponent.vue'
 
 const { $axios } = useNuxtApp()
 const cartStore = useCartStore()
@@ -106,6 +111,8 @@ const handleRemove = async (variantId) => {
   const response = await $axios.delete(endpoint)
 
   setCartToStore(response.data)
+  cartStore.setCartCount(response.data?.items?.length || 0)
+  
   checkedItems.value = []
   handleSelectCart()
 }

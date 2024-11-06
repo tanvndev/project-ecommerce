@@ -1,16 +1,15 @@
 <script setup>
-import { resizeImage } from '#imports'
-import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Navigation, Autoplay } from 'swiper/modules'
-import 'swiper/css'
 import _ from 'lodash'
+import 'swiper/css'
+import { Autoplay, Navigation } from 'swiper/modules'
+import { Swiper, SwiperSlide } from 'swiper/vue'
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { STARS } from '~/static/rating'
 
 const modules = [Navigation, Autoplay]
 const { $axios } = useNuxtApp()
 const productCatalogueStore = useProductCatalogueStore()
-const loadingStore = useLoadingStore()
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
 const productCatalogues = computed(
@@ -24,12 +23,16 @@ const isLoading = ref(false)
 const products = ref([])
 const attributes = ref([])
 const priceRange = reactive({
-  min: '',
-  max: '',
+  min: null,
+  max: null,
 })
 const searchTerm = ref('')
-const selectedValues = ref([]) // Mảng để lưu trữ các giá trị đã chọn
+const selectedValues = ref([])
+const selectedStars = ref([])
 const router = useRouter()
+const totalPage = ref(10)
+const currentPage = ref(Number(queryParams.value.page) || 1)
+const sortBy = ref(queryParams.value.sort || 'asc')
 
 const filteredProducts = computed(() => {
   if (!searchTerm.value) products.value
@@ -38,6 +41,13 @@ const filteredProducts = computed(() => {
   )
 })
 
+const formatNumber = (type, event) => {
+  if (type == 'min') {
+    priceRange.min = numberWithCommas(event.target.value)
+  } else {
+    priceRange.max = numberWithCommas(event.target.value)
+  }
+}
 const onSwiper = (swiper) => {
   slider.value = swiper
 }
@@ -73,35 +83,69 @@ const toggleCollapse = (id) => {
   is_collapsed.value[id] = !is_collapsed.value[id]
 }
 
-const toggleValue = (valueId) => {
-  const index = selectedValues.value.indexOf(valueId)
-  if (index === -1) {
-    selectedValues.value.push(valueId) // Thêm giá trị vào mảng nếu chưa có
-  } else {
-    selectedValues.value.splice(index, 1) // Xóa giá trị khỏi mảng nếu đã có
-  }
-  console.log(selectedValues.value)
-}
+const handleFilterWithPrice = () => {
+  const query = { ...route.query }
 
-// Hàm để cập nhật query URL
-const updateQuery = () => {
-  const attributes = encodeURIComponent(selectedValues.value.join(',') || '')
-  const query = { ...route.query, attributes }
+  if (priceRange.min !== null) {
+    query.min_price = removeDots(priceRange.min)
+  }
+
+  if (priceRange.max !== null) {
+    query.max_price = removeDots(priceRange.max)
+  }
+
+  if (priceRange.min === null) delete query.min_price
+  if (priceRange.max === null) delete query.max_price
 
   router.push({ query })
 }
 
-// Theo dõi sự thay đổi của selectedValues và cập nhật query URL
-watch(selectedValues, updateQuery, { deep: true })
+const removeDots = (value) => value.replace(/\./g, '')
+
+const toggleAttributeValue = (valueId) => {
+  const index = selectedValues.value.indexOf(valueId)
+  if (index === -1) {
+    selectedValues.value.push(valueId)
+  } else {
+    selectedValues.value.splice(index, 1)
+  }
+  console.log(selectedValues.value)
+}
+const updateAttributeQuery = () => {
+  const values = encodeURIComponent(selectedValues.value.join(',') || '')
+  const query = { ...route.query, values }
+
+  router.push({ query })
+}
+
+const toggleRatingValue = (valueId) => {
+  const index = selectedStars.value.indexOf(valueId)
+  if (index === -1) {
+    selectedStars.value.push(valueId)
+  } else {
+    selectedStars.value.splice(index, 1)
+  }
+  console.log(selectedStars.value)
+}
+const updateRatingQuery = () => {
+  const stars = encodeURIComponent(selectedStars.value.join(',') || '')
+  const query = { ...route.query, stars }
+
+  router.push({ query })
+}
 
 const getProducts = async () => {
+  const query = { ...route.query, page: currentPage.value, sort: sortBy.value }
+  router.push({ query })
+
   try {
     isLoading.value = true
     const response = await $axios.get(`/products/filter`, {
-      params: queryParams.value,
+      params: { ...queryParams.value },
     })
     products.value = response?.data?.product_variants?.data
     attributes.value = response?.data?.attributes
+    totalPage.value = response?.data?.product_variants?.last_page
   } catch (error) {
     console.log(error)
   } finally {
@@ -111,8 +155,11 @@ const getProducts = async () => {
 
 const debounceGetProducts = debounce(getProducts, 400)
 
+watch(selectedValues, updateAttributeQuery, { deep: true })
+watch(selectedStars, updateRatingQuery, { deep: true })
 watch(
-  queryParams,
+  [queryParams, currentPage, sortBy],
+
   () => {
     debounceGetProducts()
   },
@@ -120,7 +167,19 @@ watch(
 )
 
 onMounted(() => {
-  getProducts()
+  const { stars, values } = queryParams.value
+
+  if (stars) {
+    const decodeStar = decodeURIComponent(stars)
+    const starArrs = decodeStar.split(',').map(Number)
+    selectedStars.value = starArrs
+  }
+  if (values) {
+    const decodeValues = decodeURIComponent(values)
+    const valuesArrs = decodeValues.split(',').map(Number)
+
+    selectedValues.value = valuesArrs
+  }
 })
 </script>
 <template>
@@ -211,8 +270,11 @@ onMounted(() => {
                     :key="item.id"
                     class="active"
                   >
-                    <input type="checkbox" class="d-none" :value="item.id" />
-                    <a :title="item.name" href="#">{{ item.name }}</a>
+                    <NuxtLink
+                      :title="item.name"
+                      :to="`/category?catalogues=${item.id}`"
+                      >{{ item.name }}</NuxtLink
+                    >
                   </li>
                 </ul>
               </div>
@@ -249,9 +311,51 @@ onMounted(() => {
                     <a
                       href="#"
                       class="label-text"
-                      @click.prevent="toggleValue(value.id)"
+                      @click.prevent="toggleAttributeValue(value.id)"
                       >{{ value.name }}</a
                     >
+                  </li>
+                </ul>
+              </div>
+              <!-- End of Collapsible Widget -->
+
+              <!-- Start of Collapsible Widget -->
+              <div class="widget widget-collapsible">
+                <h3
+                  class="widget-title"
+                  :class="is_collapsed[`rating`] ? 'collapsed' : ''"
+                  @click="toggleCollapse(`rating`)"
+                >
+                  <label>Đánh giá</label>
+                  <span class="toggle-btn"></span>
+                </h3>
+                <ul class="widget-body filter-items item-check mt-1">
+                  <li
+                    v-for="item in STARS"
+                    :key="item.star"
+                    :class="{ active: selectedStars.includes(item.star) }"
+                  >
+                    <input
+                      type="checkbox"
+                      class="d-none"
+                      :value="item.star"
+                      :checked="selectedStars.includes(item.star)"
+                    />
+                    <a
+                      href="#"
+                      class="label-text"
+                      @click.prevent="toggleRatingValue(item.star)"
+                    >
+                      <div class="ratings-full d-inline-block">
+                        <span
+                          class="ratings"
+                          :style="`width: ${item.percent}`"
+                        ></span>
+                        <span class="tooltiptext tooltip-top">{{
+                          item.star
+                        }}</span>
+                      </div>
+                    </a>
                   </li>
                 </ul>
               </div>
@@ -268,31 +372,30 @@ onMounted(() => {
                   <span class="toggle-btn"></span>
                 </h3>
                 <div class="widget-body">
-                  <ul class="filter-items search-ul">
-                    <li><a href="#">$0.00 - $100.00</a></li>
-                    <li><a href="#">$100.00 - $200.00</a></li>
-                    <li><a href="#">$200.00 - $300.00</a></li>
-                    <li><a href="#">$300.00 - $500.00</a></li>
-                    <li><a href="#">$500.00+</a></li>
-                  </ul>
-                  <form class="price-range">
+                  <div class="price-range">
                     <input
-                      type="number"
+                      type="text"
                       class="min_price text-center"
-                      v-model="priceRange.min"
+                      :value="priceRange.min"
+                      @input="formatNumber('min', $event)"
                       placeholder="Tối thiểu ₫"
                     />
                     <span class="delimiter">
                       <i class="fal fa-minus fs-13"></i>
                     </span>
                     <input
-                      type="number"
+                      type="text"
                       class="max_price text-center"
-                      v-model="priceRange.max"
+                      :value="priceRange.max"
+                      @input="formatNumber('max', $event)"
                       placeholder="Tối đa ₫"
                     />
-                  </form>
-                  <v-btn html-type="button" width="100%" color="#336699"
+                  </div>
+                  <v-btn
+                    html-type="button"
+                    @click="handleFilterWithPrice"
+                    width="100%"
+                    color="#336699"
                     >Xác nhận</v-btn
                   >
                 </div>
@@ -327,21 +430,31 @@ onMounted(() => {
                   ><i class="w-icon-category"></i><span>Lọc sản phẩm</span></a
                 >
               </div>
-              <div class="toolbox-item toolbox-sort select-box text-dark">
+              <div class="d-flex align-items-center">
                 <label>Sắp xếp theo </label>
-                <select name="orderby" class="form-control">
-                  <option value="default" selected>Default sorting</option>
-                  <option value="popularity">Sort by popularity</option>
-                  <option value="rating">Sort by average rating</option>
-                  <option value="date">Sort by latest</option>
-                  <option value="price-low">Sort by pric: low to high</option>
-                  <option value="price-high">Sort by price: high to low</option>
-                </select>
+                <v-select
+                  :items="[
+                    {
+                      title: 'Giá từ thấp đến cao',
+                      value: 'asc',
+                    },
+                    {
+                      title: 'Giá từ cao đến thấp',
+                      value: 'desc',
+                    },
+                  ]"
+                  v-model="sortBy"
+                  density="compact"
+                  variant="outlined"
+                  placeholder="Sắp xếp theo"
+                  hide-details="true"
+                  style="width: 200px"
+                ></v-select>
               </div>
             </div>
           </nav>
           <div
-            class="product-wrapper row cols-lg-4 cols-md-3 cols-sm-2 cols-2"
+            class="product-wrapper row cols-lg-4 cols-md-3 cols-sm-2 cols-2 border-b pb-5"
             v-if="!isLoading && filteredProducts?.length"
           >
             <!--  -->
@@ -394,10 +507,19 @@ onMounted(() => {
                   </h3>
                   <div class="ratings-container">
                     <div class="ratings-full">
-                      <span class="ratings" style="width: 80%"></span>
-                      <span class="tooltiptext tooltip-top">4</span>
+                      <span
+                        class="ratings"
+                        :style="`width: ${item?.reviews?.avg_percent}%`"
+                      ></span>
+                      <span class="tooltiptext tooltip-top">{{
+                        item?.reviews?.avg
+                      }}</span>
                     </div>
-                    <a href="#" class="rating-reviews">(5 đánh giá)</a>
+                    <NuxtLink
+                      :to="`product/${item.slug}-${item.product_id}`"
+                      class="rating-reviews"
+                      >({{ item?.reviews?.count }} đánh giá)</NuxtLink
+                    >
                   </div>
                   <div v-html="handleRenderPrice(item)"></div>
                 </div>
@@ -427,31 +549,15 @@ onMounted(() => {
             ></v-empty-state>
           </div>
 
-          <div class="toolbox toolbox-pagination justify-content-between">
-            <ul class="pagination">
-              <li class="prev disabled">
-                <a
-                  href="#"
-                  aria-label="Previous"
-                  tabindex="-1"
-                  aria-disabled="true"
-                >
-                  <i class="w-icon-long-arrow-left"></i>Quay lại
-                </a>
-              </li>
-              <li class="page-item active">
-                <a class="page-link" href="#">1</a>
-              </li>
-              <li class="page-item">
-                <a class="page-link" href="#">2</a>
-              </li>
-              <li class="next">
-                <a href="#" aria-label="Next">
-                  Tiếp theo<i class="w-icon-long-arrow-right"></i>
-                </a>
-              </li>
-            </ul>
-          </div>
+          <v-row justify="center">
+            <v-col cols="8" class="p-0">
+              <v-pagination
+                v-model="currentPage"
+                :length="totalPage"
+                class="my-2"
+              ></v-pagination>
+            </v-col>
+          </v-row>
         </div>
         <!-- End of Shop Main Content -->
       </div>

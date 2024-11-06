@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 min-h-screen pb-10">
+      <div class="mx-10 mb-5 min-h-screen pb-10">
         <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
         <form @submit.prevent="onSubmit">
           <a-row :gutter="16" v-if="order">
@@ -108,22 +108,22 @@
 
 <script setup>
 import {
-  MasterLayout,
+  AleartError,
   BreadcrumbComponent,
-  SelectComponent,
-  AleartError
+  MasterLayout,
+  SelectComponent
 } from '@/components/backend';
-import { computed, onMounted, reactive, ref } from 'vue';
-import { useForm } from 'vee-validate';
-import { formatMessages } from '@/utils/format';
-import * as yup from 'yup';
-import router from '@/router';
-import { ORDER_STATUS, PAYMENT_STATUS, DELYVERY_STATUS } from '@/static/order';
 import { useCRUD } from '@/composables';
+import router from '@/router';
+import { ORDER_STATUS, PAYMENT_STATUS } from '@/static/order';
+import { formatMessages } from '@/utils/format';
+import { message } from 'ant-design-vue';
+import { useForm } from 'vee-validate';
+import { computed, onMounted, reactive, ref } from 'vue';
+import * as yup from 'yup';
+import CutomerInfo from './partials/CutomerInfo.vue';
 import DeliveryStatus from './partials/DeliveryStatus.vue';
 import OrderDetail from './partials/OrderDetail.vue';
-import CutomerInfo from './partials/CutomerInfo.vue';
-import { message } from 'ant-design-vue';
 
 // VARIABLES
 const { getOne, update, messages, data } = useCRUD();

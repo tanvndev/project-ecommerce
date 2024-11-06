@@ -1,10 +1,10 @@
 <script setup>
 import BaseService from '@/services/BaseService';
-import { useRoute, useRouter } from 'vue-router';
-import { message } from 'ant-design-vue';
-import { ref, reactive } from 'vue';
-import { debounce } from '@/utils/helpers';
 import { PUBLISH as publishFilter } from '@/static/constants';
+import { debounce } from '@/utils/helpers';
+import { message } from 'ant-design-vue';
+import { reactive, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const emits = defineEmits(['onChangeToolbox', 'onFilter', 'onSearch']);
 const route = useRoute();
@@ -53,14 +53,6 @@ const handleArchive = async () => {
   message[type](response.messages);
 };
 
-const hideArchive = () => {
-  const routeHide = ['attribute.index', 'permission.index', 'order.index'];
-  if (routeHide.includes(route.name)) {
-    return false;
-  }
-  return true;
-};
-
 const handleChangePublish = async (value) => {
   const payload = {
     modelName: props.modelName,
@@ -94,7 +86,28 @@ const filterOptions = reactive({
   search: ''
 });
 
-const removeRouteHide = () => {
+const hideArchive = () => {
+  const routeHide = ['attribute.index', 'permission.index', 'order.index', 'evaluate.index'];
+  if (routeHide.includes(route.name)) {
+    return false;
+  }
+  return true;
+};
+
+const removeDelete = () => {
+  const routeHide = [
+    'permission.index',
+    'attribute.index',
+    'attribute.update',
+    'order.index',
+    'evaluate.index'
+  ];
+  if (routeHide.includes(route.name)) {
+    return false;
+  }
+  return true;
+};
+const removePublish = () => {
   const routeHide = ['permission.index', 'attribute.index', 'attribute.update', 'order.index'];
   if (routeHide.includes(route.name)) {
     return false;
@@ -141,7 +154,7 @@ const handleFilterChange = debounce(() => {
       </a-space>
       <a-space :size="7" class="flex">
         <div v-if="props.isShowToolbox">
-          <a-dropdown trigger="click" class="mr-2" v-if="removeRouteHide()">
+          <a-dropdown trigger="click" class="mr-2" v-if="removePublish()">
             <a-button size="large">
               <i class="far fa-tools mr-2 text-[14px]"></i>
               <span>Công cụ</span>
@@ -176,7 +189,7 @@ const handleFilterChange = debounce(() => {
             </template>
           </a-dropdown>
 
-          <a-dropdown trigger="click" class="" v-if="removeRouteHide()">
+          <a-dropdown trigger="click" class="" v-if="removeDelete()">
             <a-button size="large">
               <i class="fas fa-trash-alt mr-2 text-[14px]"></i>
               <span>Thùng rác</span>

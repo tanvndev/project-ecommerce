@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Log;
 if (! function_exists('getServiceInstance')) {
     function getServiceInstance($modelName)
     {
-        $folderName = str_replace(['Catalogue', 'Variant'], '', $modelName);
+        $folderName = str_replace(['Catalogue', 'Variant', 'Review'], '', $modelName);
 
         $serviceInterfaceNameSpace = 'App\Services\Interfaces\\' . ucfirst($folderName) . '\\' . ucfirst($modelName) . 'ServiceInterface';
         if (interface_exists($serviceInterfaceNameSpace)) {

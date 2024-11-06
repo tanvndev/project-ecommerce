@@ -1,17 +1,16 @@
 <script setup>
-import { onMounted, reactive, watch } from 'vue';
 import {
   BreadcrumbComponent,
+  EditOrderComponent,
   MasterLayout,
   StatusSwitchComponent,
-  ToolboxComponent,
-  EditOrderComponent
+  ToolboxComponent
 } from '@/components/backend';
 import { useCRUD, usePagination } from '@/composables';
+import { WIDGET_MODEL, WIDGET_TYPE } from '@/static/constants';
 import { debounce, resizeImage } from '@/utils/helpers';
-import { RouterLink } from 'vue-router';
-import { WIDGET_TYPE, WIDGET_MODEL } from '@/static/constants';
-import { useRoute } from 'vue-router';
+import { onMounted, reactive, watch } from 'vue';
+import { RouterLink, useRoute } from 'vue-router';
 
 // STATE
 const state = reactive({
@@ -125,7 +124,7 @@ onMounted(fetchData);
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 h-screen">
+      <div class="mx-10 mb-5 min-h-screen">
         <BreadcrumbComponent :titlePage="state.pageTitle" :routeCreate="state.routeCreate" />
 
         <!-- Toolbox -->

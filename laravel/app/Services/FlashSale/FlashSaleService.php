@@ -4,7 +4,6 @@ namespace App\Services\FlashSale;
 
 use App\Services\BaseService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
 use App\Services\Interfaces\FlashSale\FlashSaleServiceInterface;
 use App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
@@ -39,19 +38,15 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
         $pageSize = $request->pageSize;
 
 
-        $data = $pageSize && $request->page
-            ? $this->flashSaleRepository->pagination($select, $condition, $pageSize)
-            : $this->flashSaleRepository->findByWhere(['publish' => 1], $select, [], true);
+        $data = $this->flashSaleRepository->pagination($select, $condition, $pageSize, [], [], ['product_variants']);
 
         return $data;
     }
 
-    public function getAll() {}
 
     public function findById($id)
     {
-
-        $data = $this->flashSaleRepository->findByWhere(['id' => $id], ['*'], ['product_variants'], true);
+        $data = $this->flashSaleRepository->findById($id, ['*'], ['product_variants']);
 
         return $data;
     }
@@ -59,55 +54,54 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
     public function store(array $data)
     {
         return $this->executeInTransaction(function () use ($data) {
+            $payload = $this->preparePayload($data);
 
-            $startDate = $this->formatDateForMySQL($data['start_date']);
-            $endDate = $this->formatDateForMySQL($data['end_date']);
+            // TAI CUNG 1 THOI DIEM CHI TON TAI 1 FLASH SALE
+            if ($this->checkFlashSaleDateExists($payload)) {
+                return errorResponse(__('messages.flash_sale.error.time_exist'));
+            };
 
-            $flashSale = $this->flashSaleRepository->create(array_merge($data, [
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-            ]));
+            $flashSale = $this->flashSaleRepository->create($payload);
 
-            foreach ($data['max_quantities'] as $key => $quantity) {
-                $productVariant = $this->productVariantRepository->findByWhere(['id' => $key]);
+            foreach ($data['max_quantities'] as $productVariantId => $quantity) {
+                $productVariant = $this->productVariantRepository->findById($productVariantId, ['*'], [], true);
 
                 if (!$productVariant) {
                     return errorResponse(__('messages.flash_sale.error.not_found'));
                 }
 
-                if ($this->isVariantInConflictingFlashSale($key, null, $startDate, $endDate)) {
-                    continue;
-                }
-
-                $flashSale->product_variants()->attach($key, [
+                $flashSale->product_variants()->attach($productVariantId, [
                     'max_quantity' => $quantity,
-                    'sale_price' => $data['sale_prices'][$key]
                 ]);
 
-                $productVariant->update([
-                    'is_discount_time' => true,
-                    'sale_price_start_at' => $startDate,
-                    'sale_price_end_at' => $endDate,
-                ]);
+                $this->updateProductVariant($productVariant, $productVariantId, $data, $payload);
             }
 
             return successResponse(__('messages.create.success'));
         }, __('messages.create.error'));
     }
 
-    // Helper function to format date
-    private function formatDateForMySQL($dateString)
+
+
+    private function updateProductVariant($productVariant, $productVariantId, $payload)
     {
-        $dateTime = \DateTime::createFromFormat(DATE_RFC2822, $dateString);
-        return $dateTime ? $dateTime->format('Y-m-d H:i:s') : null;
+        $productVariant->update([
+            'sale_price' => $payload['sale_prices'][$productVariantId],
+            'is_discount_time' => true,
+            'sale_price_start_at' => $payload['start_date'],
+            'sale_price_end_at' => $payload['end_date'],
+        ]);
     }
-
-
-
 
     public function update($flashSaleId, $data)
     {
         return $this->executeInTransaction(function () use ($flashSaleId, $data) {
+            $payload = $this->preparePayload($data);
+
+            // TAI CUNG 1 THOI DIEM CHI TON TAI 1 FLASH SALE
+            if ($this->checkFlashSaleDateExists($payload, $flashSaleId)) {
+                return errorResponse(__('messages.flash_sale.error.time_exist'));
+            };
 
             $flashSale = $this->flashSaleRepository->findByWhere([
                 'id' => $flashSaleId
@@ -117,72 +111,48 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
                 return errorResponse(__('messages.flash_sale.error.not_found'));
             }
 
-            $flashSale->update([
-                'name' => $data['name'],
-                'start_date' => $data['start_date'],
-                'end_date' => $data['end_date'],
-            ]);
+            $flashSale->update($payload);
 
-            foreach ($data['max_quantities'] as $key => $quantity) {
-                $productVariant = $this->productVariantRepository->findById($key);
+            foreach ($data['max_quantities'] as $productVariantId => $quantity) {
+                $productVariant = $this->productVariantRepository->findById($productVariantId, ['*'], [], true);
 
-                if (
-                    $productVariant->is_discount_time &&
-                    !$this->isVariantInConflictingFlashSale($key, $flashSaleId, $data['start_date'], $data['end_date'])
-                ) {
-                    // return errorResponse(__('messages.flash_sale.error.already_on_sale'));
-                    continue;
-                }
-
-                $flashSale->product_variants()->updateExistingPivot($key, [
+                $flashSale->product_variants()->updateExistingPivot($productVariantId, [
                     'max_quantity' => $quantity,
-                    'sale_price' => $data['sale_prices'][$key]
                 ]);
 
-                $productVariant->update([
-                    'is_discount_time' => true,
-                    'sale_price_start_at' => $data['start_date'],
-                    'sale_price_end_at' => $data['end_date'],
-                ]);
+                $this->updateProductVariant($productVariant, $productVariantId, $data, $payload);
             }
 
             return successResponse(__('messages.update.success'));
         }, __('messages.update.error'));
     }
 
-
-
-    protected function isVariantInConflictingFlashSale($productVariantId, $flashSaleId, $startDate, $endDate)
+    private function checkFlashSaleDateExists($payload, $id = null)
     {
-        return DB::table('flash_sale_product_variants')
-            ->join('flash_sales', 'flash_sale_product_variants.flash_sale_id', '=', 'flash_sales.id')
-            ->where('flash_sale_product_variants.product_variant_id', $productVariantId)
-            ->where('flash_sales.id', '!=', $flashSaleId)
-            ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('flash_sales.start_date', [$startDate, $endDate])
-                    ->orWhereBetween('flash_sales.end_date', [$startDate, $endDate]);
-            })
-            ->where('flash_sales.publish', true)
-            ->exists();
+        $condition = [
+            'start_date' => ['<=', $payload['start_date']],
+            'end_date' => ['>=', $payload['end_date']],
+
+        ];
+        if ($id) {
+            $condition['id'] = ['!=', $id];
+        }
+        $flashSale = $this->flashSaleRepository->findByWhere($condition);
+
+        return !empty($flashSale);
     }
 
-
-    public function delete($id) {}
-    public function changeStatus($id)
+    private function preparePayload($data)
     {
-        return $this->executeInTransaction(function () use ($id) {
-            $flashSale = $this->flashSaleRepository->findById($id);
+        $startDate = convertToYyyyMmDdHhMmSs($data['start_date']);
+        $endDate = convertToYyyyMmDdHhMmSs($data['end_date']);
 
-            if (! $flashSale) {
-                return errorResponse(__('messages.flash_sale.error.not_found'));
-            }
+        $payload = array_merge($data, [
+            'start_date' => $startDate ?? null,
+            'end_date' => $endDate ?? null,
+        ]);
 
-            $flashSale->update([
-                'publish' => !$flashSale->publish
-            ]);
-
-            return successResponse(__('messages.update.success'));
-        });
+        return $payload;
     }
 
     public function handlePurchase($productVariantId, $quantity)

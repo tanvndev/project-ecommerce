@@ -8,6 +8,8 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\FlashSale\FlashSaleCollection;
 use App\Http\Requests\FlashSale\FlashSaleStoreRequest;
+use App\Http\Requests\FlashSale\FlashSaleUpdateRequest;
+use App\Http\Resources\FlashSale\FlashSaleResource;
 use App\Services\Interfaces\FlashSale\FlashSaleServiceInterface;
 use App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface;
 
@@ -16,8 +18,10 @@ class FlashSaleController extends Controller
     protected $flashSaleService;
 
     protected $flashSaleRepository;
-    function __construct(FlashSaleServiceInterface $flashSaleService,  FlashSaleRepositoryInterface $flashSaleRepository)
-    {
+    public function __construct(
+        FlashSaleServiceInterface $flashSaleService,
+        FlashSaleRepositoryInterface $flashSaleRepository
+    ) {
         $this->flashSaleService = $flashSaleService;
         $this->flashSaleRepository = $flashSaleRepository;
     }
@@ -49,7 +53,7 @@ class FlashSaleController extends Controller
     {
         $response = $this->flashSaleService->findById($id);
 
-        $data = new FlashSaleCollection($response);
+        $data = new FlashSaleResource($response);
 
         return successResponse('', $data, true);
     }
@@ -57,11 +61,11 @@ class FlashSaleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(FlashSaleUpdateRequest $request, string $id)
     {
-       $data = $this->flashSaleService->update($id, $request->all());
+        $data = $this->flashSaleService->update($id, $request->all());
 
-        return successResponse('', $data, true);
+        return handleResponse($data);
     }
 
     /**
@@ -70,12 +74,5 @@ class FlashSaleController extends Controller
     public function destroy(string $id)
     {
         //
-    }
-
-    public function changeStatus(string $id){
-
-        $data = $this->flashSaleService->changeStatus($id);
-
-        return successResponse('', $data, true);
     }
 }
