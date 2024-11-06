@@ -13,6 +13,7 @@ use App\Models\ProductVariantAttributeValue;
 use App\Repositories\Interfaces\Attribute\AttributeValueRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
+use App\Repositories\Interfaces\Product\SearchHistoryRepositoryInterface;
 use App\Services\BaseService;
 use App\Services\Interfaces\Product\ProductServiceInterface;
 use Carbon\Carbon;
@@ -26,7 +27,8 @@ class ProductService extends BaseService implements ProductServiceInterface
     public function __construct(
         protected ProductRepositoryInterface $productRepository,
         protected ProductVariantRepositoryInterface $productVariantRepository,
-        protected AttributeValueRepositoryInterface $attributeValueRepository
+        protected AttributeValueRepositoryInterface $attributeValueRepository,
+        protected SearchHistoryRepositoryInterface $searchHistoryRepository
     ) {}
 
     public function paginate()
@@ -519,6 +521,106 @@ class ProductService extends BaseService implements ProductServiceInterface
     }
 
 
+    public function getProductReport()
+    {
+
+        $payload = $this->preparePayload();
+
+
+        $start_date = isset($payload['start_date']) ? $payload['start_date'] : Carbon::now()->startOfYear()->toDateString();
+        $end_date = isset($payload['end_date']) ? $payload['end_date'] : Carbon::now()->endOfYear()->toDateString();
+
+        $condition = $payload['condition'] ?? "product_sell_best";
+        // product_sell_top: sản phẩm có doanh thu cao nhất
+        // product_sell_best: sản phẩm bán chạy nhất (đã xong)
+        // product_sell_best_type: sản phẩm bán chạy theo loại
+        // product_return: sản phẩm có tỉ lệ hoàn trả cao nhất
+        // product_inventory_lowest: sản phẩm có lượng tồn kho thấp nhất
+
+        // Kiểm tra điều kiện và sắp xếp tương ứng
+        switch ($condition) {
+            case 'product_sell_best':
+                $query = $this->getProductSellTop($start_date, $end_date);
+                $result = $query->get()
+                    ->map(function ($item) {
+                        if (!$item->product_variant) {
+                            return null;
+                        }
+                        return [
+                            'product_variant_id' => $item->product_variant_id,
+                            'product_id' => $item->product_variant['product_id'],
+                            'product_name' => $item->product_variant['name'],
+                            'product_image' => $item->product_variant['image'],
+                            'product_price' => $item->product_variant['sale_price'] ?? $item->product_variant['price'],
+                            'product_cost_price' => $item->product_variant['cost_price'],
+                            'total_quantity_sold' => $item->total_quantity_sold,
+                            'total_revenue' => $item->total_revenue,
+                            'net_revenue' => (($item->product_variant['sale_price'] ?? $item->product_variant['price']) - $item->product_variant['cost_price']) * $item->total_quantity_sold,
+                        ];
+                    });
+                break;
+            case 'product_review_top':
+                $query = $this->getProductReviewTop($start_date, $end_date);
+                $result = $query->get()
+                    ->filter(function ($item) {
+
+                        return $item->review_count > 0 && !is_null($item->average_rating);
+                    })
+                    ->map(function ($item) {
+
+                        return [
+                            'id' => $item->id,
+                            'name' => $item->name,
+                            'review_count' => $item->review_count,
+                            'average_rating' => $item->average_rating,
+                            'reviews' => $item->reviews,
+                        ];
+                    });
+                break;
+        }
+
+
+
+        return $result;
+    }
+
+    // Top sản phẩm bán chạy nhất
+    private function getProductSellTop($start_date, $end_date)
+    {
+        $query = OrderItem::with(['order', 'product_variant'])
+            ->whereHas('order', function ($query) use ($start_date, $end_date) {
+                $query->where('order_status', 'completed')
+                    ->whereBetween('ordered_at', [$start_date, $end_date]);
+            })
+            ->join('product_variants', 'order_items.product_variant_id', '=', 'product_variants.id') // Join với product_variant
+            ->selectRaw('order_items.product_variant_id, SUM(order_items.quantity) as total_quantity_sold
+        , SUM(COALESCE(order_items.sale_price, order_items.price) * order_items.quantity) as total_revenue')
+            ->groupBy('order_items.product_variant_id')
+            ->orderBy('total_quantity_sold', 'DESC');
+        return $query;
+    }
+
+    // Top sản phẩm được đánh giá tốt nhất
+    private function getProductReviewTop($start_date, $end_date)
+    {
+        $query = Product::with('reviews')
+            ->select('id', 'name') // Chỉ lấy các trường id và name
+            ->withCount([
+                'reviews as review_count', // Đếm số lượng reviews
+                'reviews as average_rating' => function ($query) use ($start_date, $end_date) {
+                    $query->whereBetween('created_at', [$start_date, $end_date])
+                        ->select(DB::raw('AVG(rating)')); // Tính đánh giá trung bình
+                }
+            ])
+            ->orderByDesc('average_rating') // Sắp xếp theo điểm đánh giá trung bình giảm dần
+            ->orderByDesc('review_count');  // Sắp xếp theo số lượng đánh giá giảm dần
+
+        return $query;
+    }
+
+
+
+
     // CLIENT API //
 
     public function getProduct(string $slug)
@@ -529,25 +631,24 @@ class ProductService extends BaseService implements ProductServiceInterface
         return $product;
     }
 
-
-
-    public function filterProducts($data)
+    public function filterProducts()
     {
-        $catalogues = $this->getCatalogues($data);
-        $priceRange = $this->getPriceRange($data);
-        $sort = $data['sort'] ?? 'asc';
-        $search = $data['search'] ?? '';
-        $values = $data['values'] ?? '';
-        $stars = $data['stars'] ?? '';
+        $request = request()->all();
+        $catalogues = $this->getCatalogues($request);
+        $priceRange = $this->getPriceRange($request);
 
-        $productVariants = $this->getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars);
+        $sort = $request['sort'] ?? 'asc';
+        $search = $request['search'] ?? '';
+        $values = $request['values'] ?? '';
+        $stars = $request['stars'] ?? '';
+        $pageSize = $request['pageSize'] ?? 20;
 
-        // Lấy các giá trị biến thể (values) từ sản phẩm
-        $formattedValues = $this->getFormattedValues($productVariants);
+        $productVariants = $this->getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars, $pageSize);
+        $formattedAttributes = $this->getFormattedAttributes($productVariants);
 
         return [
             'product_variants' => $productVariants,
-            'values' => $formattedValues,
+            'attributes' => $formattedAttributes,
         ];
     }
 
@@ -567,10 +668,14 @@ class ProductService extends BaseService implements ProductServiceInterface
     }
 
     // gọi các hàm lọc
-    protected function getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars)
+    protected function getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars, $pageSize)
     {
         $query = ProductVariant::query();
+
+        $query = $this->getPublicProductVariants($query);
+
         $query = $this->filterByCatalogue($query, $catalogues);
+
         $query = $this->filterByPrice($query, $priceRange);
 
         $this->applySearch($query, $search);
@@ -579,17 +684,41 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         $this->filterByStars($query, $stars);
 
-        $this->applyFlashSaleJoin($query);
-
         $this->applySorting($query, $sort);
 
-        return $query->paginate(30);
+        return $query->paginate($pageSize);
+    }
+
+    protected function getPublicProductVariants($query)
+    {
+        $query->whereHas('product', function ($subQuery) {
+            $subQuery->where('publish', 1);
+        });
+
+        return $query;
     }
 
     protected function applySearch($query, $search)
     {
+        $prohibitedWords = Cache::remember('prohibited_words', 3600, function () {
+            return file(storage_path('prohibited_words.txt'), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        });
+
         if (!empty($search)) {
             $query->where('product_variants.name', 'like', '%' . $search . '%');
+        }
+
+        $pattern = '/\b(' . implode('|', array_map('preg_quote', $prohibitedWords)) . ')\b/i';
+        $containsProhibitedWord = preg_match($pattern, $search);
+
+        if (!$containsProhibitedWord) {
+            $existingKeyword  = $this->searchHistoryRepository->findByWhere(['keyword' => $search]);
+            if ($existingKeyword) {
+                $existingKeyword->increment('count');
+                $existingKeyword->update(['updated_at' => now()]);
+            } else {
+                $this->searchHistoryRepository->create(['keyword' => $search, 'count' => 1]);
+            }
         }
     }
 
@@ -603,26 +732,10 @@ class ProductService extends BaseService implements ProductServiceInterface
         }
     }
 
-    protected function applyFlashSaleJoin($query)
-    {
-        $query->leftJoin('flash_sale_product_variants', function ($join) {
-            $join->on('product_variants.id', '=', 'flash_sale_product_variants.product_variant_id')
-                ->join('flash_sales', 'flash_sale_product_variants.flash_sale_id', '=', 'flash_sales.id')
-                ->where('flash_sales.start_date', '<=', now())
-                ->where('flash_sales.end_date', '>=', now())
-                ->where('flash_sales.publish', true)
-                ->where('flash_sale_product_variants.max_quantity', '>', 0);
-        });
-
-        $query->selectRaw('
-        product_variants.*,
-        COALESCE(flash_sale_product_variants.sale_price, product_variants.price) as effective_price
-    ');
-    }
 
     protected function applySorting($query, $sort)
     {
-        $query->orderBy('effective_price', $sort);
+        $query->orderBy('price', $sort);
     }
 
     // lọc giá
@@ -630,10 +743,10 @@ class ProductService extends BaseService implements ProductServiceInterface
     {
         if ($priceRange['min'] !== null || $priceRange['max'] !== null) {
             if ($priceRange['min'] !== null) {
-                $query->having('effective_price', '>=', $priceRange['min']);
+                $query->having('price', '>=', $priceRange['min']);
             }
             if ($priceRange['max'] !== null) {
-                $query->having('effective_price', '<=', $priceRange['max']);
+                $query->having('price', '<=', $priceRange['max']);
             }
         }
 
@@ -658,12 +771,12 @@ class ProductService extends BaseService implements ProductServiceInterface
     protected function filterByStars($query, $stars)
     {
         if (!empty($stars)) {
-            $starArray = explode(',', $stars);
+            $star = (float) $stars;
 
             $productIds = DB::table('product_reviews')
                 ->select('product_id')
                 ->groupBy('product_id')
-                ->havingRaw('ROUND(AVG(rating), 1) IN (' . implode(',', array_map('floatval', $starArray)) . ')')
+                ->havingRaw('ROUND(AVG(rating), 2) BETWEEN ? AND ?', [$star, $star + 0.91])
                 ->pluck('product_id');
 
             $query->whereHas('product', function ($q) use ($productIds) {
@@ -674,19 +787,42 @@ class ProductService extends BaseService implements ProductServiceInterface
         return $query;
     }
 
-
-    // Lấy ra danh sách các giá trị biến thể
-    protected function getFormattedValues($productVariants)
+    protected function getFormattedAttributes($productVariants)
     {
         $variantIds = $productVariants->pluck('id');
 
         $attributeValues = DB::table('product_variant_attribute_value')
             ->whereIn('product_variant_id', $variantIds)
             ->join('attribute_values', 'product_variant_attribute_value.attribute_value_id', '=', 'attribute_values.id')
-            ->select('attribute_values.id as value_id', 'attribute_values.name as value_name')
+            ->join('attributes', 'attribute_values.attribute_id', '=', 'attributes.id')
+            ->select('attributes.id as attribute_id', 'attributes.name as attribute_name', 'attribute_values.id as value_id', 'attribute_values.name as value_name')
             ->distinct()
-            ->get();
+            ->get()
+            ->groupBy('attribute_id');
 
-        return $attributeValues;
+        return $this->formatAttributes($attributeValues);
+    }
+
+    // format attributes
+    protected function formatAttributes($attributeValues)
+    {
+        $formatted = [];
+
+        foreach ($attributeValues as $attributeId => $values) {
+            $formatted[$attributeId] = [
+                'id' => $values[0]->attribute_id,
+                'name' => $values[0]->attribute_name,
+                'values' => []
+            ];
+
+            foreach ($values as $value) {
+                $formatted[$attributeId]['values'][] = [
+                    'id' => $value->value_id,
+                    'name' => $value->value_name,
+                ];
+            }
+        }
+
+        return $formatted;
     }
 }

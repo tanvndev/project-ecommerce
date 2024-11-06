@@ -62,6 +62,8 @@ class AppServiceProvider extends ServiceProvider
         'App\Services\Interfaces\Location\LocationServiceInterface' => 'App\Services\Location\LocationService',
         // Post
         'App\Services\Interfaces\Post\PostServiceInterface' => 'App\Services\Post\PostService',
+        // PostCatalogue
+        'App\Services\Interfaces\Post\PostCatalogueServiceInterface' => 'App\Services\Post\PostCatalogueService',
         // UserAddress
         'App\Services\Interfaces\User\UserAddressServiceInterface' => 'App\Services\User\UserAddressService',
         // PRODUCT REVIEW
@@ -105,9 +107,7 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
-    {
-    }
+    public function boot(): void {}
 
     private function printLogSql()
     {
@@ -118,9 +118,9 @@ class AppServiceProvider extends ServiceProvider
 
             $logContent = sprintf(
                 "/*==================================================================*/\n" .
-                "/* Origin (request): %s\n" .
-                "   Query %d - %s [%sms] */\n\n" .
-                "%s\n\n",
+                    "/* Origin (request): %s\n" .
+                    "   Query %d - %s [%sms] */\n\n" .
+                    "%s\n\n",
                 request()->fullUrl() ?? 'N/A',
                 $query->time, // Số thứ tự truy vấn
                 Carbon::now()->toDateTimeString(),

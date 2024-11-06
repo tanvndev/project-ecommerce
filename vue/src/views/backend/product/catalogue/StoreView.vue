@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 min-h-screen pb-10">
+      <div class="mx-10 mb-5 min-h-screen pb-10">
         <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
         <form @submit.prevent="onSubmit">
           <a-row :gutter="16">
@@ -77,23 +77,23 @@
 
 <script setup>
 import {
-  MasterLayout,
-  BreadcrumbComponent,
   AleartError,
+  BreadcrumbComponent,
   InputComponent,
   InputFinderComponent,
-  TreeSelectComponent,
   InputNumberComponent,
-  SEOComponent
+  MasterLayout,
+  SEOComponent,
+  TreeSelectComponent
 } from '@/components/backend';
-import { computed, onMounted, reactive } from 'vue';
-import { useForm } from 'vee-validate';
-import { formatDataToTreeSelect, formatMessages } from '@/utils/format';
-import * as yup from 'yup';
-import router from '@/router';
 import { useCRUD } from '@/composables';
-import ProductListView from './partials/ProductListView.vue';
+import router from '@/router';
+import { formatDataToTreeSelect, formatMessages } from '@/utils/format';
 import { message } from 'ant-design-vue';
+import { useForm } from 'vee-validate';
+import { computed, onMounted, reactive } from 'vue';
+import * as yup from 'yup';
+import ProductListView from './partials/ProductListView.vue';
 
 const { getOne, create, update, getAll, messages, data } = useCRUD();
 const id = computed(() => router.currentRoute.value.params.id || null);

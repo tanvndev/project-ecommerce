@@ -3,23 +3,21 @@
 namespace App\Services\Cart;
 
 use App\Repositories\Interfaces\Cart\CartRepositoryInterface;
+use App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
 use App\Services\BaseService;
 use App\Services\Interfaces\Cart\CartServiceInterface;
+use Carbon\Carbon;
 
 class CartService extends BaseService implements CartServiceInterface
 {
-    protected CartRepositoryInterface $cartRepository;
 
-    protected ProductVariantRepositoryInterface $productVariantRepository;
 
     public function __construct(
-        CartRepositoryInterface $cartRepository,
-        ProductVariantRepositoryInterface $productVariantRepository
-    ) {
-        $this->cartRepository = $cartRepository;
-        $this->productVariantRepository = $productVariantRepository;
-    }
+        protected CartRepositoryInterface $cartRepository,
+        protected ProductVariantRepositoryInterface $productVariantRepository,
+        protected FlashSaleRepositoryInterface $flashSaleRepository
+    ) {}
 
     public function getCart()
     {
@@ -27,6 +25,7 @@ class CartService extends BaseService implements CartServiceInterface
         $conditions = $this->getUserOrSessionConditions($sessionId);
 
         $this->checkStockProductAndUpdateCart($conditions);
+        $this->checkProductVariantFlashSaleExistedAndUpdateCart($conditions);
 
         $cart = $this->cartRepository->findByWhere(
             $conditions,
@@ -60,6 +59,40 @@ class CartService extends BaseService implements CartServiceInterface
 
             return $this->getCart();
         }, __('messages.cart.error.not_found'));
+    }
+
+    private function checkProductVariantFlashSaleExisted($productVariantId)
+    {
+        $now = Carbon::now();
+
+        $flashSale = $this->flashSaleRepository->findByWhere([
+            'start_date' => ['<=', $now],
+            'end_date' => ['>=', $now]
+        ]);
+
+        if (!$flashSale) {
+            return false;
+        }
+
+        return $flashSale->canPurchase($productVariantId);
+    }
+
+    private function checkProductVariantFlashSaleExistedAndUpdateCart($conditions)
+    {
+        $cart = $this->cartRepository->findByWhere($conditions);
+
+        if (! $cart) {
+            return;
+        }
+
+        foreach ($cart->cart_items as $item) {
+            if ($this->checkProductVariantFlashSaleExisted($item->product_variant_id)) {
+                $item->update(['quantity' => 1]);
+            }
+        }
+
+        $sessionId = request('session_id', 0);
+        $this->mergeSessionCartToUserCart($sessionId);
     }
 
     private function createCartItem($cart, $request)
@@ -253,34 +286,12 @@ class CartService extends BaseService implements CartServiceInterface
      */
     private function getUserOrSessionConditions($sessionId): array
     {
+        if (!auth()->check() && $sessionId == 'undefined')  throw new \Exception('Session id is not defined.');
+
         return auth()->check()
             ? ['user_id' => auth()->user()->id]
             : ['session_id' => $sessionId];
     }
-
-    // public function buyNow($request)
-    // {
-    //     return $this->executeInTransaction(function () use ($request) {
-
-    //         $sessionId = $request->input('session_id', 0);
-    //         $conditions = $this->getUserOrSessionConditions($sessionId);
-    //         $cart = $this->cartRepository->findByWhere($conditions) ?? $this->cartRepository->create($conditions);
-
-    //         $productVariant = $this->productVariantRepository->findById($request->product_variant_id);
-    //         if ($productVariant->stock < $request->quantity) {
-    //             return errorResponse(__('messages.cart.error.max'));
-    //         }
-
-    //         $cart->cart_items()->update(['is_selected' => false, 'updated_at' => now()]);
-
-    //         $cart->cart_items()->where('product_variant_id', $request->product_variant_id)->exists()
-    //             ? $this->updateCartItem($cart, $request)
-    //             : $this->createCartItem($cart, $request);
-
-    //         return successResponse(__('messages.cart.success.buy_now'));
-    //     }, __('messages.cart.error.not_found'));
-    // }
-
 
 
     public function buyNow($request)
@@ -308,7 +319,7 @@ class CartService extends BaseService implements CartServiceInterface
     // Hàm xử lý mua nhiều sản phẩm
     public function buyNowMultiple($request)
     {
-        return $this->executeInTransaction(function () use (&$request) {
+        return $this->executeInTransaction(function () use ($request) {
             $cart = $this->initializeCart($request);
             $this->unselectAllCartItems($cart);
 

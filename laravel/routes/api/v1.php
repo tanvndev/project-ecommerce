@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\Cart\CartController;
 use App\Http\Controllers\Api\V1\Chat\ChatController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\Post\PostController;
+use App\Http\Controllers\Api\V1\Post\PostCatalogueController;
 use App\Http\Controllers\Api\V1\User\UserController;
 use App\Http\Controllers\Api\V1\Brand\BrandController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
@@ -204,9 +205,11 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
 
         // PRODUCT REVIEW ROUTE
         Route::controller(ProductReviewController::class)->name('product-reviews.')->group(function () {
+            Route::get('product-reviews', 'getAllProductReviews')->name('getAllProductReviews');
             Route::get('product-reviews/{productId}', 'getReviewByProductId')->name('show');
+            Route::get('product-reviews/replies/{id}', 'adminGetReplies')->name('replies');
             Route::post('product-reviews', 'store')->name('store');
-            Route::post('product-reviews/{parentId}/replies', 'adminReply')->name('reply');
+            Route::post('product-reviews/replies/create', 'adminReply')->name('reply');
             Route::put('product-reviews/replies/{replyId}', 'adminUpdateReply')->name('updateReply');
         });
 
@@ -237,7 +240,11 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
             Route::get('report-overview', 'reportOverview')->name('reportOverview');
             // Thống kê doanh thu theo ngày
             Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
+
             // Thống kê sản phẩm phổ biến được thêm vào giỏ hàng
+
+            Route::get('product', [StatisticController::class, 'getProductReport']);
+
             Route::get('popular-products', 'popularProducts')->name('popularProducts');
             // Thống kê khách hàng trung thành
             Route::get('loyal-customers', 'loyalCustomers')->name('loyalCustomers');

@@ -36,11 +36,11 @@ class FlashSaleStoreRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'max_quantity.*' => 'số lượng tối đa',
-            'sale_price.*' => 'giá khuyến mãi',
-            'name' => 'tên khuyến mãi',
-            'start_date' => 'bắt đầu khuyến mãi',
-            'end_date' => 'kết thúc khuyến mãi',
+            'max_quantities.*' => 'Số lượng tối đa',
+            'sale_prices.*' => 'Giá khuyến mãi',
+            'name' => 'Tên khuyến mãi',
+            'start_date' => 'Bắt đầu khuyến mãi',
+            'end_date' => 'Kết thúc khuyến mãi',
         ];
     }
 

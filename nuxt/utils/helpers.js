@@ -451,6 +451,17 @@ const timeAgo = (dateString) => {
 
   return 'vừa mới'
 }
+
+const numberWithCommas = (x) => {
+    x = x.toString().replace(/[^0-9]/g, '');
+    return x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, '.');
+};
+const getErrorMsg = (error) => {
+    if (error.response) {
+      return error?.response?.data?.messages || 'Something went wrong!';
+    }
+    return error?.message || 'Something went wrong!';
+  };
 export {
   debounce,
   resizeImage,
@@ -476,4 +487,6 @@ export {
   formatTime,
   showNotification,
   timeAgo,
+  numberWithCommas,
+  getErrorMsg
 }

@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 h-screen">
+      <div class="mx-10 mb-5 min-h-screen">
         <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
         <form @submit.prevent="onSubmit">
           <AleartError :errors="state.errors" />
@@ -44,18 +44,18 @@
 
 <script setup>
 import {
-  MasterLayout,
-  BreadcrumbComponent,
   AleartError,
-  InputComponent
+  BreadcrumbComponent,
+  InputComponent,
+  MasterLayout
 } from '@/components/backend';
-import { computed, onMounted, reactive } from 'vue';
-import { useForm } from 'vee-validate';
+import { useCRUD } from '@/composables';
+import router from '@/router';
 import { formatMessages } from '@/utils/format';
+import { useForm } from 'vee-validate';
+import { computed, onMounted, reactive } from 'vue';
 import { useStore } from 'vuex';
 import * as yup from 'yup';
-import router from '@/router';
-import { useCRUD } from '@/composables';
 
 // STATE
 const state = reactive({

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrderItem extends Model
 {
-    use HasFactory,QueryScopes;
+    use HasFactory, QueryScopes;
 
     protected $fillable = [
         'order_id',

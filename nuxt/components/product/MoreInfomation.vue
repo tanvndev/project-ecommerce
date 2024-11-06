@@ -191,7 +191,7 @@ onMounted(() => {
                 >
                   <div class="comment-body">
                     <figure class="comment-avatar">
-                      <img
+                      <v-img
                         :src="resizeImage(review.image, '200')"
                         :alt="review.fullname"
                         width="90"
@@ -237,8 +237,8 @@ onMounted(() => {
 
                       <div class="d-flex pb-6">
                         <v-img
-                          v-for="n in 3"
-                          :src="`https://picsum.photos/500/300?image=${n * 5 + 10}`"
+                          v-for="img in JSON.parse(review?.images || '[]')"
+                          :src="resizeImage(img, 150)"
                           class="bg-grey-lighten-2 mr-3"
                           max-width="150"
                           max-height="100"
@@ -250,11 +250,11 @@ onMounted(() => {
                     </div>
                   </div>
 
-                  <ul class="comments list-style-none children">
+                  <ul class="comments list-style-none children" v-if="review?.replies?.length">
                     <li class="comment">
                       <div class="comment-body">
                         <figure class="comment-avatar">
-                          <img
+                          <v-img
                             :src="review.image"
                             :alt="review.fullname"
                             width="90"
@@ -314,7 +314,7 @@ onMounted(() => {
 
 .specification strong {
   color: #333;
-  min-width: 160px;
+  min-width: 300px;
   display: inline-block;
 }
 
