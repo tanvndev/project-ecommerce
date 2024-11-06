@@ -20,6 +20,7 @@ use App\Services\BaseService;
 use App\Services\Interfaces\Statistic\StatisticServiceInterface;
 use Carbon\Carbon;
 use DateTime;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class StatisticService extends BaseService implements StatisticServiceInterface
@@ -275,30 +276,27 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     private function preparePayload(): array
     {
         $payload = request()->except('_token', '_method');
-        $payload = $this->createSEO($payload, 'name', 'excerpt');
-        $payload['shipping_ids'] = array_map('intval', $payload['shipping_ids'] ?? []);
-
         return $payload;
     }
 
     public function getProductReport()
     {
 
+
         $payload = $this->preparePayload();
 
+        $startDate = Carbon::createFromFormat('d/m/Y', $payload['start_date']);
+        $endDate = Carbon::createFromFormat('d/m/Y', $payload['end_date']);
 
-        $start_date = isset($payload['start_date']) ? $payload['start_date'] : Carbon::now()->startOfYear()->toDateString();
-        $end_date   = isset($payload['end_date']) ? $payload['end_date'] : Carbon::now()->endOfYear()->toDateString();
+        $startDateFormatted = $startDate->format('Y-m-d H:i:s');
+        $endDateFormatted = $endDate->format('Y-m-d H:i:s');
+
 
         $condition = $payload['condition'] ?? "product_sell_best";
-        // product_sell_best: sản phẩm bán chạy nhất (đã xong)
-        // product_review_top: sản phẩm được đánh giá cao (đã xong)
-        // product_wishlist_top: sản phẩm được yêu thích nhất(đã xong)
-        // product_views_top: Sản phẩm có lượt xem nhiều nhất(đã xong)
 
         switch ($condition) {
             case 'product_sell_best':
-                $query = $this->getProductSellTop($start_date, $end_date);
+                $query = $this->getProductSellTop($startDateFormatted, $endDateFormatted);
                 $result = $query->map(function ($item) {
                     return [
                         'product_variant_id'    => $item['product_variant_id'],
@@ -361,140 +359,62 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         return $result;
     }
 
-    /** Sản phẩm bán chạy nhất */
-    protected function getProductSellTop($start_date, $end_date)
+    private function getAllDatesInRange($startDate, $endDate)
     {
+        $start = Carbon::createFromFormat('Y-m-d H:i:s', $startDate);
+        $end = Carbon::createFromFormat('Y-m-d H:i:s', $endDate);
 
-        $query = OrderItem::query()
-            ->whereHas('order', function ($query) use ($start_date, $end_date) {
-                $query->whereBetween('ordered_at', [$start_date, $end_date])
-                    ->where('order_status', 'completed');
-            })
-            ->join('product_variants', 'order_items.product_variant_id', '=', 'product_variants.id') // Join với product_variant
-            ->selectRaw('order_items.product_variant_id,
-                         product_variants.name,
-                         SUM(order_items.quantity) as total_quantity_sold,
-                         SUM( COALESCE(order_items.sale_price, order_items.price) * order_items.quantity) as revenue')
-            ->groupBy('order_items.product_variant_id')
-            ->orderBy('total_quantity_sold', 'DESC')
-            ->get();
-        $discounts      = $this->get_discount_product_variant_in_order($start_date, $end_date);
-        $shipping       = $this->get_money_shipping($start_date, $end_date);
+        $dates = [];
 
-
-        $revenueTotal           = 0;
-        $discountTotal          = 0;
-        $net_revenueTotal       = 0;
-        $total_quantity_sold    = 0;
-
-        foreach ($query as &$item) {
-            $productId = $item['product_variant_id'];
-
-            if (isset($discounts[$productId])) {
-                $item['discount'] = $discounts[$productId];
-            } else {
-                $item['discount'] = 0;
-            }
-
-            $item['net_revenue']    = $item['revenue'] - $item['discount'] - $item['moneyCancelled'];
-            $item['total_revenue']  = $item['revenue'] - $item['discount'] - $item['moneyCancelled'];
-
-            $revenueTotal           +=  $item['revenue'];
-            $discountTotal          += $item['discount'];
-            $net_revenueTotal       += $item['net_revenue'];
-            $total_quantity_sold    += $item['total_quantity_sold'];
+        while ($start->lte($end)) {
+            $dates[] = $start->format('d/m/Y');
+            $start->addDay();
         }
 
-        $query['shipping'] = [
-            "product_variant_id"    => "",
-            "total_quantity_sold"   => "",
-            "product_variant_name"  => "",
-            "revenue"               => "",
-            "discount"              => "",
-            "net_revenue"           => "",
-            "total_revenue"         =>  $shipping,
-        ];
+        return $dates;
+    }
 
-        $query['tong'] = [
-            "product_variant_id"    => "",
-            "product_variant_name"  => "",
-            "total_quantity_sold"   => $total_quantity_sold,
-            "revenue"               => $revenueTotal,
-            "discount"              => $discountTotal,
-            "net_revenue"           => $net_revenueTotal,
-            "total_revenue"         => ($net_revenueTotal + $shipping),
-        ];
+    public function getSalesReportByDayIncludingEmpty($start_date, $end_date)
+    {
+        // Lấy danh sách các ngày trong phạm vi start_date và end_date
+        $dates = $this->getAllDatesInRange($start_date, $end_date);
 
+        $orders = Order::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as total'))
+            ->whereBetween('created_at', [$start_date, $end_date])
+            ->groupBy('date')
+            ->orderBy('date', 'ASC')
+            ->get();
+        dd($orders->toArray());
+        dd($query);
         return $query;
     }
 
-    /** Lấy số tiền giảm giá theo từng sản phẩm */
-    private function get_discount_product_variant_in_order($start_date, $end_date)
+
+    /** Top 20 Sản phẩm bán chạy nhất */
+    protected function getProductSellTop($start_date, $end_date)
     {
 
-        $query1 = Order::with('order_items')
-            ->where('discount', '>', '0')
-            ->where('order_status', 'completed')
-            ->whereBetween('ordered_at', [$start_date, $end_date])->get();
+        // $this->getSalesReportByDayIncludingEmpty($start_date, $end_date);
+        $cacheKey = "top-selling-products:$start_date:$end_date";
+        $orders = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($start_date, $end_date) {
+            return OrderItem::query()
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->leftJoin('product_variants', 'order_items.product_variant_id', '=', 'product_variants.id')
+                ->whereBetween('orders.ordered_at', [$start_date, $end_date])
+                ->where('orders.order_status', 'completed')
+                ->selectRaw('
+                    DATE(orders.ordered_at) as date,
+                    SUM(order_items.quantity) as total_quantity_sold,
+                    SUM(COALESCE(order_items.sale_price, order_items.price) * order_items.quantity) as revenue
+                ')
+                ->groupBy('date')
+                ->orderBy('date', 'ASC')
+                ->get();
+        });
+        dd($orders->toArray());
 
-        foreach ($query1 as $order) {
-            $discount       = $order->discount ?? 0;
-            $voucher_type   = $order->additional_details['voucher']['value_type'];
-            $voucher_value  = $order->additional_details['voucher']['value'];
-            $total_discount = 0;
-            foreach ($order['order_items'] as $item) {
-                $price = $item['sale_price'] ?? $item['price'];
-                $total_discount     += $item['quantity'] * $price * ($voucher_value / 100);
-            }
-
-            foreach ($order['order_items'] as $item) {
-                $price = $item['sale_price'] ?? $item['price'];
-                $product_variant_id = $item['product_variant_id'];
-                $orderItemPrice     = $item['quantity'] * $price;
-
-
-                if ($voucher_type  == "percentage") {
-                    if ($total_discount > $discount) {
-                        if (!isset($discounts[$product_variant_id])) {
-                            $discounts[$product_variant_id] = $orderItemPrice * ($discount / $order['total_price']);
-                        } else {
-                            $discounts[$product_variant_id] += $orderItemPrice * ($discount / $order['total_price']);
-                        }
-                    } else {
-
-                        if (!isset($discounts[$product_variant_id])) {
-                            $discounts[$product_variant_id] = $orderItemPrice * ($voucher_value / 100);
-                        } else {
-                            $discounts[$product_variant_id] += $orderItemPrice * ($voucher_value / 100);
-                        }
-                    }
-                } else if ($voucher_type  == "fixed") {
-                    if (!isset($discounts[$product_variant_id])) {
-                        $discounts[$product_variant_id] = $discount / $item['quantity'];
-                    } else {
-                        $discounts[$product_variant_id] += $discount / $item['quantity'];
-                    }
-                }
-            }
-        }
-
-        return $discounts;
+        return $query;
     }
-
-    /** Lấy tổng tiền ship */
-    private function get_money_shipping($start_date, $end_date)
-    {
-        $query = Order::with('order_items')
-            ->where('order_status', 'completed')
-            ->whereBetween('ordered_at', [$start_date, $end_date])->get();
-        $shipping = 0;
-        foreach ($query as $key => $value) {
-            $shipping += $value['shipping_fee'];
-        }
-
-        return $shipping;
-    }
-
 
     /** Top sản phẩm được đánh giá tốt nhất */
     protected function getProductReviewTop($start_date, $end_date)
