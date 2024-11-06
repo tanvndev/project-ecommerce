@@ -46,7 +46,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     }
 
 
-    public function reportOverview()
+    public function reportOverview(): mixed
     {
 
         $request = request();
@@ -159,9 +159,78 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     {
         $request = request();
 
-        $start_date = $request->start_date;
-        $end_date = $request->end_date;
+        $start_date = null;
+        $end_date = null;
 
+        //Lọc theo các active
+        if (!empty($request->date)) {
+            switch ($request->date) {
+                case 'yesterday':
+                    $start_date = now()->subDay()->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->subDay()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+                case 'last_7_days':
+                    $start_date = now()->subDays(6)->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_30_days':
+                    $start_date = now()->subDays(29)->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_week':
+                    $start_date = now()->subWeek()->startOfWeek()->format('Y-m-d H:i:s');
+                    $end_date = now()->subWeek()->endOfWeek()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_week':
+                    $start_date = now()->startOfWeek()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfWeek()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_month':
+                    $start_date = now()->subMonth()->startOfMonth()->format('Y-m-d H:i:s');
+                    $end_date = now()->subMonth()->endOfMonth()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_month':
+                    $start_date = now()->startOfMonth()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfMonth()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_year':
+                    $start_date = now()->subYear()->startOfYear()->format('Y-m-d H:i:s');
+                    $end_date = now()->subYear()->endOfYear()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_year':
+                    $start_date = now()->startOfYear()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfYear()->format('Y-m-d H:i:s');
+                    break;
+
+                default:
+                    // Trạng thái lọc không hợp lệ
+                    return errorResponse(__('messages.statistic.error.active'));
+            }
+        }
+        // Lọc theo ngày cố định
+        elseif (!empty($request->start_date) && !empty($request->end_date)) {
+            try {
+
+                $start_date = Carbon::createFromFormat('Y-m-d', $request->start_date);
+                $end_date = Carbon::createFromFormat('Y-m-d', $request->end_date);
+
+                if ($start_date && $end_date) {
+                    $start_date = $start_date->startOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về đầu ngày
+                    $end_date = $end_date->endOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về cuối ngày
+                }
+            } catch (\Exception $e) {
+                return errorResponse(__('messages.statistic.error.format'));
+            }
+        } else {
+            return errorResponse(__('messages.statistic.error.request'));
+        }
 
         $columns = [
             DB::raw('DATE(ordered_at) as order_date'), // Thống kê doanh thu theo ngày
@@ -504,6 +573,79 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     {
         $request = request();
 
+        $start_date = null;
+        $end_date = null;
+
+        //Lọc theo các active
+        if (!empty($request->date)) {
+            switch ($request->date) {
+                case 'yesterday':
+                    $start_date = now()->subDay()->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->subDay()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+                case 'last_7_days':
+                    $start_date = now()->subDays(6)->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_30_days':
+                    $start_date = now()->subDays(29)->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_week':
+                    $start_date = now()->subWeek()->startOfWeek()->format('Y-m-d H:i:s');
+                    $end_date = now()->subWeek()->endOfWeek()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_week':
+                    $start_date = now()->startOfWeek()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfWeek()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_month':
+                    $start_date = now()->subMonth()->startOfMonth()->format('Y-m-d H:i:s');
+                    $end_date = now()->subMonth()->endOfMonth()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_month':
+                    $start_date = now()->startOfMonth()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfMonth()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_year':
+                    $start_date = now()->subYear()->startOfYear()->format('Y-m-d H:i:s');
+                    $end_date = now()->subYear()->endOfYear()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_year':
+                    $start_date = now()->startOfYear()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfYear()->format('Y-m-d H:i:s');
+                    break;
+
+                default:
+                    // Trạng thái lọc không hợp lệ
+                    return errorResponse(__('messages.statistic.error.active'));
+            }
+        }
+        // Lọc theo ngày cố định
+        elseif (!empty($request->start_date) && !empty($request->end_date)) {
+            try {
+
+                $start_date = Carbon::createFromFormat('Y-m-d', $request->start_date);
+                $end_date = Carbon::createFromFormat('Y-m-d', $request->end_date);
+
+                if ($start_date && $end_date) {
+                    $start_date = $start_date->startOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về đầu ngày
+                    $end_date = $end_date->endOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về cuối ngày
+                }
+            } catch (\Exception $e) {
+                return errorResponse(__('messages.statistic.error.format'));
+            }
+        } else {
+            return errorResponse(__('messages.statistic.error.request'));
+        }
+
         $columns = [
             'cart_items.product_variant_id',
             'product_variants.name',
@@ -522,6 +664,12 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
         $join = ['product_variants' => ['product_variants.id', 'cart_items.product_variant_id']];
 
+        $rawQuery = [
+            'whereRaw' => [
+                ['cart_items.created_at  BETWEEN ? AND ?', [$start_date, $end_date]],
+            ],
+        ];
+
         $popularProducts = $this->cartItemRepository->pagination(
             $columns,
             $conditions,
@@ -531,7 +679,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             [],
             $groupBy,
             [],
-            []
+            $rawQuery
         );
 
         return $popularProducts;
@@ -541,8 +689,80 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     {
         $request = request();
 
-        // Khách hàng có 5 đơn hàng trở lên là khách hàng trung thành
+        $start_date = null;
+        $end_date = null;
 
+        //Lọc theo các active
+        if (!empty($request->date)) {
+            switch ($request->date) {
+                case 'yesterday':
+                    $start_date = now()->subDay()->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->subDay()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+                case 'last_7_days':
+                    $start_date = now()->subDays(6)->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_30_days':
+                    $start_date = now()->subDays(29)->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_week':
+                    $start_date = now()->subWeek()->startOfWeek()->format('Y-m-d H:i:s');
+                    $end_date = now()->subWeek()->endOfWeek()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_week':
+                    $start_date = now()->startOfWeek()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfWeek()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_month':
+                    $start_date = now()->subMonth()->startOfMonth()->format('Y-m-d H:i:s');
+                    $end_date = now()->subMonth()->endOfMonth()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_month':
+                    $start_date = now()->startOfMonth()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfMonth()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_year':
+                    $start_date = now()->subYear()->startOfYear()->format('Y-m-d H:i:s');
+                    $end_date = now()->subYear()->endOfYear()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_year':
+                    $start_date = now()->startOfYear()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfYear()->format('Y-m-d H:i:s');
+                    break;
+
+                default:
+                    // Trạng thái lọc không hợp lệ
+                    return errorResponse(__('messages.statistic.error.active'));
+            }
+        }
+        // Lọc theo ngày cố định
+        elseif (!empty($request->start_date) && !empty($request->end_date)) {
+            try {
+
+                $start_date = Carbon::createFromFormat('Y-m-d', $request->start_date);
+                $end_date = Carbon::createFromFormat('Y-m-d', $request->end_date);
+
+                if ($start_date && $end_date) {
+                    $start_date = $start_date->startOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về đầu ngày
+                    $end_date = $end_date->endOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về cuối ngày
+                }
+            } catch (\Exception $e) {
+                return errorResponse(__('messages.statistic.error.format'));
+            }
+        } else {
+            return errorResponse(__('messages.statistic.error.request'));
+        }
+
+        // Khách hàng có 5 đơn hàng trở lên là khách hàng trung thành
         $columns = [
             DB::raw('users.id AS customer_id'),
             DB::raw('users.fullname AS customer_name'),
@@ -563,7 +783,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
         $rawQuery = [
             'whereRaw' => [
-                ['orders.order_status = ? GROUP BY users.id HAVING COUNT(orders.id) > ?', ['completed', 5]],
+                ['(orders.ordered_at  BETWEEN ? AND ?) AND orders.order_status = ? GROUP BY users.id HAVING COUNT(orders.id) > ?', [$start_date, $end_date, 'completed', 5]],
             ],
         ];
 
@@ -578,7 +798,6 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             [],
             $rawQuery
         );
-
         return $loyalCustomers;
     }
 }
