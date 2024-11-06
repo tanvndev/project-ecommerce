@@ -126,6 +126,18 @@ const sidebar = [
         route: 'post.catalogue.index'
       }
     ]
+  },
+  {
+    id: 'slider_sidebar',
+    icon: 'fas fa-images',
+    name: 'Slider',
+    active: ['slider'],
+    subMenu: [
+      {
+        name: 'Danh sách slider',
+        route: 'slider.index'
+      },
+    ]
   }
 ];
 export default sidebar;

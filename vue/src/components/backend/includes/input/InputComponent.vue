@@ -30,6 +30,7 @@
       :size="props.size"
       :allowClear="true"
       :disabled="props.disabled"
+      :suffix="props.suffix"
     />
 
     <!-- INPUT PASSWORD -->
@@ -205,6 +206,10 @@ const props = defineProps({
     default: 'text'
   },
   placeholder: {
+    type: String,
+    default: ''
+  },
+  suffix: {
     type: String,
     default: ''
   },
