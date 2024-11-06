@@ -42,19 +42,27 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
     /**
      * Get all product reviews without replies
      */
-    public function getAllProductReviews(): Collection
+    public function paginate()
     {
 
-        $reviews = $this->productReviewRepository->findByWhere(
-            [
-                'parent_id' => null,
-            ],
-            ['*'],
-            ['replies', 'user'],
-            true,
-        );
+        $request = request();
 
-        return $reviews;
+        $condition = [
+            'search'  => addslashes($request->search),
+            'publish' => $request->publish,
+            'archive' => $request->boolean('archive'),
+            'where' => [
+                'parent_id' => null,
+            ]
+        ];
+
+        $pageSize = $request->pageSize;
+
+        $data = $pageSize && $request->page
+            ? $this->productReviewRepository->pagination(['*'], $condition, $pageSize, ['id' => 'desc'], [], ['replies', 'user', 'product', 'order'])
+            : $this->productReviewRepository->findByWhere(['publish' => 1], ['*'], ['replies', 'user', 'product', 'order'], true);
+
+        return $data;
     }
 
     /**
@@ -76,7 +84,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
 
             $order = $user->orders()->where('id', $data['order_id'])->first();
 
-            if ( ! $order) {
+            if (! $order) {
                 return errorResponse(__('messages.product_review.error.order_not_found'));
             }
 
@@ -87,7 +95,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
             $data['user_id'] = $user->id;
 
             $uploadedImages = [];
-            if ( ! empty($data['images']) && is_array($data['images'])) {
+            if (! empty($data['images']) && is_array($data['images'])) {
                 $uploadResponse = $this->handleImageUploads($data['images']);
 
                 if ($uploadResponse['status'] === 'error') {
@@ -104,7 +112,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
                         $query->where('product_id', $productId);
                     })->exists();
 
-                if ( ! $orderItems) {
+                if (! $orderItems) {
                     return errorResponse(__('messages.product_review.error.order_item_not_found'));
                 }
 
@@ -120,7 +128,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
 
                 $reviewData = array_merge($data, [
                     'product_id' => $productId,
-                    'images'     => $uploadedImages,
+                    'images'     => json_encode($uploadedImages),
                 ]);
 
                 $this->productReviewRepository->create($reviewData);
@@ -135,9 +143,9 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
      *
      * @return \Illuminate\Http\Response
      */
-    public function adminReply(array $data, string $parentId)
+    public function adminReply(array $data)
     {
-        return $this->executeInTransaction(function () use ($data, $parentId) {
+        return $this->executeInTransaction(function () use ($data) {
 
             if (auth()->user()->user_catalogue_id !== User::ROLE_ADMIN) {
 
@@ -145,15 +153,15 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
             }
 
             $parentReview = $this->productReviewRepository->findByWhere([
-                'id' => $parentId,
+                'id' => $data['review_id'],
             ]);
 
-            if ( ! $parentReview) {
+            if (! $parentReview) {
                 return errorResponse(__('messages.product_review.error.parent_not_found'));
             }
 
             $existingReply = $this->productReviewRepository->findByWhere([
-                'parent_id' => $parentId,
+                'parent_id' => $data['review_id'],
             ]);
 
             if ($existingReply) {
@@ -161,7 +169,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
             }
 
             $uploadedImages = [];
-            if ( ! empty($data['images']) && is_array($data['images'])) {
+            if (! empty($data['images']) && is_array($data['images'])) {
                 $uploadResponse = $this->handleImageUploads($data['images']);
 
                 if ($uploadResponse['status'] === 'error') {
@@ -175,7 +183,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
             $data['order_id'] = $parentReview->order_id;
             $data['user_id'] = auth()->user()->id;
             $data['parent_id'] = $parentReview->id;
-            $data['images'] = $uploadedImages;
+            $data['images'] = json_encode($uploadedImages);
 
             $this->productReviewRepository->create($data);
 
@@ -186,6 +194,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
     public function getReplies(string $id)
     {
         return $this->productReviewRepository->findById($id, ['*'], ['replies', 'user']);
+
     }
 
     /**
@@ -204,10 +213,10 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
             }
 
             $parentReview = $this->productReviewRepository->findByWhere([
-                'id' => $replyId,
+                'parent_id' => $replyId,
             ]);
 
-            if ( ! $parentReview) {
+            if (! $parentReview) {
                 return errorResponse(__('messages.product_review.error.parent_not_found'));
             }
 
@@ -227,7 +236,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
         foreach ($images as $image) {
             $uploadResponse = Upload::uploadImage($image);
 
-            if ( ! $uploadResponse['status'] === 'success') {
+            if (! $uploadResponse['status'] === 'success') {
                 return [
                     'status'  => 'error',
                     'message' => $uploadResponse['message'],
