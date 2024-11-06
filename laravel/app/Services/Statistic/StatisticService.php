@@ -45,7 +45,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     }
 
 
-    public function reportOverview()
+    public function reportOverview(): mixed
     {
 
         $request = request();
@@ -158,9 +158,78 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     {
         $request = request();
 
-        $start_date = $request->start_date;
-        $end_date = $request->end_date;
+        $start_date = null;
+        $end_date = null;
 
+        //Lọc theo các active
+        if (!empty($request->date)) {
+            switch ($request->date) {
+                case 'yesterday':
+                    $start_date = now()->subDay()->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->subDay()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+                case 'last_7_days':
+                    $start_date = now()->subDays(6)->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_30_days':
+                    $start_date = now()->subDays(29)->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_week':
+                    $start_date = now()->subWeek()->startOfWeek()->format('Y-m-d H:i:s');
+                    $end_date = now()->subWeek()->endOfWeek()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_week':
+                    $start_date = now()->startOfWeek()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfWeek()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_month':
+                    $start_date = now()->subMonth()->startOfMonth()->format('Y-m-d H:i:s');
+                    $end_date = now()->subMonth()->endOfMonth()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_month':
+                    $start_date = now()->startOfMonth()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfMonth()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_year':
+                    $start_date = now()->subYear()->startOfYear()->format('Y-m-d H:i:s');
+                    $end_date = now()->subYear()->endOfYear()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_year':
+                    $start_date = now()->startOfYear()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfYear()->format('Y-m-d H:i:s');
+                    break;
+
+                default:
+                    // Trạng thái lọc không hợp lệ
+                    return errorResponse(__('messages.statistic.error.active'));
+            }
+        }
+        // Lọc theo ngày cố định
+        elseif (!empty($request->start_date) && !empty($request->end_date)) {
+            try {
+
+                $start_date = Carbon::createFromFormat('Y-m-d', $request->start_date);
+                $end_date = Carbon::createFromFormat('Y-m-d', $request->end_date);
+
+                if ($start_date && $end_date) {
+                    $start_date = $start_date->startOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về đầu ngày
+                    $end_date = $end_date->endOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về cuối ngày
+                }
+            } catch (\Exception $e) {
+                return errorResponse(__('messages.statistic.error.format'));
+            }
+        } else {
+            return errorResponse(__('messages.statistic.error.request'));
+        }
 
         $columns = [
             DB::raw('DATE(ordered_at) as order_date'), // Thống kê doanh thu theo ngày
@@ -399,6 +468,34 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             $item['net_revenue']    = $item['revenue'] - $item['discount'] - $item['moneyCancelled'];
             $item['total_revenue']  = $item['revenue'] - $item['discount'] - $item['moneyCancelled'];
 
+
+            $revenueTotal += $item['revenue'];
+            $discountTotal += $item['discount'];
+            $moneyReturnedTotal += $item['moneyReturned'];
+            $net_revenueTotal += $item['net_revenue'];
+        }
+
+        $query['shipping'] = [
+            "product_variant_id" => "",
+            "total_quantity_sold" => "",
+            "product_variant_name" => "",
+            "revenue" => "",
+            "discount" => "",
+            "moneyReturned" => "",
+            "net_revenue" => "",
+            "total_revenue" => $shipping,
+        ];
+
+        $query['tong'] = [
+            "product_variant_id" => "",
+            "product_variant_name" => "",
+            "total_quantity_sold" => "",
+            "revenue" => $revenueTotal,
+            "discount" => $discountTotal,
+            "moneyReturned" => $moneyReturnedTotal,
+            "net_revenue" => $net_revenueTotal,
+            "total_revenue" => ($net_revenueTotal + $shipping),
+
             $revenueTotal           +=  $item['revenue'];
             $discountTotal          += $item['discount'];
             $net_revenueTotal       += $item['net_revenue'];
@@ -438,22 +535,22 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             ->whereBetween('ordered_at', [$start_date, $end_date])->get();
 
         foreach ($query1 as $order) {
-            $discount       = $order->discount ?? 0;
-            $voucher_type   = $order->additional_details['voucher']['value_type'];
-            $voucher_value  = $order->additional_details['voucher']['value'];
+            $discount = $order->discount ?? 0;
+            $voucher_type = $order->additional_details['voucher']['value_type'];
+            $voucher_value = $order->additional_details['voucher']['value'];
             $total_discount = 0;
             foreach ($order['order_items'] as $item) {
                 $price = $item['sale_price'] ?? $item['price'];
-                $total_discount     += $item['quantity'] * $price * ($voucher_value / 100);
+                $total_discount += $item['quantity'] * $price * ($voucher_value / 100);
             }
 
             foreach ($order['order_items'] as $item) {
                 $price = $item['sale_price'] ?? $item['price'];
                 $product_variant_id = $item['product_variant_id'];
-                $orderItemPrice     = $item['quantity'] * $price;
+                $orderItemPrice = $item['quantity'] * $price;
 
 
-                if ($voucher_type  == "percentage") {
+                if ($voucher_type == "percentage") {
                     if ($total_discount > $discount) {
                         if (!isset($discounts[$product_variant_id])) {
                             $discounts[$product_variant_id] = $orderItemPrice * ($discount / $order['total_price']);
@@ -468,7 +565,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                             $discounts[$product_variant_id] += $orderItemPrice * ($voucher_value / 100);
                         }
                     }
-                } else if ($voucher_type  == "fixed") {
+                } else if ($voucher_type == "fixed") {
                     if (!isset($discounts[$product_variant_id])) {
                         $discounts[$product_variant_id] = $discount / $item['quantity'];
                     } else {
@@ -494,6 +591,80 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
         return $shipping;
     }
+
+
+    /** Lấy tổng tiền trả lại theo từng sản phẩm */
+    private function get_moneyReturn_product_variant($start_date, $end_date)
+    {
+        $query2 = Order::with('order_items')->whereIn('order_status', ['returned', 'cancelled'])->whereBetween('ordered_at', [$start_date, $end_date])->get();
+        foreach ($query2 as $order) {
+            if ($order->discount > 0) {
+
+                $discount = $order->discount;
+                $voucher_type = $order->additional_details['voucher']['value_type'];
+                $voucher_value = $order->additional_details['voucher']['value'];
+                $total_discount = 0;
+
+                foreach ($order['order_items'] as $item) {
+                    $price = $item['sale_price'] ?? $item['price'];
+                    $total_discount += $item['quantity'] * $price * ($voucher_value / 100);
+                }
+
+
+                foreach ($order['order_items'] as $item) {
+                    $price = $item['sale_price'] ?? $item['price'];
+                    $product_variant_id = $item['product_variant_id'];
+                    $orderItemPrice = $item['quantity'] * $price;
+
+                    // Tiền mã giảm giá
+                    if ($voucher_type == "percentage") {
+                        if ($total_discount > $discount) {
+                            if (!isset($discountReturn[$product_variant_id])) {
+                                $discountReturn[$product_variant_id] = $orderItemPrice * ($discount / $order['total_price']);
+                                // if (isset($discountReturn['408'])) {
+                                //     dd("a");
+                                // }
+                            } else {
+                                $discountReturn[$product_variant_id] += $orderItemPrice * ($discount / $order['total_price']);
+                            }
+                        } else {
+                            if (!isset($discountReturn[$product_variant_id])) {
+                                $discountReturn[$product_variant_id] = $orderItemPrice * ($voucher_value / 100);
+                            } else {
+                                $discountReturn[$product_variant_id] += $orderItemPrice * ($voucher_value / 100);
+                            }
+                        }
+                    } else if ($voucher_type == "fixed") {
+                        if (!isset($discountReturn[$product_variant_id])) {
+                            $discountReturn[$product_variant_id] = $discount / $item['quantity'];
+                        } else {
+                            $discountReturn[$product_variant_id] += $discount / $item['quantity'];
+                        }
+                    }
+                    // Tiền trả hàng
+
+                    if (!isset($moneyReturned[$product_variant_id])) {
+                        $moneyReturned[$product_variant_id] = $orderItemPrice - ($discountReturn[$product_variant_id] ?? 0);
+                    } else {
+                        $moneyReturned[$product_variant_id] += $orderItemPrice - ($discountReturn[$product_variant_id] ?? 0);
+                    }
+                }
+            } else {
+                foreach ($order['order_items'] as $item) {
+                    $price = $item['sale_price'] ?? $item['price'];
+                    $product_variant_id = $item['product_variant_id'];
+                    $orderItemPrice = $item['quantity'] * $price;
+                    if (!isset($moneyReturned[$product_variant_id])) {
+                        $moneyReturned[$product_variant_id] = $orderItemPrice;
+                    } else {
+                        $moneyReturned[$product_variant_id] += $orderItemPrice;
+                    }
+                }
+            }
+        }
+        return $moneyReturned;
+    }
+
 
 
     /** Top sản phẩm được đánh giá tốt nhất */
@@ -584,6 +755,79 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     {
         $request = request();
 
+        $start_date = null;
+        $end_date = null;
+
+        //Lọc theo các active
+        if (!empty($request->date)) {
+            switch ($request->date) {
+                case 'yesterday':
+                    $start_date = now()->subDay()->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->subDay()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+                case 'last_7_days':
+                    $start_date = now()->subDays(6)->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_30_days':
+                    $start_date = now()->subDays(29)->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_week':
+                    $start_date = now()->subWeek()->startOfWeek()->format('Y-m-d H:i:s');
+                    $end_date = now()->subWeek()->endOfWeek()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_week':
+                    $start_date = now()->startOfWeek()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfWeek()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_month':
+                    $start_date = now()->subMonth()->startOfMonth()->format('Y-m-d H:i:s');
+                    $end_date = now()->subMonth()->endOfMonth()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_month':
+                    $start_date = now()->startOfMonth()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfMonth()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_year':
+                    $start_date = now()->subYear()->startOfYear()->format('Y-m-d H:i:s');
+                    $end_date = now()->subYear()->endOfYear()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_year':
+                    $start_date = now()->startOfYear()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfYear()->format('Y-m-d H:i:s');
+                    break;
+
+                default:
+                    // Trạng thái lọc không hợp lệ
+                    return errorResponse(__('messages.statistic.error.active'));
+            }
+        }
+        // Lọc theo ngày cố định
+        elseif (!empty($request->start_date) && !empty($request->end_date)) {
+            try {
+
+                $start_date = Carbon::createFromFormat('Y-m-d', $request->start_date);
+                $end_date = Carbon::createFromFormat('Y-m-d', $request->end_date);
+
+                if ($start_date && $end_date) {
+                    $start_date = $start_date->startOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về đầu ngày
+                    $end_date = $end_date->endOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về cuối ngày
+                }
+            } catch (\Exception $e) {
+                return errorResponse(__('messages.statistic.error.format'));
+            }
+        } else {
+            return errorResponse(__('messages.statistic.error.request'));
+        }
+
         $columns = [
             'cart_items.product_variant_id',
             'product_variants.name',
@@ -602,6 +846,12 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
         $join = ['product_variants' => ['product_variants.id', 'cart_items.product_variant_id']];
 
+        $rawQuery = [
+            'whereRaw' => [
+                ['cart_items.created_at  BETWEEN ? AND ?', [$start_date, $end_date]],
+            ],
+        ];
+
         $popularProducts = $this->cartItemRepository->pagination(
             $columns,
             $conditions,
@@ -611,7 +861,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             [],
             $groupBy,
             [],
-            []
+            $rawQuery
         );
 
         return $popularProducts;
@@ -621,8 +871,80 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     {
         $request = request();
 
-        // Khách hàng có 5 đơn hàng trở lên là khách hàng trung thành
+        $start_date = null;
+        $end_date = null;
 
+        //Lọc theo các active
+        if (!empty($request->date)) {
+            switch ($request->date) {
+                case 'yesterday':
+                    $start_date = now()->subDay()->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->subDay()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+                case 'last_7_days':
+                    $start_date = now()->subDays(6)->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_30_days':
+                    $start_date = now()->subDays(29)->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_week':
+                    $start_date = now()->subWeek()->startOfWeek()->format('Y-m-d H:i:s');
+                    $end_date = now()->subWeek()->endOfWeek()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_week':
+                    $start_date = now()->startOfWeek()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfWeek()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_month':
+                    $start_date = now()->subMonth()->startOfMonth()->format('Y-m-d H:i:s');
+                    $end_date = now()->subMonth()->endOfMonth()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_month':
+                    $start_date = now()->startOfMonth()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfMonth()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'last_year':
+                    $start_date = now()->subYear()->startOfYear()->format('Y-m-d H:i:s');
+                    $end_date = now()->subYear()->endOfYear()->format('Y-m-d H:i:s');
+                    break;
+
+                case 'this_year':
+                    $start_date = now()->startOfYear()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfYear()->format('Y-m-d H:i:s');
+                    break;
+
+                default:
+                    // Trạng thái lọc không hợp lệ
+                    return errorResponse(__('messages.statistic.error.active'));
+            }
+        }
+        // Lọc theo ngày cố định
+        elseif (!empty($request->start_date) && !empty($request->end_date)) {
+            try {
+
+                $start_date = Carbon::createFromFormat('Y-m-d', $request->start_date);
+                $end_date = Carbon::createFromFormat('Y-m-d', $request->end_date);
+
+                if ($start_date && $end_date) {
+                    $start_date = $start_date->startOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về đầu ngày
+                    $end_date = $end_date->endOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về cuối ngày
+                }
+            } catch (\Exception $e) {
+                return errorResponse(__('messages.statistic.error.format'));
+            }
+        } else {
+            return errorResponse(__('messages.statistic.error.request'));
+        }
+
+        // Khách hàng có 5 đơn hàng trở lên là khách hàng trung thành
         $columns = [
             DB::raw('users.id AS customer_id'),
             DB::raw('users.fullname AS customer_name'),
@@ -643,7 +965,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
         $rawQuery = [
             'whereRaw' => [
-                ['orders.order_status = ? GROUP BY users.id HAVING COUNT(orders.id) > ?', ['completed', 5]],
+                ['(orders.ordered_at  BETWEEN ? AND ?) AND orders.order_status = ? GROUP BY users.id HAVING COUNT(orders.id) > ?', [$start_date, $end_date, 'completed', 5]],
             ],
         ];
 
@@ -658,7 +980,6 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             [],
             $rawQuery
         );
-
         return $loyalCustomers;
     }
 }
