@@ -205,7 +205,7 @@ const chartData = ref({
 const overviewData = ref(null);
 
 const getOverviewData = async () => {
-  const response = await getAll('statistic/report-overview');
+  const response = await getAll('statistics/report-overview');
 
   if (response) {
     overviewData.value = response;

@@ -20,8 +20,10 @@ use App\Services\BaseService;
 use App\Services\Interfaces\Statistic\StatisticServiceInterface;
 use Carbon\Carbon;
 use DateTime;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class StatisticService extends BaseService implements StatisticServiceInterface
 {
@@ -155,14 +157,11 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         return $data;
     }
 
-    public function revenueByDate()
+    private function getDateRangeByRequest($request)
     {
-        $request = request();
+        $start_date = '';
+        $end_date = '';
 
-        $start_date = null;
-        $end_date = null;
-
-        //Lọc theo các active
         if (!empty($request->date)) {
             switch ($request->date) {
                 case 'today':
@@ -174,18 +173,14 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                     $end_date = now()->subDay()->endOfDay()->format('Y-m-d H:i:s');
                     break;
                 case 'last_7_days':
-                    $start_date = now()->subDays(6)->startOfDay()->format('Y-m-d H:i:s');
+                case 'last_week':
+                    $start_date = now()->subDays(7)->startOfDay()->format('Y-m-d H:i:s');
                     $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
                     break;
 
                 case 'last_30_days':
-                    $start_date = now()->subDays(29)->startOfDay()->format('Y-m-d H:i:s');
+                    $start_date = now()->subDays(30)->startOfDay()->format('Y-m-d H:i:s');
                     $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
-                    break;
-
-                case 'last_week':
-                    $start_date = now()->subWeek()->startOfWeek()->format('Y-m-d H:i:s');
-                    $end_date = now()->subWeek()->endOfWeek()->format('Y-m-d H:i:s');
                     break;
 
                 case 'this_week':
@@ -212,139 +207,130 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                     $start_date = now()->startOfYear()->format('Y-m-d H:i:s');
                     $end_date = now()->endOfYear()->format('Y-m-d H:i:s');
                     break;
+                case 'custom':
+
+                    if (!$request->start_date || !$request->end_date) {
+                        break;
+                    }
+
+                    $start_date = Carbon::createFromFormat('d/m/Y', $request->start_date ?? '');
+                    $end_date = Carbon::createFromFormat('d/m/Y', $request->end_date ?? '');
+
+                    if ($start_date && $end_date) {
+                        $start_date = $start_date->startOfDay()->format('Y-m-d H:i:s');
+                        $end_date = $end_date->endOfDay()->format('Y-m-d H:i:s');
+                    }
+                    break;
 
                 default:
-                    // Trạng thái lọc không hợp lệ
-                    return errorResponse(__('messages.statistic.error.active'));
-            }
-        }
-        // Lọc theo ngày cố định
-        elseif (!empty($request->start_date) && !empty($request->end_date)) {
-            try {
-                $start_date = Carbon::createFromFormat('d/m/Y', $request->start_date);
-                $end_date = Carbon::createFromFormat('d/m/Y', $request->end_date);
-
-                if ($start_date && $end_date) {
-                    $start_date = $start_date->startOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về đầu ngày
-                    $end_date = $end_date->endOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về cuối ngày
-                }
-            } catch (\Exception $e) {
-                return errorResponse(__('messages.statistic.error.format'));
-            }
-        } else {
-            return errorResponse(__('messages.statistic.error.request'));
-        }
-
-        $columns = [
-            DB::raw('DATE(ordered_at) as order_date'), // Thống kê doanh thu theo ngày
-            DB::raw('COUNT(id) as total_orders'), // Số lượng đơn hàng
-            DB::raw('SUM(total_price) as total_price'), // Tổng tiền hàng
-            DB::raw('SUM(discount) as total_discount'), // Tổng tiền hàng trả lại
-            DB::raw('CAST(0 AS DECIMAL(15,2)) as money_returned'), // Tổng tiền hàng trả lại
-            DB::raw('CAST(0 AS DECIMAL(15,2)) as net_revenue'), // Tổng doanh thu thuần
-            DB::raw('SUM(shipping_fee) as total_shipping_fee'), // Tổng tiền ship
-            DB::raw('SUM(final_price) as total_revenue'), // Tổng doanh thu
-            DB::raw('CAST(0 AS DECIMAL(15,2)) as total_profit'), // Lợi nhuận gộp
-        ];
-
-        $conditions = [
-            'search' => addslashes($request->search),
-            'publish' => $request->publish,
-            'archive' => $request->boolean('archive'),
-        ];
-
-        $orderBy = ['order_date' => 'ASC'];
-
-        $groupBy = ['order_date'];
-
-        $rawQuery = [
-            'whereRaw' => [
-                ['ordered_at  BETWEEN ? AND ?', [$start_date, $end_date]],
-            ],
-        ];
-
-        $data = $this->orderRepository->pagination(
-            $columns,
-            $conditions,
-            20,
-            $orderBy,
-            [],
-            [],
-            $groupBy,
-            [],
-            $rawQuery
-        );
-
-        $moneyReturned = $this->orderRepository->pagination(
-            [
-                DB::raw('DATE(ordered_at) as order_date'),
-                DB::raw('SUM(total_price) as money_returned'),
-            ],
-            [
-                'where' => [
-                    'order_status' => 'returned' // lấy ra những đơn hàng bị hoàn
-                ]
-            ],
-            null,
-            $orderBy,
-            [],
-            [],
-            $groupBy,
-            [],
-            $rawQuery
-        );
-
-        foreach ($data as $item) {
-
-            $item->net_revenue = number_format($item->total_price - $item->total_discount, 2, '.', '');
-
-            foreach ($moneyReturned as $return) {
-
-                if ($item->order_date === $return->order_date) {
-
-                    $item->money_returned = number_format($return->money_returned, 2, '.', '');
-
-                    $item->net_revenue = number_format($item->net_revenue - $item->money_returned, 2, '.', '');
-
-                    $item->total_revenue = number_format($item->total_revenue - $item->money_returned, 2, '.', '');
-                }
+                    break;
             }
         }
 
-        $rawQuery1 = [
-            'whereRaw' => [
-                ['created_at  BETWEEN ? AND ?', [$start_date, $end_date]],
-            ],
-        ];
-
-        $orderItems = $this->orderItemRepository->pagination(
-            [
-                DB::raw('DATE(created_at) as order_date'),
-                DB::raw('SUM(cost_price * quantity) AS total_cost'),
-            ],
-            [],
-            null,
-            $orderBy,
-            [],
-            [],
-            $groupBy,
-            [],
-            $rawQuery1
-        );
-
-        // Tính lợi nhuận theo từng ngày
-        foreach ($data as $item) {
-            foreach ($orderItems as $orderItem) {
-                if ($item->order_date === $orderItem->order_date) {
-                    $item->order_date = Carbon::parse($item->order_date)->format('d/m/Y');
-                    $item->total_profit = number_format($item->total_revenue - $orderItem->total_cost, 2, '.', '');
-                }
-            }
-        }
-
-        return $data;
+        return [$start_date, $end_date];
     }
 
+    public function revenueByDate()
+    {
+        try {
+            $request = request();
+
+            $dateRange = $this->getDateRangeByRequest($request);
+            $start_date = $dateRange[0] ?? null;
+            $end_date = $dateRange[1] ?? null;
+
+            $allDates = [];
+            $currentDate = Carbon::parse($start_date);
+
+            // Dung de lay ra nhung ngay khong co don hang van co du lieu
+            while ($currentDate->lte($end_date)) {
+                $allDates[$currentDate->toDateString()] = [
+                    'order_date' => $currentDate->toDateString(),
+                    'total_orders' => 0,
+                    'net_revenue' => 0,
+                    'total_shipping_fee' => 0,
+                    'total_profit' => 0,
+                    'total_discount' => 0,
+                ];
+                $currentDate->addDay();
+            }
+
+            $ordersByDate = Order::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                $query->where('order_status', Order::ORDER_STATUS_COMPLETED);
+                $query->whereBetween('ordered_at', [$start_date, $end_date]);
+            })
+                ->select(
+                    DB::raw('DATE(ordered_at) as order_date'), // Ngay
+                    DB::raw('COUNT(id) as total_orders'), // So don hang
+                    DB::raw('SUM(final_price) as net_revenue'), // Doanh thu thuan
+                    DB::raw('SUM(shipping_fee) as total_shipping_fee'), // Ship
+                    DB::raw('SUM(discount) as total_discount'), // Discount
+                )
+                ->groupBy('order_date')
+                ->orderBy('order_date', 'asc')
+                ->get()
+                ->keyBy('order_date');
+
+            $profitByDate = OrderItem::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                $query->whereHas('order', function ($q) use ($start_date, $end_date) {
+                    $q->where('order_status', Order::ORDER_STATUS_COMPLETED)
+                        ->whereBetween('ordered_at', [$start_date, $end_date]);
+                });
+            })
+                ->select(
+                    DB::raw('DATE(orders.ordered_at) as order_date'),
+                    DB::raw('SUM((IFNULL(sale_price, price) - cost_price) * quantity) as total_profit')
+                )
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->groupBy('order_date')
+                ->get()
+                ->keyBy('order_date');
+
+            foreach ($allDates as $date => &$data) {
+                if (isset($ordersByDate[$date])) {
+                    $data['total_orders'] = $ordersByDate[$date]['total_orders'];
+                    $data['net_revenue'] = $ordersByDate[$date]['net_revenue'];
+                    $data['total_shipping_fee'] = $ordersByDate[$date]['total_shipping_fee'];
+                    $data['total_discount'] = $ordersByDate[$date]['total_discount'];
+                }
+
+                if (isset($profitByDate[$date])) {
+                    $data['total_profit'] = $profitByDate[$date]['total_profit']; // Loi nhuan
+                }
+            }
+
+            $allDatesCollection = collect($allDates)->values();
+
+            if ($request->has('chart')) {
+                $chartData = $this->getChart($allDatesCollection, 'net_revenue');
+            }
+
+            $pageSize = request()->get('pageSize', 20);
+            $paginatedData = new LengthAwarePaginator(
+                $allDatesCollection->forPage(1, $pageSize),
+                $allDatesCollection->count(),
+                $pageSize,
+                1,
+            );
+            return [
+                'chartData' => $chartData ?? [],
+                'data' => $paginatedData,
+            ];
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return [];
+        }
+    }
+
+
+    private function getChart($allDatesCollection, $column)
+    {
+        $chartData = [];
+        foreach ($allDatesCollection as $date => $data) {
+            $chartData[] = $data[$column];
+        }
+        return $chartData;
+    }
 
     private function preparePayload(): array
     {
@@ -580,77 +566,11 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         $start_date = null;
         $end_date = null;
 
-        //Lọc theo các active
-        if (!empty($request->date)) {
-            switch ($request->date) {
-                case 'today':
-                    $start_date = now()->startOfDay()->format('Y-m-d H:i:s');
-                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
-                    break;
-                case 'yesterday':
-                    $start_date = now()->subDay()->startOfDay()->format('Y-m-d H:i:s');
-                    $end_date = now()->subDay()->endOfDay()->format('Y-m-d H:i:s');
-                    break;
-                case 'last_7_days':
-                    $start_date = now()->subDays(6)->startOfDay()->format('Y-m-d H:i:s');
-                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
-                    break;
+        $dateRange = $this->getDateRangeByRequest($request);
 
-                case 'last_30_days':
-                    $start_date = now()->subDays(29)->startOfDay()->format('Y-m-d H:i:s');
-                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
-                    break;
-
-                case 'last_week':
-                    $start_date = now()->subWeek()->startOfWeek()->format('Y-m-d H:i:s');
-                    $end_date = now()->subWeek()->endOfWeek()->format('Y-m-d H:i:s');
-                    break;
-
-                case 'this_week':
-                    $start_date = now()->startOfWeek()->format('Y-m-d H:i:s');
-                    $end_date = now()->endOfWeek()->format('Y-m-d H:i:s');
-                    break;
-
-                case 'last_month':
-                    $start_date = now()->subMonth()->startOfMonth()->format('Y-m-d H:i:s');
-                    $end_date = now()->subMonth()->endOfMonth()->format('Y-m-d H:i:s');
-                    break;
-
-                case 'this_month':
-                    $start_date = now()->startOfMonth()->format('Y-m-d H:i:s');
-                    $end_date = now()->endOfMonth()->format('Y-m-d H:i:s');
-                    break;
-
-                case 'last_year':
-                    $start_date = now()->subYear()->startOfYear()->format('Y-m-d H:i:s');
-                    $end_date = now()->subYear()->endOfYear()->format('Y-m-d H:i:s');
-                    break;
-
-                case 'this_year':
-                    $start_date = now()->startOfYear()->format('Y-m-d H:i:s');
-                    $end_date = now()->endOfYear()->format('Y-m-d H:i:s');
-                    break;
-
-                default:
-                    // Trạng thái lọc không hợp lệ
-                    return errorResponse(__('messages.statistic.error.active'));
-            }
-        }
-        // Lọc theo ngày cố định
-        elseif (!empty($request->start_date) && !empty($request->end_date)) {
-            try {
-                $start_date = Carbon::createFromFormat('d/m/Y', $request->start_date);
-                $end_date = Carbon::createFromFormat('d/m/Y', $request->end_date);
-
-                if ($start_date && $end_date) {
-                    $start_date = $start_date->startOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về đầu ngày
-                    $end_date = $end_date->endOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về cuối ngày
-                }
-            } catch (\Exception $e) {
-                return errorResponse(__('messages.statistic.error.format'));
-            }
-        } else {
-            return errorResponse(__('messages.statistic.error.request'));
+        if (!empty($dateRange[0]) && !empty($dateRange[1])) {
+            $start_date = $dateRange[0];
+            $end_date = $dateRange[1];
         }
 
         $columns = [

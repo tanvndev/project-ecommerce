@@ -233,8 +233,8 @@ Route::middleware(['api'])->group(function () {
 
     // Statistics
     Route::controller(StatisticController::class)
-        ->prefix('statistic')
-        ->name('statistic.')
+        ->prefix('statistics')
+        ->name('statistics.')
         ->group(function () {
             // Thống kê tổng quan
             Route::get('report-overview', 'reportOverview')->name('reportOverview');
@@ -243,7 +243,7 @@ Route::middleware(['api'])->group(function () {
 
             // Thống kê sản phẩm phổ biến được thêm vào giỏ hàng
 
-            Route::get('product', [StatisticController::class, 'getProductReport']);
+            Route::get('product', 'getProductReport')->name('getProductReport');
 
             Route::get('popular-products', 'popularProducts')->name('popularProducts');
             // Thống kê khách hàng trung thành

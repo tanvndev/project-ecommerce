@@ -34,24 +34,35 @@
           </div>
         </a-card>
 
+        <!-- <div v-else class="mt-3">
+          <a-skeleton active />
+        </div> -->
+
         <a-divider></a-divider>
 
-        <a-table :dataSource="dataSource" :columns="columns" />
+        <a-table :dataSource="dataSource" :columns="columns" v-if="!isLoading"></a-table>
+
+        <a-skeleton active v-else />
       </div>
     </template>
   </MasterLayout>
 </template>
 <script setup>
 import { MasterLayout, ToolboxFilter } from '@/components/backend';
+import axios from '@/configs/axios';
+import { computed, nextTick, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute();
 const chartFor = ref('day');
+const date = computed(() => route.query.date);
+const isLoading = ref(false);
 const columns = [
   {
     title: 'Ngày',
-    dataIndex: 'ordered_at',
-    key: 'ordered_at'
+    dataIndex: 'order_date',
+    key: 'order_date'
   },
   {
     title: 'Số lượng đơn',
@@ -59,39 +70,33 @@ const columns = [
     key: 'total_orders'
   },
   {
-    title: 'Tiền hàng',
-    dataIndex: 'total_amount',
-    key: 'total_amount'
+    title: 'Doanh thu thuần',
+    dataIndex: 'net_revenue',
+    key: 'net_revenue'
   },
   {
     title: 'Giảm giá',
-    key: 'discount',
-    dataIndex: 'discount'
+    key: 'total_discount',
+    dataIndex: 'total_discount'
   },
   {
     title: 'Doanh thu thuần',
-    key: 'net_revenue',
-    dataIndex: 'net_revenue'
+    key: 'total_profit',
+    dataIndex: 'total_profit'
   },
   {
     title: 'Phí giao hàng',
-    key: 'shipping_price',
-    dataIndex: 'shipping_price'
+    key: 'total_shipping_fee',
+    dataIndex: 'total_shipping_fee'
   },
-  {
-    title: 'Tổng doanh thu',
-    key: 'total_revenue',
-    dataIndex: 'total_revenue'
-  },
+
   {
     title: 'Lợi nhuận gộp',
-    key: 'total_revenue_detail',
-    dataIndex: 'total_revenue_detail'
+    key: 'total_profit',
+    dataIndex: 'total_profit'
   }
 ];
-const dataSource = [];
-
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+const dataSource = ref([]);
 
 const dataChart = ref({
   labels: [],
@@ -114,8 +119,8 @@ let chartInstance = null;
 const handleOnChangeDate = async ({ allDay }) => {
   dataChart.value.labels = allDay;
 
-  await fetchRevenueData(allDay);
-  console.log(dataChart.value);
+  await fetchRevenueData();
+  await nextTick();
 
   const ctx = document.getElementById('bar-chart');
 
@@ -133,13 +138,24 @@ const handleOnChangeDate = async ({ allDay }) => {
       }
     });
   }
-
-  console.log(dataChart.value);
 };
 
-// Ensure chartInstance is defined outside the function scope
-const fetchRevenueData = async (dates) => {
-  dataChart.value.datasets[0].data = dates.map((date) => Math.floor(Math.random() * 100)); // Thay thế bằng dữ liệu thực tế
+const fetchRevenueData = async () => {
+  isLoading.value = true;
+  try {
+    const response = await axios.get('/statistics/revenue-by-date', {
+      params: {
+        date: date.value,
+        chart: true
+      }
+    });
+
+    dataChart.value.datasets[0].data = response.data?.chartData;
+    dataSource.value = response.data?.data?.data;
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isLoading.value = false;
+  }
 };
-onMounted(() => {});
 </script>
