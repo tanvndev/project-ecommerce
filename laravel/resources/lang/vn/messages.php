@@ -165,7 +165,7 @@ return [
     'statistic' => [
         'error' => [
             'active' => 'Trạng thái lọc không hợp lệ',
-            'format' => 'Định dạng ngày bắt đầu và ngày kết thúc phải thuộc kiểu timestamp',
+            'format' => ' Ngày bắt đầu và ngày kết thúc phải đúng định dạng DD/MM/YYYY',
             'request' => 'Request không hợp lệ',
         ]
     ],

@@ -165,6 +165,10 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         //Lọc theo các active
         if (!empty($request->date)) {
             switch ($request->date) {
+                case 'today':
+                    $start_date = now()->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
                 case 'yesterday':
                     $start_date = now()->subDay()->startOfDay()->format('Y-m-d H:i:s');
                     $end_date = now()->subDay()->endOfDay()->format('Y-m-d H:i:s');
@@ -217,9 +221,8 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         // Lọc theo ngày cố định
         elseif (!empty($request->start_date) && !empty($request->end_date)) {
             try {
-
-                $start_date = Carbon::createFromFormat('Y-m-d', $request->start_date);
-                $end_date = Carbon::createFromFormat('Y-m-d', $request->end_date);
+                $start_date = Carbon::createFromFormat('d/m/Y', $request->start_date);
+                $end_date = Carbon::createFromFormat('d/m/Y', $request->end_date);
 
                 if ($start_date && $end_date) {
                     $start_date = $start_date->startOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về đầu ngày
@@ -333,6 +336,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         foreach ($data as $item) {
             foreach ($orderItems as $orderItem) {
                 if ($item->order_date === $orderItem->order_date) {
+                    $item->order_date = Carbon::parse($item->order_date)->format('d/m/Y');
                     $item->total_profit = number_format($item->total_revenue - $orderItem->total_cost, 2, '.', '');
                 }
             }
@@ -579,6 +583,10 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         //Lọc theo các active
         if (!empty($request->date)) {
             switch ($request->date) {
+                case 'today':
+                    $start_date = now()->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
                 case 'yesterday':
                     $start_date = now()->subDay()->startOfDay()->format('Y-m-d H:i:s');
                     $end_date = now()->subDay()->endOfDay()->format('Y-m-d H:i:s');
@@ -631,9 +639,8 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         // Lọc theo ngày cố định
         elseif (!empty($request->start_date) && !empty($request->end_date)) {
             try {
-
-                $start_date = Carbon::createFromFormat('Y-m-d', $request->start_date);
-                $end_date = Carbon::createFromFormat('Y-m-d', $request->end_date);
+                $start_date = Carbon::createFromFormat('d/m/Y', $request->start_date);
+                $end_date = Carbon::createFromFormat('d/m/Y', $request->end_date);
 
                 if ($start_date && $end_date) {
                     $start_date = $start_date->startOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về đầu ngày
@@ -695,6 +702,10 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         //Lọc theo các active
         if (!empty($request->date)) {
             switch ($request->date) {
+                case 'today':
+                    $start_date = now()->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
                 case 'yesterday':
                     $start_date = now()->subDay()->startOfDay()->format('Y-m-d H:i:s');
                     $end_date = now()->subDay()->endOfDay()->format('Y-m-d H:i:s');
@@ -747,9 +758,8 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         // Lọc theo ngày cố định
         elseif (!empty($request->start_date) && !empty($request->end_date)) {
             try {
-
-                $start_date = Carbon::createFromFormat('Y-m-d', $request->start_date);
-                $end_date = Carbon::createFromFormat('Y-m-d', $request->end_date);
+                $start_date = Carbon::createFromFormat('d/m/Y', $request->start_date);
+                $end_date = Carbon::createFromFormat('d/m/Y', $request->end_date);
 
                 if ($start_date && $end_date) {
                     $start_date = $start_date->startOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về đầu ngày
