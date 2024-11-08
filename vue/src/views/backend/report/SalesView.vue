@@ -34,15 +34,33 @@
           </div>
         </a-card>
 
-        <!-- <div v-else class="mt-3">
-          <a-skeleton active />
-        </div> -->
-
         <a-divider></a-divider>
 
-        <a-table :dataSource="dataSource" :columns="columns" v-if="!isLoading"></a-table>
-
-        <a-skeleton active v-else />
+        <a-table
+          :dataSource="dataSource"
+          :columns="columns"
+          :loading="isLoading"
+          :pagination="pagination"
+          @change="handleTableChange"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'order_date'">
+              {{ dayjs(record.order_date).format('DD/MM/YYYY') }}
+            </template>
+            <template v-if="column.dataIndex === 'net_revenue'">
+              {{ formatCurrency(record.net_revenue) }}
+            </template>
+            <template v-if="column.dataIndex === 'total_profit'">
+              {{ formatCurrency(record.total_profit) }}
+            </template>
+            <template v-if="column.dataIndex === 'total_discount'">
+              {{ formatCurrency(record.total_discount) }}
+            </template>
+            <template v-if="column.dataIndex === 'total_shipping_fee'">
+              {{ formatCurrency(record.total_shipping_fee) }}
+            </template>
+          </template>
+        </a-table>
       </div>
     </template>
   </MasterLayout>
@@ -50,13 +68,15 @@
 <script setup>
 import { MasterLayout, ToolboxFilter } from '@/components/backend';
 import axios from '@/configs/axios';
+import { formatCurrency } from '@/utils/format';
+import dayjs from 'dayjs';
 import { computed, nextTick, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();
 const route = useRoute();
 const chartFor = ref('day');
-const date = computed(() => route.query.date);
+const date = computed(() => route.query.date || 'last_30_days');
 const isLoading = ref(false);
 const columns = [
   {
@@ -79,11 +99,7 @@ const columns = [
     key: 'total_discount',
     dataIndex: 'total_discount'
   },
-  {
-    title: 'Doanh thu thuần',
-    key: 'total_profit',
-    dataIndex: 'total_profit'
-  },
+
   {
     title: 'Phí giao hàng',
     key: 'total_shipping_fee',
@@ -96,7 +112,16 @@ const columns = [
     dataIndex: 'total_profit'
   }
 ];
+const pageSize = ref(20);
+const currentPage = ref(1);
 const dataSource = ref([]);
+const totalPages = ref(0);
+
+const pagination = computed(() => ({
+  total: totalPages.value,
+  current: currentPage.value,
+  pageSize: pageSize.value
+}));
 
 const dataChart = ref({
   labels: [],
@@ -146,16 +171,26 @@ const fetchRevenueData = async () => {
     const response = await axios.get('/statistics/revenue-by-date', {
       params: {
         date: date.value,
-        chart: true
+        chart: true,
+        page: currentPage.value,
+        pageSize: pageSize.value
       }
     });
 
     dataChart.value.datasets[0].data = response.data?.chartData;
     dataSource.value = response.data?.data?.data;
+    totalPages.value = response.data?.total;
   } catch (error) {
     console.log(error);
   } finally {
     isLoading.value = false;
   }
+};
+
+const handleTableChange = async ({ current, pageSize }) => {
+  currentPage.value = current;
+  pageSize.value = pageSize;
+
+  await fetchRevenueData();
 };
 </script>

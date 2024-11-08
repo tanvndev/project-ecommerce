@@ -243,11 +243,18 @@ const getAllDates = (range) => {
 
 onMounted(() => {
   const { date, start_date, end_date } = query;
-  optionActive.value = date || 'today';
+  optionActive.value = date || 'last_30_days';
 
   const filterOption = filterDateOptions.value
     .flat()
     .find((option) => option.active === optionActive.value);
+
+  router.push({
+    query: {
+      ...query,
+      date: optionActive.value
+    }
+  });
 
   if (date === 'custom') {
     dateText.value = `Tuỳ chọn (${start_date} - ${end_date})`;
@@ -255,9 +262,9 @@ onMounted(() => {
     dateText.value = `${filterOption.label} (${filterOption.value})`;
   } else {
     handleChangeDate({
-      label: 'Hôm nay',
-      value: formatDate(today),
-      active: 'today'
+      label: '30 ngày qua',
+      value: `${formatDate(thirtyDaysAgo)} - ${formatDate(today)}`,
+      active: 'last_30_days'
     });
   }
 
