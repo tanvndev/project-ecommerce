@@ -235,92 +235,92 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         try {
             $request = request();
 
-            $dateRange = $this->getDateRangeByRequest($request);
-            $start_date = $dateRange[0] ?? null;
-            $end_date = $dateRange[1] ?? null;
+            [$start_date, $end_date] = $this->getDateRangeByRequest($request);
 
-            $allDates = [];
-            $currentDate = Carbon::parse($start_date);
+            $ordersCacheKey = "orders_by_date_{$start_date}_{$end_date}";
+            $profitCacheKey = "profit_by_date_{$start_date}_{$end_date}";
+            $allDatesCacheKey = "all_dates_collection_{$start_date}_{$end_date}";
 
-            // Dung de lay ra nhung ngay khong co don hang van co du lieu
-            while ($currentDate->lte($end_date)) {
-                $allDates[$currentDate->toDateString()] = [
-                    'order_date' => $currentDate->toDateString(),
-                    'total_orders' => 0,
-                    'net_revenue' => 0,
-                    'total_shipping_fee' => 0,
-                    'total_profit' => 0,
-                    'total_discount' => 0,
-                ];
-                $currentDate->addDay();
-            }
+            $ordersByDate = Cache::remember($ordersCacheKey, 15, function () use ($start_date, $end_date) {
+                return Order::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                    $query->where('order_status', Order::ORDER_STATUS_COMPLETED);
+                    $query->whereBetween('ordered_at', [$start_date, $end_date]);
+                })
+                    ->select(
+                        DB::raw('DATE(ordered_at) as order_date'), // Ngay
+                        DB::raw('COUNT(id) as total_orders'), // So don hang
+                        DB::raw('SUM(final_price) as net_revenue'), // Doanh thu thuan
+                        DB::raw('SUM(shipping_fee) as total_shipping_fee'), // Ship
+                        DB::raw('SUM(discount) as total_discount'), // Discount
+                    )
+                    ->groupBy('order_date')
+                    ->orderBy('order_date', 'asc')
+                    ->get()
+                    ->keyBy('order_date');
+            });
 
-            $ordersByDate = Order::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
-                $query->where('order_status', Order::ORDER_STATUS_COMPLETED);
-                $query->whereBetween('ordered_at', [$start_date, $end_date]);
-            })
-                ->select(
-                    DB::raw('DATE(ordered_at) as order_date'), // Ngay
-                    DB::raw('COUNT(id) as total_orders'), // So don hang
-                    DB::raw('SUM(final_price) as net_revenue'), // Doanh thu thuan
-                    DB::raw('SUM(shipping_fee) as total_shipping_fee'), // Ship
-                    DB::raw('SUM(discount) as total_discount'), // Discount
-                )
-                ->groupBy('order_date')
-                ->orderBy('order_date', 'asc')
-                ->get()
-                ->keyBy('order_date');
+            $profitByDate = Cache::remember($profitCacheKey, 15, function () use ($start_date, $end_date) {
+                return OrderItem::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                    $query->whereHas('order', function ($q) use ($start_date, $end_date) {
+                        $q->where('order_status', Order::ORDER_STATUS_COMPLETED)
+                            ->whereBetween('ordered_at', [$start_date, $end_date]);
+                    });
+                })
+                    ->select(
+                        DB::raw('DATE(orders.ordered_at) as order_date'),
+                        DB::raw('SUM((COALESCE(sale_price, price, 0) - COALESCE(cost_price, 0)) * COALESCE(quantity, 0) - COALESCE(orders.discount, 0) - COALESCE(orders.shipping_fee, 0)) as total_profit')
+                    )
+                    ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                    ->groupBy('order_date')
+                    ->get()
+                    ->keyBy('order_date');
+            });
 
-            $profitByDate = OrderItem::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
-                $query->whereHas('order', function ($q) use ($start_date, $end_date) {
-                    $q->where('order_status', Order::ORDER_STATUS_COMPLETED)
-                        ->whereBetween('ordered_at', [$start_date, $end_date]);
-                });
-            })
-                ->select(
-                    DB::raw('DATE(orders.ordered_at) as order_date'),
-                    DB::raw('SUM((IFNULL(sale_price, price) - cost_price) * quantity) as total_profit')
-                )
-                ->join('orders', 'order_items.order_id', '=', 'orders.id')
-                ->groupBy('order_date')
-                ->get()
-                ->keyBy('order_date');
-
-            foreach ($allDates as $date => &$data) {
-                if (isset($ordersByDate[$date])) {
-                    $data['total_orders'] = $ordersByDate[$date]['total_orders'];
-                    $data['net_revenue'] = $ordersByDate[$date]['net_revenue'];
-                    $data['total_shipping_fee'] = $ordersByDate[$date]['total_shipping_fee'];
-                    $data['total_discount'] = $ordersByDate[$date]['total_discount'];
+            $allDatesCollection = Cache::remember($allDatesCacheKey, 15, function () use ($start_date, $end_date, $ordersByDate, $profitByDate) {
+                $allDates = [];
+                for ($currentDate = Carbon::parse($start_date); $currentDate->lte($end_date); $currentDate->addDay()) {
+                    $date = $currentDate->toDateString();
+                    $allDates[] = [
+                        'order_date' => $date,
+                        'total_orders' => $ordersByDate[$date]['total_orders'] ?? 0,
+                        'net_revenue' => $ordersByDate[$date]['net_revenue'] ?? 0,
+                        'total_shipping_fee' => $ordersByDate[$date]['total_shipping_fee'] ?? 0,
+                        'total_profit' => $profitByDate[$date]['total_profit'] ?? 0,
+                        'total_discount' => $ordersByDate[$date]['total_discount'] ?? 0,
+                    ];
                 }
 
-                if (isset($profitByDate[$date])) {
-                    $data['total_profit'] = $profitByDate[$date]['total_profit']; // Loi nhuan
-                }
-            }
+                return collect($allDates);
+            });
 
-            $allDatesCollection = collect($allDates)->values();
+            $chartData = $request->has('chart')
+                ? Cache::remember("chart_data_{$start_date}_{$end_date}", 15, function () use ($allDatesCollection) {
+                    return $this->getChart($allDatesCollection, 'net_revenue');
+                })
+                : [];
 
-            if ($request->has('chart')) {
-                $chartData = $this->getChart($allDatesCollection, 'net_revenue');
-            }
+            $pageSize = $request->input('pageSize', 20);
+            $page = $request->input('page', 1);
 
-            $pageSize = request()->get('pageSize', 20);
             $paginatedData = new LengthAwarePaginator(
-                $allDatesCollection->forPage(1, $pageSize),
+                $allDatesCollection->forPage($page, $pageSize),
                 $allDatesCollection->count(),
                 $pageSize,
-                1,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
             );
+
             return [
-                'chartData' => $chartData ?? [],
+                'chartData' => $chartData,
                 'data' => $paginatedData,
             ];
         } catch (\Exception $e) {
             Log::error($e->getMessage());
-            return [];
+            return response()->json(['error' => 'Có lỗi xảy ra'], 500);
         }
     }
+
+
 
 
     private function getChart($allDatesCollection, $column)
