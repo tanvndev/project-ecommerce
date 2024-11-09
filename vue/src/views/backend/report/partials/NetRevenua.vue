@@ -5,9 +5,9 @@
         <div class="flex items-center justify-between">
           <div class="mb-3">
             <span class="border-b border-dashed">Doanh thu thuần</span>
-            <TooltipComponent title="Doanh thu thuần" />
+            <TooltipComponent title="Doanh thu thuần = Tiền hàng - Khuyến mại " />
           </div>
-          <RouterLink to="#" class="report-block-link">
+          <RouterLink :to="{ name: 'report.sales' }" class="report-block-link">
             <i class="far fa-arrow-circle-right"></i>
           </RouterLink>
         </div>

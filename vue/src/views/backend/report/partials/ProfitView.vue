@@ -4,10 +4,10 @@
       <div class="">
         <div class="flex items-center justify-between">
           <div class="mb-3">
-            <span class="border-b border-dashed">Lợi nhuận</span>
-            <TooltipComponent title="Doanh thu thuần" />
+            <span class="border-b border-dashed">Lợi nhuận gộp</span>
+            <TooltipComponent title="Lợi nhuận gộp = Doanh thu thuần - Giá vốn hàng bán" />
           </div>
-          <RouterLink to="#" class="report-block-link">
+          <RouterLink :to="{ name: 'report.sales' }" class="report-block-link">
             <i class="far fa-arrow-circle-right"></i>
           </RouterLink>
         </div>

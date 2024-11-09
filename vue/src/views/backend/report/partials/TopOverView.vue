@@ -6,7 +6,7 @@
           <div class="flex items-center justify-between">
             <div>
               <span class="border-b border-dashed">Doanh thu thuần</span>
-              <TooltipComponent title="Doanh thu thuần" />
+              <TooltipComponent title="Doanh thu thuần = Tiền hàng - Khuyến mại " />
             </div>
             <RouterLink :to="{ name: 'report.sales' }" class="report-block-link">
               <i class="far fa-arrow-circle-right"></i>
@@ -22,9 +22,9 @@
           <div class="flex items-center justify-between">
             <div>
               <span class="border-b border-dashed">Lợi nhuận gộp</span>
-              <TooltipComponent title="Lợi nhuận gộp" />
+              <TooltipComponent title="Lợi nhuận gộp = Doanh thu thuần - Giá vốn hàng bán" />
             </div>
-            <RouterLink to="#" class="report-block-link">
+            <RouterLink :to="{ name: 'report.sales' }" class="report-block-link">
               <i class="far fa-arrow-circle-right"></i>
             </RouterLink>
           </div>
@@ -38,12 +38,9 @@
           <div class="flex items-center justify-between">
             <div>
               <span class="border-b border-dashed">Đơn hàng</span>
-              <TooltipComponent
-                title="Giá trị tồn kho
-"
-              />
+              <TooltipComponent title="Số lượng đơn hàng mới trong khoảng thời gian đã chọn" />
             </div>
-            <RouterLink to="#" class="report-block-link">
+            <RouterLink :to="{ name: 'report.sales' }" class="report-block-link">
               <i class="far fa-arrow-circle-right"></i>
             </RouterLink>
           </div>
@@ -57,10 +54,7 @@
           <div class="flex items-center justify-between">
             <div>
               <span class="border-b border-dashed">Giá trị tồn kho </span>
-              <TooltipComponent
-                title="Giá trị tồn kho
-"
-              />
+              <TooltipComponent title="Giá trị tồn kho = Giá vốn * Tồn kho" />
             </div>
             <RouterLink to="#" class="report-block-link">
               <i class="far fa-arrow-circle-right"></i>
