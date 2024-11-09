@@ -243,7 +243,7 @@ Route::middleware(['api'])->group(function () {
 
             // Thống kê sản phẩm phổ biến được thêm vào giỏ hàng
 
-            Route::get('product', 'getProductReport')->name('getProductReport');
+            Route::get('products', 'getProductReport')->name('getProductReport');
 
             Route::get('popular-products', 'popularProducts')->name('popularProducts');
             // Thống kê khách hàng trung thành

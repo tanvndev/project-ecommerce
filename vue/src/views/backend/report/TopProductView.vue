@@ -20,23 +20,16 @@
         <div class="flex justify-between">
           <!-- Toolbox Filter -->
           <ToolboxFilter @onChangeDate="handleOnChangeDate" />
+
           <a-select style="width: 150px" size="large" placeholder="Dạng biểu đồ" v-model="chartFor">
             <a-select-option value="day">Theo ngày</a-select-option>
             <a-select-option value="month">Theo tháng</a-select-option>
             <a-select-option value="year">Theo năm</a-select-option>
           </a-select>
         </div>
-        <a-card class="mt-3">
-          <h3 class="mb-2 font-bold">Tổng doanh thu</h3>
-
-          <div>
-            <canvas id="bar-chart"></canvas>
-          </div>
-        </a-card>
-
-        <a-divider></a-divider>
 
         <a-table
+          class="mt-4"
           :dataSource="dataSource"
           :columns="columns"
           :pagination="pagination"
@@ -70,9 +63,10 @@ import { MasterLayout, ToolboxFilter } from '@/components/backend';
 import { usePagination } from '@/composables';
 import axios from '@/configs/axios';
 import { formatCurrency } from '@/utils/format';
+import { debounce } from '@/utils/helpers';
 import dayjs from 'dayjs';
 import _ from 'lodash';
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -84,104 +78,54 @@ const end_date = computed(() => route.query.end_date || '');
 const isLoading = ref(false);
 const columns = [
   {
-    title: 'Ngày',
-    dataIndex: 'order_date',
-    key: 'order_date'
-  },
-  {
-    title: 'Số lượng đơn',
-    dataIndex: 'total_orders',
-    key: 'total_orders'
-  },
-  {
-    title: 'Doanh thu thuần',
-    dataIndex: 'net_revenue',
-    key: 'net_revenue'
+    title: 'Sản phẩm',
+    dataIndex: 'product_variant_name',
+    key: 'product_variant_name'
   },
   {
     title: 'Giảm giá',
-    key: 'total_discount',
-    dataIndex: 'total_discount'
+    dataIndex: 'total_discount',
+    key: 'total_discount'
   },
-
+  {
+    title: 'Số lượng đơn',
+    key: 'total_quantity',
+    dataIndex: 'total_quantity'
+  },
   {
     title: 'Phí giao hàng',
     key: 'total_shipping_fee',
     dataIndex: 'total_shipping_fee'
   },
-
   {
-    title: 'Lợi nhuận gộp',
-    key: 'total_profit',
-    dataIndex: 'total_profit'
+    title: 'Doanh thu thuần',
+    dataIndex: 'total_profit',
+    key: 'total_profit'
   }
 ];
-const dataSource = ref([]);
 const { pagination, onChangePagination, handleTableChange } = usePagination();
 
-const dataChart = ref({
-  labels: [],
-  datasets: [
-    {
-      label: 'Doanh thu',
-      backgroundColor: '#0088ff',
-      data: []
-    }
-  ],
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    lineTension: 1
-  }
-});
+const dataSource = ref([]);
 
-let chartInstance = null;
-
-const handleOnChangeDate = async ({ allDay }) => {
-  dataChart.value.labels = allDay;
-
-  await fetchRevenueData();
-  await nextTick();
-
-  const ctx = document.getElementById('bar-chart');
-
-  if (chartInstance) {
-    chartInstance.data.labels = dataChart.value.labels;
-    chartInstance.data.datasets = dataChart.value.datasets; // Make sure you update datasets as well
-    chartInstance.update();
-  } else {
-    // eslint-disable-next-line no-undef
-    chartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: dataChart.value,
-      options: {
-        responsive: true
-      }
-    });
-  }
-};
-
-const fetchRevenueData = async () => {
+const fetchData = async () => {
   isLoading.value = true;
   try {
-    const { data } = await axios.get('/statistics/revenue-by-date', {
+    const { data } = await axios.get('/statistics/products?condition=product_sell_best', {
       params: {
         date: date.value,
         start_date: start_date.value,
         end_date: end_date.value,
-        chart: true,
         page: pagination.current,
         pageSize: pagination.pageSize
       }
     });
 
-    const newData = _.map(data?.data?.data, (value) => value);
+    const newData = _.map(data?.data, (value) => value);
 
-    dataChart.value.datasets[0].data = data?.chartData;
     dataSource.value = newData;
-    pagination.current = data?.data.current_page;
-    pagination.total = data?.data.total;
-    pagination.pageSize = data?.data.per_page;
+    pagination.current = data?.current_page;
+    pagination.total = data?.total;
+    pagination.pageSize = data?.per_page;
   } catch (error) {
     console.log(error);
   } finally {
@@ -189,5 +133,11 @@ const fetchRevenueData = async () => {
   }
 };
 
-watch(onChangePagination, () => fetchRevenueData());
+const debounceGetData = debounce(fetchData, 500);
+
+watch(onChangePagination, () => debounceGetData());
+
+const handleOnChangeDate = async ({ allDay }) => {
+  debounceGetData();
+};
 </script>

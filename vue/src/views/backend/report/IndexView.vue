@@ -7,6 +7,7 @@
         <a-tabs v-model:activeKey="activeTab">
           <a-tab-pane key="dashboard" tab="Tổng quan"></a-tab-pane>
           <a-tab-pane key="sales" tab="Phân tích doanh thu"></a-tab-pane>
+          <a-tab-pane key="products" tab="Phân tích sản phẩm"></a-tab-pane>
           <a-tab-pane key="customer" tab="Phân tích khách hàng"></a-tab-pane>
         </a-tabs>
 
@@ -24,8 +25,6 @@
 import { MasterLayout, ToolboxFilter } from '@/components/backend';
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-// import { useRoute } from 'vue-router';
-
 import OverviewView from './partials/OverviewView.vue';
 
 const router = useRouter();
