@@ -4,22 +4,19 @@
 
 namespace App\Services\Statistic;
 
-
+use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
 use App\Models\ProductReview;
 use App\Models\ProductView;
+use App\Models\User;
 use App\Models\WishList;
-use App\Repositories\Interfaces\Cart\CartItemRepositoryInterface;
 use App\Repositories\Interfaces\Order\OrderItemRepositoryInterface;
 use App\Repositories\Interfaces\Order\OrderRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
-use App\Repositories\Interfaces\User\UserRepositoryInterface;
 use App\Services\BaseService;
 use App\Services\Interfaces\Statistic\StatisticServiceInterface;
 use Carbon\Carbon;
-use DateTime;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -30,21 +27,15 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     protected $orderRepository;
     protected $orderItemRepository;
     protected $productVariantRepository;
-    protected $cartItemRepository;
-    protected $userRepository;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         OrderItemRepositoryInterface $orderItemRepository,
         ProductVariantRepositoryInterface $productVariantRepository,
-        CartItemRepositoryInterface $cartItemRepository,
-        UserRepositoryInterface $userRepository,
     ) {
         $this->orderRepository = $orderRepository;
         $this->orderItemRepository = $orderItemRepository;
         $this->productVariantRepository = $productVariantRepository;
-        $this->cartItemRepository = $cartItemRepository;
-        $this->userRepository = $userRepository;
     }
 
 
@@ -250,6 +241,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                         DB::raw('DATE(ordered_at) as order_date'), // Ngay
                         DB::raw('COUNT(id) as total_orders'), // So don hang
                         DB::raw('SUM(final_price) as net_revenue'), // Doanh thu thuan
+                        DB::raw('IF(COUNT(id) > 0,SUM(final_price)/COUNT(id),0) as avg_order_value'), // Gia tri don hang trung binh
                         DB::raw('SUM(shipping_fee) as total_shipping_fee'), // Ship
                         DB::raw('SUM(discount) as total_discount'), // Discount
                     )
@@ -284,6 +276,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                         'order_date' => $date,
                         'total_orders' => $ordersByDate[$date]['total_orders'] ?? 0,
                         'net_revenue' => $ordersByDate[$date]['net_revenue'] ?? 0,
+                        'avg_order_value' => $ordersByDate[$date]['avg_order_value'] ?? 0,
                         'total_shipping_fee' => $ordersByDate[$date]['total_shipping_fee'] ?? 0,
                         'total_profit' => $profitByDate[$date]['total_profit'] ?? 0,
                         'total_discount' => $ordersByDate[$date]['total_discount'] ?? 0,
@@ -563,8 +556,8 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     {
         $request = request();
 
-        $start_date = null;
-        $end_date = null;
+        $start_date = '';
+        $end_date = '';
 
         $dateRange = $this->getDateRangeByRequest($request);
 
@@ -573,41 +566,22 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             $end_date = $dateRange[1];
         }
 
-        $columns = [
-            'cart_items.product_variant_id',
-            'product_variants.name',
-            DB::raw('COUNT(cart_items.product_variant_id) AS frequency_of_appearance'),
-        ];
+        $popularProductsCacheKey = "popularProducts_by_date_{$start_date}_{$end_date}";
 
-        $conditions = [
-            'search' => addslashes($request->search),
-            'publish' => $request->publish,
-            'archive' => $request->boolean('archive'),
-        ];
-
-        $orderBy = ['frequency_of_appearance' => 'DESC'];
-
-        $groupBy = ['cart_items.product_variant_id'];
-
-        $join = ['product_variants' => ['product_variants.id', 'cart_items.product_variant_id']];
-
-        $rawQuery = [
-            'whereRaw' => [
-                ['cart_items.created_at  BETWEEN ? AND ?', [$start_date, $end_date]],
-            ],
-        ];
-
-        $popularProducts = $this->cartItemRepository->pagination(
-            $columns,
-            $conditions,
-            20,
-            $orderBy,
-            $join,
-            [],
-            $groupBy,
-            [],
-            $rawQuery
-        );
+        $popularProducts = Cache::remember($popularProductsCacheKey, 15, function () use ($start_date, $end_date) {
+            return CartItem::join('product_variants', 'cart_items.product_variant_id', '=', 'product_variants.id')
+                ->when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                    $query->whereBetween('cart_items.created_at', [$start_date, $end_date]);
+                })
+                ->select(
+                    'cart_items.product_variant_id',
+                    'product_variants.name',
+                    DB::raw('COUNT(cart_items.product_variant_id) AS frequency_of_appearance'),
+                )
+                ->groupBy('cart_items.product_variant_id')
+                ->orderBy('frequency_of_appearance', 'DESC')
+                ->get();
+        });
 
         return $popularProducts;
     }
@@ -616,118 +590,37 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     {
         $request = request();
 
-        $start_date = null;
-        $end_date = null;
+        $start_date = '';
+        $end_date = '';
 
-        //Lọc theo các active
-        if (!empty($request->date)) {
-            switch ($request->date) {
-                case 'today':
-                    $start_date = now()->startOfDay()->format('Y-m-d H:i:s');
-                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
-                    break;
-                case 'yesterday':
-                    $start_date = now()->subDay()->startOfDay()->format('Y-m-d H:i:s');
-                    $end_date = now()->subDay()->endOfDay()->format('Y-m-d H:i:s');
-                    break;
-                case 'last_7_days':
-                    $start_date = now()->subDays(6)->startOfDay()->format('Y-m-d H:i:s');
-                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
-                    break;
+        $dateRange = $this->getDateRangeByRequest($request);
 
-                case 'last_30_days':
-                    $start_date = now()->subDays(29)->startOfDay()->format('Y-m-d H:i:s');
-                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
-                    break;
-
-                case 'last_week':
-                    $start_date = now()->subWeek()->startOfWeek()->format('Y-m-d H:i:s');
-                    $end_date = now()->subWeek()->endOfWeek()->format('Y-m-d H:i:s');
-                    break;
-
-                case 'this_week':
-                    $start_date = now()->startOfWeek()->format('Y-m-d H:i:s');
-                    $end_date = now()->endOfWeek()->format('Y-m-d H:i:s');
-                    break;
-
-                case 'last_month':
-                    $start_date = now()->subMonth()->startOfMonth()->format('Y-m-d H:i:s');
-                    $end_date = now()->subMonth()->endOfMonth()->format('Y-m-d H:i:s');
-                    break;
-
-                case 'this_month':
-                    $start_date = now()->startOfMonth()->format('Y-m-d H:i:s');
-                    $end_date = now()->endOfMonth()->format('Y-m-d H:i:s');
-                    break;
-
-                case 'last_year':
-                    $start_date = now()->subYear()->startOfYear()->format('Y-m-d H:i:s');
-                    $end_date = now()->subYear()->endOfYear()->format('Y-m-d H:i:s');
-                    break;
-
-                case 'this_year':
-                    $start_date = now()->startOfYear()->format('Y-m-d H:i:s');
-                    $end_date = now()->endOfYear()->format('Y-m-d H:i:s');
-                    break;
-
-                default:
-                    // Trạng thái lọc không hợp lệ
-                    return errorResponse(__('messages.statistic.error.active'));
-            }
-        }
-        // Lọc theo ngày cố định
-        elseif (!empty($request->start_date) && !empty($request->end_date)) {
-            try {
-                $start_date = Carbon::createFromFormat('d/m/Y', $request->start_date);
-                $end_date = Carbon::createFromFormat('d/m/Y', $request->end_date);
-
-                if ($start_date && $end_date) {
-                    $start_date = $start_date->startOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về đầu ngày
-                    $end_date = $end_date->endOfDay()->format('Y-m-d H:i:s'); // Đặt giờ về cuối ngày
-                }
-            } catch (\Exception $e) {
-                return errorResponse(__('messages.statistic.error.format'));
-            }
-        } else {
-            return errorResponse(__('messages.statistic.error.request'));
+        if (!empty($dateRange[0]) && !empty($dateRange[1])) {
+            $start_date = $dateRange[0];
+            $end_date = $dateRange[1];
         }
 
-        // Khách hàng có 5 đơn hàng trở lên là khách hàng trung thành
-        $columns = [
-            DB::raw('users.id AS customer_id'),
-            DB::raw('users.fullname AS customer_name'),
-            DB::raw('COUNT(orders.id) AS total_orders'),
-            DB::raw('SUM(orders.final_price) AS total_spent'),
-            DB::raw('AVG(orders.final_price) AS average_spent')
-        ];
+        $loyalCustomersCacheKey = "loyalCustomers_by_date_{$start_date}_{$end_date}";
 
-        $conditions = [
-            'search' => addslashes($request->search),
-            'publish' => $request->publish,
-            'archive' => $request->boolean('archive'),
-        ];
+        $loyalCustomers = Cache::remember($loyalCustomersCacheKey, 15, function () use ($start_date, $end_date) {
+            return User::join('orders', 'orders.user_id', '=', 'users.id')
+                ->when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                    $query->where('order_status', Order::ORDER_STATUS_COMPLETED);
+                    $query->whereBetween('ordered_at', [$start_date, $end_date]);
+                })
+                ->select(
+                    DB::raw('users.id AS customer_id'), // id khach hang
+                    DB::raw('users.fullname AS customer_name'), // Ten khach hang
+                    DB::raw('COUNT(orders.id) AS total_orders'), // So don hang
+                    DB::raw('SUM(orders.final_price) AS total_spent'),  // Tong chi tieu cua khach hang
+                    DB::raw('AVG(orders.final_price) AS average_spent') // Chi tieu trung binh
+                )
+                ->groupBy('users.id')
+                ->havingRaw('COUNT(orders.id) > ?', [5]) // Khách hàng có 5 đơn hàng trở lên là khách hàng trung thành
+                ->orderBy('total_spent', 'DESC')
+                ->get();
+        });
 
-        $orderBy = ['total_spent' => 'DESC'];
-
-        $join = ['orders' => ['orders.user_id', 'users.id']];
-
-        $rawQuery = [
-            'whereRaw' => [
-                ['(orders.ordered_at  BETWEEN ? AND ?) AND orders.order_status = ? GROUP BY users.id HAVING COUNT(orders.id) > ?', [$start_date, $end_date, 'completed', 5]],
-            ],
-        ];
-
-        $loyalCustomers = $this->userRepository->pagination(
-            $columns,
-            $conditions,
-            null,
-            $orderBy,
-            $join,
-            [],
-            [],
-            [],
-            $rawQuery
-        );
         return $loyalCustomers;
     }
 }
