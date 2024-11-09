@@ -7,6 +7,18 @@ const sliderRoutes = [
     component: () => import('@/views/backend/slider/IndexView.vue'),
     beforeEnter: [isLoggedIn]
   },
+  {
+    path: '/slider/create',
+    name: 'slider.create',
+    component: () => import('@/views/backend/slider/CreateView.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
+    path: '/slider/update/:id(\\d+)',
+    name: 'slider.update',
+    component: () => import('@/views/backend/slider/CreateView.vue'),
+    beforeEnter: [isLoggedIn]
+  }
 ];
 
 export default sliderRoutes;

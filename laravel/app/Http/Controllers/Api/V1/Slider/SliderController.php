@@ -42,6 +42,7 @@ class SliderController extends Controller
      */
     public function store(StoreSliderRequest $request): JsonResponse
     {
+        // return response()->json($request->all());
         $response = $this->sliderService->create();
 
         return handleResponse($response, ResponseEnum::CREATED);
@@ -62,6 +63,7 @@ class SliderController extends Controller
      */
     public function update(UpdateSliderRequest $request, string $id): JsonResponse
     {
+        // return response()->json($request->all());
         $response = $this->sliderService->update($id);
 
         return handleResponse($response);

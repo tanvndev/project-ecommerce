@@ -136,7 +136,7 @@ const sidebar = [
       {
         name: 'Danh sách slider',
         route: 'slider.index'
-      },
+      }
     ]
   }
 ];
