@@ -230,7 +230,6 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             }
         }
 
-        dd($start_date, $end_date);
         return [$start_date, $end_date];
     }
 
