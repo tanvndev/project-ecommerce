@@ -401,11 +401,11 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
     protected function getProductSellTop($start_date, $end_date, $request)
     {
-        $cacheKey = "top-selling-products:$start_date:$end_date";
         $pageSize = $request->input('pageSize', 20);
         $page = $request->input('page', 1);
+        $cacheKey = "top-selling-products:$start_date:$end_date:$pageSize:$page";
 
-        $topSellingData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date) {
+        $topSellingData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
             return OrderItem::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
                 $query->whereHas('order', function ($q) use ($start_date, $end_date) {
                     $q->where('order_status', Order::ORDER_STATUS_COMPLETED)
@@ -424,17 +424,12 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                 ->join('orders', 'order_items.order_id', '=', 'orders.id')
                 ->groupBy('product_variant_id', 'product_variant_name')
                 ->orderByDesc('total_quantity')
-                ->get();
+                ->paginate($pageSize);
         });
 
-        $topSellingProducts = new \Illuminate\Pagination\LengthAwarePaginator(
-            $topSellingData->forPage($page, $pageSize),
-            $topSellingData->count(),
-            $pageSize,
-            $page,
-        );
 
-        return $topSellingProducts;
+
+        return $topSellingData;
     }
 
     /** Top sản phẩm được đánh giá tốt nhất */

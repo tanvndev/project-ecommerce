@@ -39,8 +39,8 @@
         <a-table
           :dataSource="dataSource"
           :columns="columns"
-          :loading="isLoading"
           :pagination="pagination"
+          :loading="isLoading"
           @change="handleTableChange"
         >
           <template #bodyCell="{ column, record }">
@@ -67,10 +67,12 @@
 </template>
 <script setup>
 import { MasterLayout, ToolboxFilter } from '@/components/backend';
+import { usePagination } from '@/composables';
 import axios from '@/configs/axios';
 import { formatCurrency } from '@/utils/format';
 import dayjs from 'dayjs';
-import { computed, nextTick, ref } from 'vue';
+import _ from 'lodash';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -114,16 +116,8 @@ const columns = [
     dataIndex: 'total_profit'
   }
 ];
-const pageSize = ref(20);
-const currentPage = ref(1);
 const dataSource = ref([]);
-const totalPages = ref(0);
-
-const pagination = computed(() => ({
-  total: totalPages.value,
-  current: currentPage.value,
-  pageSize: pageSize.value
-}));
+const { pagination, onChangePagination, handleTableChange } = usePagination();
 
 const dataChart = ref({
   labels: [],
@@ -170,20 +164,24 @@ const handleOnChangeDate = async ({ allDay }) => {
 const fetchRevenueData = async () => {
   isLoading.value = true;
   try {
-    const response = await axios.get('/statistics/revenue-by-date', {
+    const { data } = await axios.get('/statistics/revenue-by-date', {
       params: {
         date: date.value,
         start_date: start_date.value,
         end_date: end_date.value,
         chart: true,
-        page: currentPage.value,
-        pageSize: pageSize.value
+        page: pagination.current,
+        pageSize: pagination.pageSize
       }
     });
 
-    dataChart.value.datasets[0].data = response.data?.chartData;
-    dataSource.value = response.data?.data?.data;
-    totalPages.value = response.data?.total;
+    const newData = _.map(data?.data?.data, (value) => value);
+
+    dataChart.value.datasets[0].data = data?.chartData;
+    dataSource.value = newData;
+    pagination.current = data?.data.current_page;
+    pagination.total = data?.data.total;
+    pagination.pageSize = data?.data.per_page;
   } catch (error) {
     console.log(error);
   } finally {
@@ -191,10 +189,5 @@ const fetchRevenueData = async () => {
   }
 };
 
-const handleTableChange = async ({ current, pageSize }) => {
-  currentPage.value = current;
-  pageSize.value = pageSize;
-
-  await fetchRevenueData();
-};
+watch(onChangePagination, () => fetchRevenueData());
 </script>

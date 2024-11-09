@@ -30,10 +30,10 @@
 
         <a-table
           class="mt-4"
-          :dataSource="dataProduct"
+          :dataSource="dataSource"
           :columns="columns"
-          :loading="isLoading"
           :pagination="pagination"
+          :loading="isLoading"
           @change="handleTableChange"
         >
           <template #bodyCell="{ column, record }">
@@ -60,11 +60,13 @@
 </template>
 <script setup>
 import { MasterLayout, ToolboxFilter } from '@/components/backend';
+import { usePagination } from '@/composables';
 import axios from '@/configs/axios';
 import { formatCurrency } from '@/utils/format';
 import { debounce } from '@/utils/helpers';
 import dayjs from 'dayjs';
-import { computed, ref } from 'vue';
+import _ from 'lodash';
+import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -101,33 +103,29 @@ const columns = [
     key: 'total_profit'
   }
 ];
-const pageSize = ref(20);
-const currentPage = ref(1);
-const totalPages = ref(0);
+const { pagination, onChangePagination, handleTableChange } = usePagination();
 
-const pagination = computed(() => ({
-  total: totalPages.value,
-  current: currentPage.value,
-  pageSize: pageSize.value
-}));
-
-const dataProduct = ref([]);
+const dataSource = ref([]);
 
 const fetchData = async () => {
   isLoading.value = true;
   try {
-    const response = await axios.get('/statistics/products?condition=product_sell_best', {
+    const { data } = await axios.get('/statistics/products?condition=product_sell_best', {
       params: {
         date: date.value,
         start_date: start_date.value,
         end_date: end_date.value,
-        page: currentPage.value,
-        pageSize: pageSize.value
+        page: pagination.current,
+        pageSize: pagination.pageSize
       }
     });
 
-    dataProduct.value = response.data?.data;
-    totalPages.value = response.data?.total;
+    const newData = _.map(data?.data, (value) => value);
+
+    dataSource.value = newData;
+    pagination.current = data?.current_page;
+    pagination.total = data?.total;
+    pagination.pageSize = data?.per_page;
   } catch (error) {
     console.log(error);
   } finally {
@@ -137,12 +135,7 @@ const fetchData = async () => {
 
 const debounceGetData = debounce(fetchData, 500);
 
-const handleTableChange = async ({ current, pageSize }) => {
-  currentPage.value = current;
-  pageSize.value = pageSize;
-
-  debounceGetData();
-};
+watch(onChangePagination, () => debounceGetData());
 
 const handleOnChangeDate = async ({ allDay }) => {
   debounceGetData();
