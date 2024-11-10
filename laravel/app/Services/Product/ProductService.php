@@ -524,14 +524,20 @@ class ProductService extends BaseService implements ProductServiceInterface
 
     public function getProduct(string $slug)
     {
-        // dd($slug);
-        $productId = last(explode('-', $slug));
-        $product = $this->productRepository->findById($productId);
+        $slugParts = explode('-', $slug);
+        $productId = array_pop($slugParts);  // Lấy phần tử cuối và loại bỏ nó
+        $newSlug = implode('-', $slugParts); // Ghép lại phần còn lại thành slug mới
 
-        $productVariant = $product->variants()->where('slug', $slug)->first();
+        // Tìm sản phẩm và biến thể
+        $product = $this->productRepository->findById($productId);
+        $productVariant = $product->variants()->where('slug', $newSlug)->first();
+
+        // Theo dõi lượt xem sản phẩm
         $this->trackProductView($productVariant);
+
         return $product;
     }
+
 
     public function trackProductView($productVariant)
     {
