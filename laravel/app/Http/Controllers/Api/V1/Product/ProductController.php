@@ -123,12 +123,6 @@ class ProductController extends Controller
         return handleResponse($response);
     }
 
-    public function getProductReport()
-    {
-        $response = $this->productService->getProductReport();
-
-        return successResponse('', $response, true);
-    }
 
     // CLIENT API //
 

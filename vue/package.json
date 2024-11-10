@@ -14,6 +14,7 @@
     "ant-design-vue": "^4.2.5",
     "axios": "^1.7.2",
     "dayjs": "^1.11.13",
+    "dayjs-plugin-utc": "^0.1.2",
     "js-cookie": "^3.0.5",
     "lodash": "^4.17.21",
     "magento-ecommerce": "file:",

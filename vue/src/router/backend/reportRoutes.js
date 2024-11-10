@@ -13,6 +13,12 @@ const reportRoutes = [
     component: () => import('@/views/backend/report/SalesView.vue'),
     beforeEnter: [isLoggedIn]
   },
+  {
+    path: '/report/top-product',
+    name: 'report.top.product',
+    component: () => import('@/views/backend/report/TopProductView.vue'),
+    beforeEnter: [isLoggedIn]
+  },
 ];
 
 export default reportRoutes;

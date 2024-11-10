@@ -41,29 +41,34 @@
               <a-range-picker v-model:value="dateCustomRange" />
             </div>
           </div>
-          <div class="item-box-filter mt-2">
-            <a-button class="w-full" type="primary" @click="handleFilter"> Lọc</a-button>
-          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
 <script setup>
+import { debounce } from '@/utils/helpers';
 import dayjs from 'dayjs';
+import isoWeek from 'dayjs/plugin/isoWeek';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 import _ from 'lodash';
 import { onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 
-import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-
+dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
+dayjs.extend(isoWeek);
 
+const store = useStore();
 const router = useRouter();
 const route = useRoute();
-const today = dayjs();
+const today = dayjs().tz('Asia/Ho_Chi_Minh');
 const query = route.query;
 const dateCustomRange = ref(null);
 const dateText = ref('');
@@ -75,7 +80,6 @@ const emits = defineEmits(['onChangeDate']);
 const yesterday = today.subtract(1, 'day');
 const sevenDaysAgo = today.subtract(7, 'days');
 const thirtyDaysAgo = today.subtract(30, 'days');
-const lastWeek = today.subtract(7, 'days');
 const lastMonth = today.subtract(1, 'month');
 const lastYear = today.subtract(1, 'year');
 
@@ -93,6 +97,12 @@ const startOfThisYear = today.startOf('year');
 const endOfThisYear = today.endOf('year');
 const startOfLastYear = lastYear.startOf('year');
 const endOfLastYear = lastYear.endOf('year');
+
+// Tính toán ngày đầu và cuối của tuần
+const startOfLastWeek = today.subtract(1, 'week').startOf('isoWeek');
+const endOfLastWeek = today.subtract(1, 'week').endOf('isoWeek');
+const startOfThisWeek = today.startOf('isoWeek');
+const endOfThisWeek = today.endOf('isoWeek');
 
 const filterDateOptions = ref([
   [
@@ -122,12 +132,12 @@ const filterDateOptions = ref([
   [
     {
       label: 'Tuần trước',
-      value: `${formatDate(lastWeek)} - ${formatDate(today)}`,
+      value: `${formatDate(startOfLastWeek)} - ${formatDate(endOfLastWeek)}`,
       active: 'last_week'
     },
     {
       label: 'Tuần này',
-      value: formatDate(today),
+      value: `${formatDate(startOfThisWeek)} - ${formatDate(endOfThisWeek)}`,
       active: 'this_week'
     }
   ],
@@ -196,9 +206,22 @@ const handleFilter = () => {
     data = filterOption;
   }
   if (!_.isEmpty(data) && data.value) {
-    emits('onChangeDate', { data, allDay: getAllDates(data.value) });
+    const allDay = getAllDates(data.value);
+    emits('onChangeDate', { data, allDay });
+    store.commit('reportStore/setAllDayFormat', allDay);
   }
 };
+
+const debounceHandleFilter = debounce(handleFilter, 500);
+
+watch(
+  () => [optionActive, dateCustomRange],
+  () => {
+    debounceHandleFilter();
+  },
+  { immediate: true, deep: true }
+);
+
 watch(
   dateCustomRange,
   (newValue) => {
@@ -243,11 +266,18 @@ const getAllDates = (range) => {
 
 onMounted(() => {
   const { date, start_date, end_date } = query;
-  optionActive.value = date || 'today';
+  optionActive.value = date || 'last_30_days';
 
   const filterOption = filterDateOptions.value
     .flat()
     .find((option) => option.active === optionActive.value);
+
+  router.push({
+    query: {
+      ...query,
+      date: optionActive.value
+    }
+  });
 
   if (date === 'custom') {
     dateText.value = `Tuỳ chọn (${start_date} - ${end_date})`;
@@ -255,9 +285,9 @@ onMounted(() => {
     dateText.value = `${filterOption.label} (${filterOption.value})`;
   } else {
     handleChangeDate({
-      label: 'Hôm nay',
-      value: formatDate(today),
-      active: 'today'
+      label: '30 ngày qua',
+      value: `${formatDate(thirtyDaysAgo)} - ${formatDate(today)}`,
+      active: 'last_30_days'
     });
   }
 

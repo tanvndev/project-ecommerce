@@ -44,7 +44,7 @@ use App\Http\Controllers\Api\V1\Statistic\StatisticController;
 |
 */
 
-Route::middleware(['log.request.response', 'api'])->group(function () {
+Route::middleware(['api'])->group(function () {
 
     // ROUTE TEST
     Route::post('test/index', [TestApiController::class, 'upload']);
@@ -63,7 +63,6 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
     Route::get('product-reviews', [ProductReviewController::class, 'getAllProductReviews'])->name('index');
     Route::get('posts/all', [PostController::class, 'getAllPost']);
     Route::get('posts/{canonical}/detail', [PostController::class, 'getPostByCanonical']);
-    Route::get('products/filter', [ProductController::class, 'filterProducts']);
 
     // Order
     Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
@@ -166,7 +165,6 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
 
         // Flash Sale ROUTE
         Route::apiResource('flash-sales', FlashSaleController::class);
-        route::put('change-status-flash-sale/{id}', [FlashSaleController::class, 'changeStatus']);
 
         // SYSTEM CONFIG ROUTE
         Route::get('system-configs', [SystemConfigController::class, 'index']);
@@ -183,9 +181,6 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
 
         // POST ROUTE
         Route::apiResource('posts', PostController::class);
-        Route::prefix('/')->name('posts.')->group(function () {
-            Route::apiResource('posts/catalogues', PostCatalogueController::class);
-        });
 
         // WISHLIST ROUTE
         Route::get('wishlists', [WishListController::class, 'index']);
@@ -234,20 +229,26 @@ Route::middleware(['log.request.response', 'api'])->group(function () {
         Route::put('carts/handle-selected', 'handleSelected')->name('handle-selected');
         Route::delete('carts/delete-cart-selected', 'deleteCartSelected')->name('deleteCartSelected');
         Route::get('carts/add-paid-products', 'addPaidProductsToCart')->name('addPaidProducts');
-        route::post('carts/buy-now', 'buyNow')->name('buyNow');
     });
 
     // Statistics
-
     Route::controller(StatisticController::class)
-        ->prefix('statistic')
-        ->name('statistic.')
+        ->prefix('statistics')
+        ->name('statistics.')
         ->group(function () {
+            // Thống kê tổng quan
             Route::get('report-overview', 'reportOverview')->name('reportOverview');
+            // Thống kê doanh thu theo ngày
             Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
-            Route::get('product', [StatisticController::class, 'getProductReport']);
+
+            // Thống kê sản phẩm phổ biến được thêm vào giỏ hàng
+
+            Route::get('products', 'getProductReport')->name('getProductReport');
+
             Route::get('popular-products', 'popularProducts')->name('popularProducts');
-            Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
+            // Thống kê khách hàng trung thành
             Route::get('loyal-customers', 'loyalCustomers')->name('loyalCustomers');
+
+            // Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
         });
 });

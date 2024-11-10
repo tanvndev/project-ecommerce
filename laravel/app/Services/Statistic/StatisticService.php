@@ -4,48 +4,42 @@
 
 namespace App\Services\Statistic;
 
-
+use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
 use App\Models\ProductReview;
 use App\Models\ProductView;
+use App\Models\User;
 use App\Models\WishList;
-use App\Repositories\Interfaces\Cart\CartItemRepositoryInterface;
 use App\Repositories\Interfaces\Order\OrderItemRepositoryInterface;
 use App\Repositories\Interfaces\Order\OrderRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
-use App\Repositories\Interfaces\User\UserRepositoryInterface;
 use App\Services\BaseService;
 use App\Services\Interfaces\Statistic\StatisticServiceInterface;
 use Carbon\Carbon;
-use DateTime;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class StatisticService extends BaseService implements StatisticServiceInterface
 {
     protected $orderRepository;
     protected $orderItemRepository;
     protected $productVariantRepository;
-    protected $cartItemRepository;
-    protected $userRepository;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         OrderItemRepositoryInterface $orderItemRepository,
         ProductVariantRepositoryInterface $productVariantRepository,
-        CartItemRepositoryInterface $cartItemRepository,
-        UserRepositoryInterface $userRepository,
     ) {
         $this->orderRepository = $orderRepository;
         $this->orderItemRepository = $orderItemRepository;
         $this->productVariantRepository = $productVariantRepository;
-        $this->cartItemRepository = $cartItemRepository;
-        $this->userRepository = $userRepository;
     }
 
 
-    public function reportOverview()
+    public function reportOverview(): mixed
     {
 
         $request = request();
@@ -154,347 +148,282 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         return $data;
     }
 
-    public function revenueByDate()
+    private function getDateRangeByRequest($request)
     {
-        $request = request();
+        $start_date = '';
+        $end_date = '';
 
-        $start_date = $request->start_date;
-        $end_date = $request->end_date;
+        if (!empty($request->date)) {
+            switch ($request->date) {
+                case 'today':
+                    $start_date = now()->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+                case 'yesterday':
+                    $start_date = now()->subDay()->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->subDay()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
+                case 'last_7_days':
+                    $start_date = now()->subDays(7)->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
 
+                case 'last_week':
+                    $start_date = now()->subWeek()->startOfWeek()->format('Y-m-d H:i:s');
+                    $end_date = now()->subWeek()->endOfWeek()->format('Y-m-d H:i:s');
+                    break;
+                case 'last_30_days':
+                    $start_date = now()->subDays(30)->startOfDay()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfDay()->format('Y-m-d H:i:s');
+                    break;
 
-        $columns = [
-            DB::raw('DATE(ordered_at) as order_date'), // Thống kê doanh thu theo ngày
-            DB::raw('COUNT(id) as total_orders'), // Số lượng đơn hàng
-            DB::raw('SUM(total_price) as total_price'), // Tổng tiền hàng
-            DB::raw('SUM(discount) as total_discount'), // Tổng tiền hàng trả lại
-            DB::raw('CAST(0 AS DECIMAL(15,2)) as money_returned'), // Tổng tiền hàng trả lại
-            DB::raw('CAST(0 AS DECIMAL(15,2)) as net_revenue'), // Tổng doanh thu thuần
-            DB::raw('SUM(shipping_fee) as total_shipping_fee'), // Tổng tiền ship
-            DB::raw('SUM(final_price) as total_revenue'), // Tổng doanh thu
-            DB::raw('CAST(0 AS DECIMAL(15,2)) as total_profit'), // Lợi nhuận gộp
-        ];
+                case 'this_week':
+                    $start_date = now()->startOfWeek()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfWeek()->format('Y-m-d H:i:s');
+                    break;
 
-        $conditions = [
-            'search' => addslashes($request->search),
-            'publish' => $request->publish,
-            'archive' => $request->boolean('archive'),
-        ];
+                case 'last_month':
+                    $start_date = now()->subMonth()->startOfMonth()->format('Y-m-d H:i:s');
+                    $end_date = now()->subMonth()->endOfMonth()->format('Y-m-d H:i:s');
+                    break;
 
-        $orderBy = ['order_date' => 'ASC'];
+                case 'this_month':
+                    $start_date = now()->startOfMonth()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfMonth()->format('Y-m-d H:i:s');
+                    break;
 
-        $groupBy = ['order_date'];
+                case 'last_year':
+                    $start_date = now()->subYear()->startOfYear()->format('Y-m-d H:i:s');
+                    $end_date = now()->subYear()->endOfYear()->format('Y-m-d H:i:s');
+                    break;
 
-        $rawQuery = [
-            'whereRaw' => [
-                ['ordered_at  BETWEEN ? AND ?', [$start_date, $end_date]],
-            ],
-        ];
+                case 'this_year':
+                    $start_date = now()->startOfYear()->format('Y-m-d H:i:s');
+                    $end_date = now()->endOfYear()->format('Y-m-d H:i:s');
+                    break;
+                case 'custom':
 
-        $data = $this->orderRepository->pagination(
-            $columns,
-            $conditions,
-            20,
-            $orderBy,
-            [],
-            [],
-            $groupBy,
-            [],
-            $rawQuery
-        );
+                    if (!$request->start_date || !$request->end_date) {
+                        break;
+                    }
 
-        $moneyReturned = $this->orderRepository->pagination(
-            [
-                DB::raw('DATE(ordered_at) as order_date'),
-                DB::raw('SUM(total_price) as money_returned'),
-            ],
-            [
-                'where' => [
-                    'order_status' => 'returned' // lấy ra những đơn hàng bị hoàn
-                ]
-            ],
-            null,
-            $orderBy,
-            [],
-            [],
-            $groupBy,
-            [],
-            $rawQuery
-        );
+                    $start_date = Carbon::createFromFormat('d/m/Y', $request->start_date ?? '');
+                    $end_date = Carbon::createFromFormat('d/m/Y', $request->end_date ?? '');
 
-        foreach ($data as $item) {
+                    if ($start_date && $end_date) {
+                        $start_date = $start_date->startOfDay()->format('Y-m-d H:i:s');
+                        $end_date = $end_date->endOfDay()->format('Y-m-d H:i:s');
+                    }
+                    break;
 
-            $item->net_revenue = number_format($item->total_price - $item->total_discount, 2, '.', '');
-
-            foreach ($moneyReturned as $return) {
-
-                if ($item->order_date === $return->order_date) {
-
-                    $item->money_returned = number_format($return->money_returned, 2, '.', '');
-
-                    $item->net_revenue = number_format($item->net_revenue - $item->money_returned, 2, '.', '');
-
-                    $item->total_revenue = number_format($item->total_revenue - $item->money_returned, 2, '.', '');
-                }
+                default:
+                    break;
             }
         }
 
-        $rawQuery1 = [
-            'whereRaw' => [
-                ['created_at  BETWEEN ? AND ?', [$start_date, $end_date]],
-            ],
-        ];
-
-        $orderItems = $this->orderItemRepository->pagination(
-            [
-                DB::raw('DATE(created_at) as order_date'),
-                DB::raw('SUM(cost_price * quantity) AS total_cost'),
-            ],
-            [],
-            null,
-            $orderBy,
-            [],
-            [],
-            $groupBy,
-            [],
-            $rawQuery1
-        );
-
-        // Tính lợi nhuận theo từng ngày
-        foreach ($data as $item) {
-            foreach ($orderItems as $orderItem) {
-                if ($item->order_date === $orderItem->order_date) {
-                    $item->total_profit = number_format($item->total_revenue - $orderItem->total_cost, 2, '.', '');
-                }
-            }
-        }
-
-        return $data;
+        return [$start_date, $end_date];
     }
 
-
-    private function preparePayload(): array
+    public function revenueByDate()
     {
-        $payload = request()->except('_token', '_method');
-        $payload = $this->createSEO($payload, 'name', 'excerpt');
-        $payload['shipping_ids'] = array_map('intval', $payload['shipping_ids'] ?? []);
+        try {
+            $request = request();
 
-        return $payload;
+            [$start_date, $end_date] = $this->getDateRangeByRequest($request);
+
+            $ordersCacheKey = "orders_by_date_{$start_date}_{$end_date}";
+            $profitCacheKey = "profit_by_date_{$start_date}_{$end_date}";
+            $allDatesCacheKey = "all_dates_collection_{$start_date}_{$end_date}";
+
+            $ordersByDate = Cache::remember($ordersCacheKey, 15, function () use ($start_date, $end_date) {
+                return Order::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                    $query->where('order_status', Order::ORDER_STATUS_COMPLETED);
+                    $query->whereBetween('ordered_at', [$start_date, $end_date]);
+                })
+                    ->select(
+                        DB::raw('DATE(ordered_at) as order_date'), // Ngay
+                        DB::raw('COUNT(id) as total_orders'), // So don hang
+                        DB::raw('SUM(final_price) as net_revenue'), // Doanh thu thuan
+                        DB::raw('IF(COUNT(id) > 0,SUM(final_price)/COUNT(id),0) as avg_order_value'), // Gia tri don hang trung binh
+                        DB::raw('SUM(shipping_fee) as total_shipping_fee'), // Ship
+                        DB::raw('SUM(discount) as total_discount'), // Discount
+                    )
+                    ->groupBy('order_date')
+                    ->orderBy('order_date', 'asc')
+                    ->get()
+                    ->keyBy('order_date');
+            });
+
+            $profitByDate = Cache::remember($profitCacheKey, 15, function () use ($start_date, $end_date) {
+                return OrderItem::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                    $query->whereHas('order', function ($q) use ($start_date, $end_date) {
+                        $q->where('order_status', Order::ORDER_STATUS_COMPLETED)
+                            ->whereBetween('ordered_at', [$start_date, $end_date]);
+                    });
+                })
+                    ->select(
+                        DB::raw('DATE(orders.ordered_at) as order_date'),
+                        DB::raw('SUM((COALESCE(sale_price, price, 0) - COALESCE(cost_price, 0)) * COALESCE(quantity, 0) - COALESCE(orders.discount, 0) - COALESCE(orders.shipping_fee, 0)) as total_profit')
+                    )
+                    ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                    ->groupBy('order_date')
+                    ->get()
+                    ->keyBy('order_date');
+            });
+
+            $allDatesCollection = Cache::remember($allDatesCacheKey, 15, function () use ($start_date, $end_date, $ordersByDate, $profitByDate) {
+                $allDates = [];
+                for ($currentDate = Carbon::parse($start_date); $currentDate->lte($end_date); $currentDate->addDay()) {
+                    $date = $currentDate->toDateString();
+                    $allDates[] = [
+                        'order_date' => $date,
+                        'total_orders' => $ordersByDate[$date]['total_orders'] ?? 0,
+                        'net_revenue' => $ordersByDate[$date]['net_revenue'] ?? 0,
+                        'avg_order_value' => $ordersByDate[$date]['avg_order_value'] ?? 0,
+                        'total_shipping_fee' => $ordersByDate[$date]['total_shipping_fee'] ?? 0,
+                        'total_profit' => $profitByDate[$date]['total_profit'] ?? 0,
+                        'total_discount' => $ordersByDate[$date]['total_discount'] ?? 0,
+                    ];
+                }
+
+                return collect($allDates);
+            });
+
+            $chartData = $request->has('chart')
+                ? Cache::remember("chart_data_{$start_date}_{$end_date}", 15, function () use ($allDatesCollection) {
+                    return $this->getChart($allDatesCollection, 'net_revenue');
+                })
+                : [];
+
+            $pageSize = $request->input('pageSize', 20);
+            $page = $request->input('page', 1);
+
+            $paginatedData = new LengthAwarePaginator(
+                $allDatesCollection->forPage($page, $pageSize),
+                $allDatesCollection->count(),
+                $pageSize,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return [
+                'chartData' => $chartData,
+                'data' => $paginatedData,
+            ];
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json(['error' => 'Có lỗi xảy ra'], 500);
+        }
+    }
+
+    private function getChart($allDatesCollection, $column)
+    {
+        $chartData = [];
+        foreach ($allDatesCollection as $date => $data) {
+            $chartData[] = $data[$column];
+        }
+        return $chartData;
     }
 
     public function getProductReport()
     {
+        try {
+            $request = request();
 
-        $payload = $this->preparePayload();
+            [$start_date, $end_date] = $this->getDateRangeByRequest($request);
 
+            $condition = $request->input('condition', 'product_sell_best');
 
-        $start_date = isset($payload['start_date']) ? $payload['start_date'] : Carbon::now()->startOfYear()->toDateString();
-        $end_date   = isset($payload['end_date']) ? $payload['end_date'] : Carbon::now()->endOfYear()->toDateString();
+            switch ($condition) {
+                case 'product_sell_best':
+                    $result = $this->getProductSellTop($start_date, $end_date, $request);
 
-        $condition = $payload['condition'] ?? "product_sell_best";
-        // product_sell_best: sản phẩm bán chạy nhất (đã xong)
-        // product_review_top: sản phẩm được đánh giá cao (đã xong)
-        // product_wishlist_top: sản phẩm được yêu thích nhất(đã xong)
-        // product_views_top: Sản phẩm có lượt xem nhiều nhất(đã xong)
+                    break;
+                case 'product_review_top':
+                    $query = $this->getProductReviewTop($start_date, $end_date);
+                    $result = $query
+                        ->filter(function ($item) {
+                            return $item->review_count > 0 && !is_null($item->avg_rating);
+                        })
+                        ->map(function ($item) {
+                            return [
+                                'product_id'                => $item->product_id,
+                                'product_name'              => $item->product['name'],
+                                'review_count'              => $item->review_count,
+                                'average_rating'            => number_format($item->avg_rating, 1, '.', ','),
+                            ];
+                        });
+                    break;
+                case 'product_wishlist_top':
+                    $query = $this->getProductWishlistTop($start_date, $end_date);
+                    $result = $query->get()
+                        ->map(function ($item) {
+                            return [
+                                'product_variant_id'    => $item['product_variant_id'],
+                                'name'                  => $item['product_variant']['name'],
+                                'wishlist_count'        => $item['wishlist_count'],
+                            ];
+                        });
+                    break;
+                case 'product_views_top':
+                    $query = $this->getProductTopView($start_date, $end_date);
+                    $result = $query->map(function ($item) {
+                        if ($item->product_to_order != 0) {
+                            $avg_product_purchase = $item->view_count /  $item->product_to_order;
+                        } else {
+                            $avg_product_purchase = null;
+                        }
 
-        switch ($condition) {
-            case 'product_sell_best':
-                $query = $this->getProductSellTop($start_date, $end_date);
-                $result = $query->map(function ($item) {
-                    return [
-                        'product_variant_id'    => $item['product_variant_id'],
-                        'product_variant_name'  => $item['name'] ?? "",
-                        'total_quantity_sold'   => $item['total_quantity_sold'],
-                        'revenue'               => $item['revenue'],
-                        'discount'              => $item['discount'],
-                        'net_revenue'           => $item['net_revenue'],
-                        'total_revenue'         => $item['total_revenue'],
-                    ];
-                });
-                break;
-            case 'product_review_top':
-                $query = $this->getProductReviewTop($start_date, $end_date);
-                $result = $query
-                    ->filter(function ($item) {
-                        return $item->review_count > 0 && !is_null($item->avg_rating);
-                    })
-                    ->map(function ($item) {
                         return [
-                            'product_id'                => $item->product_id,
-                            'product_name'              => $item->product['name'],
-                            'review_count'      => $item->review_count,
-                            'average_rating'    => number_format($item->avg_rating, 1, '.', ','),
+                            'product_variant_id'    => $item->product_variant_id,
+                            'product_variant_name'  => $item->product_variant['name'],
+                            'view_count'            => $item->view_count,
+                            'product_to_order'      => $item->product_to_order,
+                            'avg_product_purchase'  => number_format($avg_product_purchase, 2, '.', ',')
                         ];
                     });
-                break;
-
-
-            case 'product_wishlist_top':
-                $query = $this->getProductWishlistTop($start_date, $end_date);
-                $result = $query->get()
-                    ->map(function ($item) {
-                        return [
-                            'product_variant_id'    => $item['product_variant_id'],
-                            'name'                  => $item['product_variant']['name'],
-                            'wishlist_count'        => $item['wishlist_count'],
-                        ];
-                    });
-                break;
-            case 'product_views_top':
-                $query = $this->getProductTopView($start_date, $end_date);
-                $result = $query->map(function ($item) {
-                    if ($item->product_to_order != 0) {
-                        $avg_product_purchase = $item->view_count /  $item->product_to_order;
-                    } else {
-                        $avg_product_purchase = null;
-                    }
-
-                    return [
-                        'product_variant_id'    => $item->product_variant_id,
-                        'product_variant_name'  => $item->product_variant['name'],
-                        'view_count'            => $item->view_count,
-                        'product_to_order'      => $item->product_to_order,
-                        'avg_product_purchase'  => number_format($avg_product_purchase, 2, '.', ',')
-                    ];
-                });
-                break;
+                    break;
+            }
+            return $result;
+        } catch (\Exception $e) {
+            getError($e->getMessage());
+            Log::error($e->getMessage());
+            return response()->json(['error' => 'Có lỗi xảy ra'], 500);
         }
-        return $result;
     }
 
-    /** Sản phẩm bán chạy nhất */
-    protected function getProductSellTop($start_date, $end_date)
+    protected function getProductSellTop($start_date, $end_date, $request)
     {
+        $pageSize = $request->input('pageSize', 20);
+        $page = $request->input('page', 1);
+        $cacheKey = "top-selling-products:$start_date:$end_date:$pageSize:$page";
 
-        $query = OrderItem::query()
-            ->whereHas('order', function ($query) use ($start_date, $end_date) {
-                $query->whereBetween('ordered_at', [$start_date, $end_date])
-                    ->where('order_status', 'completed');
+        $topSellingData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
+            return OrderItem::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                $query->whereHas('order', function ($q) use ($start_date, $end_date) {
+                    $q->where('order_status', Order::ORDER_STATUS_COMPLETED)
+                        ->whereBetween('ordered_at', [$start_date, $end_date]);
+                });
             })
-            ->join('product_variants', 'order_items.product_variant_id', '=', 'product_variants.id') // Join với product_variant
-            ->selectRaw('order_items.product_variant_id,
-                         product_variants.name,
-                         SUM(order_items.quantity) as total_quantity_sold,
-                         SUM( COALESCE(order_items.sale_price, order_items.price) * order_items.quantity) as revenue')
-            ->groupBy('order_items.product_variant_id')
-            ->orderBy('total_quantity_sold', 'DESC')
-            ->get();
-        $discounts      = $this->get_discount_product_variant_in_order($start_date, $end_date);
-        $shipping       = $this->get_money_shipping($start_date, $end_date);
+                ->select(
+                    'product_variant_id',
+                    'product_variant_name',
+                    DB::raw('SUM(quantity) as total_quantity'), // Tổng số lượng bán ra
+                    DB::raw('SUM(COALESCE(sale_price, price, 0) * quantity) as net_revenue'), // Tổng doanh thu
+                    DB::raw('SUM(orders.shipping_fee) as total_shipping_fee'), // Ship
+                    DB::raw('SUM(orders.discount) as total_discount'), // Discount
+                    DB::raw('SUM((COALESCE(sale_price, price, 0) - COALESCE(cost_price, 0)) * quantity - COALESCE(orders.discount, 0) - COALESCE(orders.shipping_fee, 0)) as total_profit') // Tổng lợi nhuận
+                )
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->groupBy('product_variant_id', 'product_variant_name')
+                ->orderByDesc('total_quantity')
+                ->paginate($pageSize);
+        });
 
 
-        $revenueTotal           = 0;
-        $discountTotal          = 0;
-        $net_revenueTotal       = 0;
-        $total_quantity_sold    = 0;
 
-        foreach ($query as &$item) {
-            $productId = $item['product_variant_id'];
-
-            if (isset($discounts[$productId])) {
-                $item['discount'] = $discounts[$productId];
-            } else {
-                $item['discount'] = 0;
-            }
-
-            $item['net_revenue']    = $item['revenue'] - $item['discount'] - $item['moneyCancelled'];
-            $item['total_revenue']  = $item['revenue'] - $item['discount'] - $item['moneyCancelled'];
-
-            $revenueTotal           +=  $item['revenue'];
-            $discountTotal          += $item['discount'];
-            $net_revenueTotal       += $item['net_revenue'];
-            $total_quantity_sold    += $item['total_quantity_sold'];
-        }
-
-        $query['shipping'] = [
-            "product_variant_id"    => "",
-            "total_quantity_sold"   => "",
-            "product_variant_name"  => "",
-            "revenue"               => "",
-            "discount"              => "",
-            "net_revenue"           => "",
-            "total_revenue"         =>  $shipping,
-        ];
-
-        $query['tong'] = [
-            "product_variant_id"    => "",
-            "product_variant_name"  => "",
-            "total_quantity_sold"   => $total_quantity_sold,
-            "revenue"               => $revenueTotal,
-            "discount"              => $discountTotal,
-            "net_revenue"           => $net_revenueTotal,
-            "total_revenue"         => ($net_revenueTotal + $shipping),
-        ];
-
-        return $query;
+        return $topSellingData;
     }
-
-    /** Lấy số tiền giảm giá theo từng sản phẩm */
-    private function get_discount_product_variant_in_order($start_date, $end_date)
-    {
-
-        $query1 = Order::with('order_items')
-            ->where('discount', '>', '0')
-            ->where('order_status', 'completed')
-            ->whereBetween('ordered_at', [$start_date, $end_date])->get();
-
-        foreach ($query1 as $order) {
-            $discount       = $order->discount ?? 0;
-            $voucher_type   = $order->additional_details['voucher']['value_type'];
-            $voucher_value  = $order->additional_details['voucher']['value'];
-            $total_discount = 0;
-            foreach ($order['order_items'] as $item) {
-                $price = $item['sale_price'] ?? $item['price'];
-                $total_discount     += $item['quantity'] * $price * ($voucher_value / 100);
-            }
-
-            foreach ($order['order_items'] as $item) {
-                $price = $item['sale_price'] ?? $item['price'];
-                $product_variant_id = $item['product_variant_id'];
-                $orderItemPrice     = $item['quantity'] * $price;
-
-
-                if ($voucher_type  == "percentage") {
-                    if ($total_discount > $discount) {
-                        if (!isset($discounts[$product_variant_id])) {
-                            $discounts[$product_variant_id] = $orderItemPrice * ($discount / $order['total_price']);
-                        } else {
-                            $discounts[$product_variant_id] += $orderItemPrice * ($discount / $order['total_price']);
-                        }
-                    } else {
-
-                        if (!isset($discounts[$product_variant_id])) {
-                            $discounts[$product_variant_id] = $orderItemPrice * ($voucher_value / 100);
-                        } else {
-                            $discounts[$product_variant_id] += $orderItemPrice * ($voucher_value / 100);
-                        }
-                    }
-                } else if ($voucher_type  == "fixed") {
-                    if (!isset($discounts[$product_variant_id])) {
-                        $discounts[$product_variant_id] = $discount / $item['quantity'];
-                    } else {
-                        $discounts[$product_variant_id] += $discount / $item['quantity'];
-                    }
-                }
-            }
-        }
-
-        return $discounts;
-    }
-
-    /** Lấy tổng tiền ship */
-    private function get_money_shipping($start_date, $end_date)
-    {
-        $query = Order::with('order_items')
-            ->where('order_status', 'completed')
-            ->whereBetween('ordered_at', [$start_date, $end_date])->get();
-        $shipping = 0;
-        foreach ($query as $key => $value) {
-            $shipping += $value['shipping_fee'];
-        }
-
-        return $shipping;
-    }
-
 
     /** Top sản phẩm được đánh giá tốt nhất */
     protected function getProductReviewTop($start_date, $end_date)
@@ -584,35 +513,32 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     {
         $request = request();
 
-        $columns = [
-            'cart_items.product_variant_id',
-            'product_variants.name',
-            DB::raw('COUNT(cart_items.product_variant_id) AS frequency_of_appearance'),
-        ];
+        $start_date = '';
+        $end_date = '';
 
-        $conditions = [
-            'search' => addslashes($request->search),
-            'publish' => $request->publish,
-            'archive' => $request->boolean('archive'),
-        ];
+        $dateRange = $this->getDateRangeByRequest($request);
 
-        $orderBy = ['frequency_of_appearance' => 'DESC'];
+        if (!empty($dateRange[0]) && !empty($dateRange[1])) {
+            $start_date = $dateRange[0];
+            $end_date = $dateRange[1];
+        }
 
-        $groupBy = ['cart_items.product_variant_id'];
+        $popularProductsCacheKey = "popularProducts_by_date_{$start_date}_{$end_date}";
 
-        $join = ['product_variants' => ['product_variants.id', 'cart_items.product_variant_id']];
-
-        $popularProducts = $this->cartItemRepository->pagination(
-            $columns,
-            $conditions,
-            20,
-            $orderBy,
-            $join,
-            [],
-            $groupBy,
-            [],
-            []
-        );
+        $popularProducts = Cache::remember($popularProductsCacheKey, 15, function () use ($start_date, $end_date) {
+            return CartItem::join('product_variants', 'cart_items.product_variant_id', '=', 'product_variants.id')
+                ->when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                    $query->whereBetween('cart_items.created_at', [$start_date, $end_date]);
+                })
+                ->select(
+                    'cart_items.product_variant_id',
+                    'product_variants.name',
+                    DB::raw('COUNT(cart_items.product_variant_id) AS frequency_of_appearance'),
+                )
+                ->groupBy('cart_items.product_variant_id')
+                ->orderBy('frequency_of_appearance', 'DESC')
+                ->get();
+        });
 
         return $popularProducts;
     }
@@ -621,43 +547,36 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     {
         $request = request();
 
-        // Khách hàng có 5 đơn hàng trở lên là khách hàng trung thành
+        $start_date = '';
+        $end_date = '';
 
-        $columns = [
-            DB::raw('users.id AS customer_id'),
-            DB::raw('users.fullname AS customer_name'),
-            DB::raw('COUNT(orders.id) AS total_orders'),
-            DB::raw('SUM(orders.final_price) AS total_spent'),
-            DB::raw('AVG(orders.final_price) AS average_spent')
-        ];
+        $dateRange = $this->getDateRangeByRequest($request);
 
-        $conditions = [
-            'search' => addslashes($request->search),
-            'publish' => $request->publish,
-            'archive' => $request->boolean('archive'),
-        ];
+        if (!empty($dateRange[0]) && !empty($dateRange[1])) {
+            $start_date = $dateRange[0];
+            $end_date = $dateRange[1];
+        }
 
-        $orderBy = ['total_spent' => 'DESC'];
+        $loyalCustomersCacheKey = "loyalCustomers_by_date_{$start_date}_{$end_date}";
 
-        $join = ['orders' => ['orders.user_id', 'users.id']];
-
-        $rawQuery = [
-            'whereRaw' => [
-                ['orders.order_status = ? GROUP BY users.id HAVING COUNT(orders.id) > ?', ['completed', 5]],
-            ],
-        ];
-
-        $loyalCustomers = $this->userRepository->pagination(
-            $columns,
-            $conditions,
-            null,
-            $orderBy,
-            $join,
-            [],
-            [],
-            [],
-            $rawQuery
-        );
+        $loyalCustomers = Cache::remember($loyalCustomersCacheKey, 15, function () use ($start_date, $end_date) {
+            return User::join('orders', 'orders.user_id', '=', 'users.id')
+                ->when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                    $query->where('order_status', Order::ORDER_STATUS_COMPLETED);
+                    $query->whereBetween('ordered_at', [$start_date, $end_date]);
+                })
+                ->select(
+                    DB::raw('users.id AS customer_id'), // id khach hang
+                    DB::raw('users.fullname AS customer_name'), // Ten khach hang
+                    DB::raw('COUNT(orders.id) AS total_orders'), // So don hang
+                    DB::raw('SUM(orders.final_price) AS total_spent'),  // Tong chi tieu cua khach hang
+                    DB::raw('AVG(orders.final_price) AS average_spent') // Chi tieu trung binh
+                )
+                ->groupBy('users.id')
+                ->havingRaw('COUNT(orders.id) > ?', [5]) // Khách hàng có 5 đơn hàng trở lên là khách hàng trung thành
+                ->orderBy('total_spent', 'DESC')
+                ->get();
+        });
 
         return $loyalCustomers;
     }
