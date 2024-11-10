@@ -28,7 +28,7 @@ class UpdateSliderRequest extends FormRequest
             'items.*.image'       => 'required|string',
             'items.*.description' => 'string',
             'items.*.url'         => 'required|string',
-            'items.*.alt'         => 'required|string',
+            // 'items.*.alt'         => 'required|string',
         ];
 
         return $rules;

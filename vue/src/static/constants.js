@@ -16,6 +16,31 @@ const PUBLISH = [
   }
 ];
 
+const EFFECT = [
+  {
+    value: 'slide',
+    label: 'Slide'
+  },
+  {
+    value: 'fade',
+    label: 'Fade'
+  },
+  {
+    value: 'cube',
+    label: 'Cube'
+  },
+  {
+    value: 'coverflow',
+    label: 'Coverflow'
+  },
+  {
+    value: 'flip',
+    label: 'Flip'
+  }
+];
+
+
+
 const PAGESIZE = ['10', '20', '30', '50', '100'];
 
 const PRODUCT_TYPE = [
@@ -190,5 +215,6 @@ export {
   DISCOUNT_CONDITION_APPLY,
   INDUSTRY,
   TEXT_STYLE_AI,
-  TONE_AI
+  TONE_AI,
+  EFFECT
 };

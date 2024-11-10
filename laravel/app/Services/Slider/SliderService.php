@@ -49,6 +49,8 @@ class SliderService extends BaseService implements SliderServiceInterface
         return $this->executeInTransaction(function () {
             // dd("Dưng");
             $payload = $this->preparePayload();
+
+            // return $payload;
             // dd($payload);
 
             $this->sliderRepository->create($payload);
@@ -57,11 +59,14 @@ class SliderService extends BaseService implements SliderServiceInterface
         }, __('messages.create.error'));
     }
 
+
+
     public function update($id)
     {
         return $this->executeInTransaction(function () use ($id) {
 
             $payload = $this->preparePayload();
+
             $this->sliderRepository->update($id, $payload);
 
             return successResponse(__('messages.update.success'));
@@ -81,7 +86,33 @@ class SliderService extends BaseService implements SliderServiceInterface
     {
         $payload = request()->except('_token', '_method');
 
-        return $payload;
+        $formatPayload = $this->formatPayload($payload);
+
+        return $formatPayload;
+    }
+
+    private function formatPayload($payload)
+    {
+        $data = [
+            'setting' =>[
+                'effect' => $payload['effect'],
+                'effectSpeed' => $payload['effectSpeed'],
+                'transitionSpeed' => $payload['transitionSpeed'],
+                'navigation' => $payload['navigation'],
+                'autoPlay' => $payload['autoPlay'],
+                'pauseOnHover' => $payload['pauseOnHover'],
+                'showArrow' => $payload['showArrow'],
+                'width' => $payload['width'],
+                'height' => $payload['height'],
+            ],
+            'items' => $payload['items'],
+
+            'code' => $payload['code'],
+
+            'name' => $payload['name'],
+        ];
+
+        return $data;
     }
 
     // CLIENT API //
