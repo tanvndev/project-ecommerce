@@ -530,6 +530,8 @@ class ProductService extends BaseService implements ProductServiceInterface
         return $product;
     }
 
+    public function trackProductView($productVariantId) {}
+
     public function filterProducts()
     {
         $request = request()->all();
