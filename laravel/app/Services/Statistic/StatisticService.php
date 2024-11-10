@@ -8,6 +8,7 @@ use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductReview;
+use App\Models\ProductVariant;
 use App\Models\ProductView;
 use App\Models\User;
 use App\Models\WishList;
@@ -41,111 +42,41 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
     public function reportOverview(): mixed
     {
-
         $request = request();
+        [$start_date, $end_date] = $this->getDateRangeByRequest($request);
 
-        $columns = [
-            DB::raw('COUNT(id) as total_orders'), // Số lượng đơn hàng
-            DB::raw('SUM(total_price) as total_price'), // Tổng tiền hàng
-            DB::raw('SUM(discount) as total_discount'), // Tổng tiền giảm giá
-            DB::raw('CAST(0 AS DECIMAL(15,2)) as money_returned'), // Tổng tiền hàng trả lại
-            DB::raw('CAST(0 AS DECIMAL(15,2)) as net_revenue'), // Tổng doanh thu thuần
-            DB::raw('CAST(0 AS DECIMAL(15,2)) as total_profit'), // Lợi nhuận gộp
-        ];
+        $cacheKey = "reportOverview_{$start_date}_{$end_date}";
 
-        $conditions = [
-            'search' => addslashes($request->search),
-            'publish' => $request->publish,
-            'archive' => $request->boolean('archive'),
-        ];
+        return Cache::remember($cacheKey, 30 * 60, function () use ($start_date, $end_date) {
+            $query = Order::query()
+                ->whereBetween('ordered_at', [$start_date, $end_date]);
 
-        $data = $this->orderRepository->pagination(
-            $columns,
-            $conditions,
-            20,
-            [],
-            [],
-            [],
-            [],
-            [],
-            []
-        );
+            $totals = $query->selectRaw('
+                COUNT(id) as total_orders,
+                SUM(final_price) as total_price,
+                SUM(discount) as total_discount,
+                SUM(shipping_fee) as total_shipping_fee
+            ')->first();
 
+            $netRevenue = $totals->total_price - $totals->total_discount - $totals->total_shipping_fee;
 
-        $moneyReturned = $this->orderRepository->pagination(
-            [
-                DB::raw('SUM(total_price) as money_returned'),
-            ],
-            [
-                'where' => [
-                    'order_status' => 'returned' // lấy ra những đơn hàng bị hoàn
-                ]
-            ],
-            null,
-            [],
-            [],
-            [],
-            [],
-            [],
-            []
-        );
+            $totalCost = OrderItem::whereHas(
+                'order',
+                fn($q) =>
+                $q->whereBetween('ordered_at', [$start_date, $end_date])
+            )->sum(DB::raw('cost_price * quantity'));
 
-        foreach ($data as $item) {
-            $data = $item;
-        }
+            $totalProfit = $netRevenue - $totalCost;
 
-        $data->net_revenue = number_format($data->total_price - $data->total_discount, 2, '.', '');
+            $totalValueOfStock = ProductVariant::sum(DB::raw('cost_price * stock'));
 
-        foreach ($moneyReturned as $return) {
-            $item->money_returned = number_format($return->money_returned, 2, '.', '');
-            $item->net_revenue = number_format($item->net_revenue - $item->money_returned, 2, '.', '');
-        }
-
-        $orderItems = $this->orderItemRepository->pagination(
-            [
-                DB::raw('SUM(cost_price * quantity) AS total_cost'),
-            ],
-            [],
-            null,
-            [],
-            [],
-            [],
-            [],
-            [],
-            []
-        );
-
-
-
-
-        // Tính lợi nhuận gộp
-        foreach ($orderItems as $orderItem) {
-            $data->total_profit = number_format($data->net_revenue - $orderItem->total_cost, 2, '.', '');
-        }
-
-        $totalValueOfStock = $this->productVariantRepository->pagination(
-            [DB::raw('SUM(cost_price * stock) as total_value_of_stock')],
-            [],
-            null,
-            [],
-            [],
-            [],
-            [],
-            [],
-            []
-        );
-
-        //Giá trị tồn kho
-        foreach ($totalValueOfStock as $item) {
-            $data->total_value_of_stock = $item->total_value_of_stock;
-        }
-
-        // Xóa những trường không cần thiết nữa
-        unset($data->total_price);
-        unset($data->total_discount);
-        unset($data->money_returned);
-
-        return $data;
+            return [
+                'total_orders' => $totals->total_orders,
+                'net_revenue' => number_format($netRevenue, 2, '.', ''),
+                'total_profit' => number_format($totalProfit, 2, '.', ''),
+                'total_value_of_stock' => number_format($totalValueOfStock, 2, '.', ''),
+            ];
+        });
     }
 
     private function getDateRangeByRequest($request)
@@ -289,9 +220,10 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                 return collect($allDates);
             });
 
+            $chartColumn = $request->input('chartColumn', 'net_revenue');
             $chartData = $request->has('chart')
-                ? Cache::remember("chart_data_{$start_date}_{$end_date}", 15, function () use ($allDatesCollection) {
-                    return $this->getChart($allDatesCollection, 'net_revenue');
+                ? Cache::remember("chart_data_{$start_date}_{$end_date}_{$chartColumn}", 15, function () use ($allDatesCollection, $chartColumn) {
+                    return $this->getChart($allDatesCollection, $chartColumn);
                 })
                 : [];
 

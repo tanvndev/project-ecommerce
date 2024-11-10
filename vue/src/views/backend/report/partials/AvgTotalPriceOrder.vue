@@ -7,7 +7,7 @@
             <span class="border-b border-dashed">Giá trị đơn hàng trung bình</span>
             <TooltipComponent title="AOV = Tổng doanh thu / Số lượng đơn hàng" />
           </div>
-          <RouterLink to="#" class="report-block-link">
+          <RouterLink :to="{ name: 'report.sales', query: { chart_column: 'avg_order_value' } }" class="report-block-link">
             <i class="far fa-arrow-circle-right"></i>
           </RouterLink>
         </div>
@@ -49,7 +49,7 @@ const dataChart = ref({
   labels: [],
   datasets: [
     {
-      label: 'Doanh thu',
+      label: 'Giá trị đơn trung bình',
       backgroundColor: '#0088ff',
       data: [],
       fill: 1,
@@ -76,7 +76,7 @@ const fetchData = async () => {
         end_date: props.endDate,
         chart: true,
         pageSize: 10,
-        chartColumn: 'net_revenue'
+        chartColumn: 'avg_order_value'
       }
     });
     dataChart.value.datasets[0].data = response.data?.chartData;

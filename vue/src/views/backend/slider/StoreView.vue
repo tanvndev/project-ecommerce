@@ -1,10 +1,12 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="content-wrapper">
+      <div class="mb-4 px-4">
+        <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
         <form @submit.prevent="onSubmit">
           <!-- {{ errors }} -->
           <a-row :gutter="16">
+            <AleartError :errors="state.errors" />
             <!-- Left Column (Cấu hình cơ bản, Cấu hình nâng cao, Shortcode) -->
             <a-col :span="8">
               <!-- Basic Configuration Section -->
@@ -20,7 +22,7 @@
                   </a-col>
 
                   <a-col :span="24">
-                    <InputComponent label="Code" :required="true" name="code" placeholder="code" />
+                    <InputComponent label="Code" :required="true" name="code" placeholder="Mã trình chiếu" />
                   </a-col>
 
                   <a-col :span="24">
@@ -103,7 +105,7 @@
 
             <!-- Right Column (Danh sách slides) -->
             <a-col :span="16">
-              <a-card title="Danh sách slides" bordered>
+              <a-card title="Danh sách trình chiếu" bordered>
                 <template #extra>
                   <a-button type="dashed" @click="addSlide">Thêm slide</a-button>
                 </template>
@@ -162,13 +164,14 @@
 
                 <!-- </draggable> -->
               </a-card>
-
-              <!-- Submit Button -->
-              <div class="mt-4 text-right">
-                <a-button type="primary" html-type="submit">Submit</a-button>
-              </div>
             </a-col>
           </a-row>
+          <div class="fixed bottom-0 right-[19px] p-10">
+            <a-button html-type="submit" type="primary" size="large">
+              <i class="fas fa-save mr-2"></i>
+              <span>Lưu thông tin</span>
+            </a-button>
+          </div>
         </form>
       </div>
     </template>
@@ -176,23 +179,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, computed } from 'vue';
 import {
-  MasterLayout,
+  AleartError,
+  BreadcrumbComponent,
   InputComponent,
   InputFinderComponent,
+  MasterLayout,
   RadioComponent,
-  SwitchComponent,
-  SelectComponent
+  SelectComponent,
+  SwitchComponent
 } from '@/components/backend';
-import { EFFECT } from '@/static/constants';
-import { VueDraggable } from 'vue-draggable-plus';
-import { useForm } from 'vee-validate';
-import { formatMessages } from '@/utils/format';
-import router from '@/router';
 import { useCRUD } from '@/composables';
-import { validationSchema } from './validationSchema';
+import router from '@/router';
+import { EFFECT } from '@/static/constants';
+import { formatMessages } from '@/utils/format';
 import { message } from 'ant-design-vue';
+import { useForm } from 'vee-validate';
+import { computed, onMounted, reactive, ref } from 'vue';
+import { VueDraggable } from 'vue-draggable-plus';
+import { validationSchema } from './validationSchema';
 
 const { getOne, create, update, messages, data } = useCRUD();
 const id = computed(() => router.currentRoute.value.params.id || null);
@@ -206,7 +211,7 @@ const slides = ref([]);
 const state = reactive({
   endpoint: 'sliders',
   pageTitle: 'Thêm mới trình chiếu',
-  error: {},
+  errors: {},
   items: []
 });
 
@@ -279,7 +284,6 @@ const removeSlide = (index) => {
 
 // Handle form submission
 const onSubmit = handleSubmit(async (values) => {
-
   console.log(values);
 
   state.error = {};
@@ -297,23 +301,15 @@ const onSubmit = handleSubmit(async (values) => {
   state.errors = {};
   router.push({ name: 'slider.index' });
 });
-
-const onEnd = () => {
-  if (slides.value.length >= 2) {
-  }
-};
 </script>
 
 <style scoped>
-.content-wrapper {
-  padding: 16px;
-}
-
 .slide-block {
   border: 1px solid #e8e8e8;
   padding: 16px;
   margin-top: 16px;
   border-radius: 8px;
+  background-color: #fff;
 }
 
 .status-text {

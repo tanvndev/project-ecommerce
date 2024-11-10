@@ -10,16 +10,15 @@ const sliderRoutes = [
   {
     path: '/slider/create',
     name: 'slider.create',
-    component: () => import('@/views/backend/slider/CreateView.vue'),
+    component: () => import('@/views/backend/slider/StoreView.vue'),
     beforeEnter: [isLoggedIn]
   },
   {
     path: '/slider/update/:id(\\d+)',
     name: 'slider.update',
-    component: () => import('@/views/backend/slider/CreateView.vue'),
+    component: () => import('@/views/backend/slider/StoreView.vue'),
     beforeEnter: [isLoggedIn]
   }
 ];
 
 export default sliderRoutes;
-
