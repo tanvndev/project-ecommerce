@@ -107,4 +107,9 @@ class ProductVariant extends Model
             ->withPivot('max_quantity', 'sold_quantity', 'sale_price')
             ->withTimestamps();
     }
+
+    public function product_views()
+    {
+        return $this->hasMany(ProductView::class);
+    }
 }
