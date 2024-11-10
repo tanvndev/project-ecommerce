@@ -74,6 +74,8 @@ class AppRepositoryProvider extends ServiceProvider
         'App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface' => 'App\Repositories\FlashSale\FlashSaleRepository',
         // Search History
         'App\Repositories\Interfaces\Product\SearchHistoryRepositoryInterface' => 'App\Repositories\Product\SearchHistoryRepository',
+        // CartAction
+        'App\Repositories\Interfaces\Cart\CartActionRepositoryInterface' => 'App\Repositories\Cart\CartActionRepository',
 
     ];
 
