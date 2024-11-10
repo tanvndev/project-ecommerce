@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('product_views', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('product_variant_id')->constrained('product_variants')->cascadeOnDelete();
             $table->timestamp('viewed_at');
             $table->timestamps();

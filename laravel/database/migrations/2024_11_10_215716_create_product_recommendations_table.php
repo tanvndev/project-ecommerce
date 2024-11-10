@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(ProductVariant::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
-            $table->decimal('score', 10, 2)->default(0);
+            $table->decimal('total_score', 10, 2)->default(0);
             $table->timestamps();
         });
     }

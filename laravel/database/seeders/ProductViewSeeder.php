@@ -28,7 +28,7 @@ class ProductViewSeeder extends Seeder
         for ($i = 1; $i <= $totalRecords; $i++) {
             $data[] = [
                 'product_variant_id' => $productVariantIds[array_rand($productVariantIds)],
-                'user_id' => rand(1, 10) === 1 ? null : $userIds[array_rand($userIds)],
+                'user_id' => $userIds[array_rand($userIds)],
                 'viewed_at' => Carbon::now()->subMinutes(rand(1, 10000)),  // Thời gian xem ngẫu nhiên trong quá khứ
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),

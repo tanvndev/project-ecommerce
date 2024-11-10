@@ -533,15 +533,16 @@ class ProductService extends BaseService implements ProductServiceInterface
         $productVariant = $product->variants()->where('slug', $newSlug)->first();
 
         // Theo dõi lượt xem sản phẩm
-        $this->trackProductView($productVariant);
-
+        if (auth()->check()) {
+            $this->trackProductView($productVariant);
+        }
         return $product;
     }
 
 
     public function trackProductView($productVariant)
     {
-        $userId = auth()->user()->id ?? null;
+        $userId = auth()->user()->id;
 
         // Check if the user viewed this variant within the last hour
         $lastView = $productVariant->product_views()
