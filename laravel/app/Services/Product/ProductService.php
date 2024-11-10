@@ -524,13 +524,34 @@ class ProductService extends BaseService implements ProductServiceInterface
 
     public function getProduct(string $slug)
     {
+        // dd($slug);
         $productId = last(explode('-', $slug));
         $product = $this->productRepository->findById($productId);
 
+        $productVariant = $product->variants()->where('slug', $slug)->first();
+        $this->trackProductView($productVariant);
         return $product;
     }
 
-    public function trackProductView($productVariantId) {}
+    public function trackProductView($productVariant)
+    {
+        $userId = auth()->user()->id ?? null;
+
+        // Check if the user viewed this variant within the last hour
+        $lastView = $productVariant->product_views()
+            ->where('user_id', $userId)
+            ->where('product_variant_id', $productVariant->id)
+            ->latest('viewed_at')
+            ->first();
+        // Kiểm tra 1 tiếng mới thêm 1 lần
+        if (!$lastView || Carbon::now()->diffInHours($lastView->viewed_at) >= 1) {
+            $productVariant->product_views()->create([
+                'product_variant_id' => $productVariant->id,
+                'user_id'            => $userId,
+                'viewed_at'          => Carbon::now(),
+            ]);
+        }
+    }
 
     public function filterProducts()
     {
