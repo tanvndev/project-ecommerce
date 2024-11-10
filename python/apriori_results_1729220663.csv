@@ -1,4 +1,0 @@
-Association Rules
-"RelationRecord(items=frozenset({'408'}), support=0.76, ordered_statistics=[OrderedStatistic(items_base=frozenset(), items_add=frozenset({'408'}), confidence=0.76, lift=1.0)])"
-"RelationRecord(items=frozenset({'409'}), support=0.68, ordered_statistics=[OrderedStatistic(items_base=frozenset(), items_add=frozenset({'409'}), confidence=0.68, lift=1.0)])"
-"RelationRecord(items=frozenset({'408', '409'}), support=0.6, ordered_statistics=[OrderedStatistic(items_base=frozenset(), items_add=frozenset({'408', '409'}), confidence=0.6, lift=1.0), OrderedStatistic(items_base=frozenset({'408'}), items_add=frozenset({'409'}), confidence=0.7894736842105263, lift=1.1609907120743033), OrderedStatistic(items_base=frozenset({'409'}), items_add=frozenset({'408'}), confidence=0.8823529411764705, lift=1.1609907120743033)])"
