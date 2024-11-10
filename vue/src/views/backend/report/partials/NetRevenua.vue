@@ -7,7 +7,7 @@
             <span class="border-b border-dashed">Doanh thu thuần</span>
             <TooltipComponent title="Doanh thu thuần = Tiền hàng - Khuyến mại " />
           </div>
-          <RouterLink :to="{ name: 'report.sales' }" class="report-block-link">
+          <RouterLink :to="{ name: 'report.sales', query: { chart_column: 'net_revenue' } }" class="report-block-link">
             <i class="far fa-arrow-circle-right"></i>
           </RouterLink>
         </div>

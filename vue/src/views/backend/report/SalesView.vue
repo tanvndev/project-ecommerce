@@ -27,7 +27,7 @@
           </a-select>
         </div>
         <a-card class="mt-3">
-          <h3 class="mb-2 font-bold">Tổng doanh thu</h3>
+          <h3 class="mb-2 font-bold">{{ getLabel() }}</h3>
 
           <div>
             <canvas id="bar-chart"></canvas>
@@ -46,6 +46,9 @@
           <template #bodyCell="{ column, record }">
             <template v-if="column.dataIndex === 'order_date'">
               {{ dayjs(record.order_date).format('DD/MM/YYYY') }}
+            </template>
+            <template v-if="column.dataIndex === 'avg_order_value'">
+              {{ formatCurrency(record.avg_order_value) }}
             </template>
             <template v-if="column.dataIndex === 'net_revenue'">
               {{ formatCurrency(record.net_revenue) }}
@@ -81,6 +84,7 @@ const chartFor = ref('day');
 const date = computed(() => route.query.date || 'last_30_days');
 const start_date = computed(() => route.query.start_date || '');
 const end_date = computed(() => route.query.end_date || '');
+const chartColumn = computed(() => route.query.chart_column || 'net_revenue');
 const isLoading = ref(false);
 const columns = [
   {
@@ -92,6 +96,11 @@ const columns = [
     title: 'Số lượng đơn',
     dataIndex: 'total_orders',
     key: 'total_orders'
+  },
+  {
+    title: 'Giá trị đơn trung bình',
+    key: 'avg_order_value',
+    dataIndex: 'avg_order_value'
   },
   {
     title: 'Doanh thu thuần',
@@ -119,11 +128,15 @@ const columns = [
 const dataSource = ref([]);
 const { pagination, onChangePagination, handleTableChange } = usePagination();
 
+const getLabel = () => {
+  const label = columns.find((item) => item.dataIndex === chartColumn.value);
+  return label?.title;
+};
 const dataChart = ref({
   labels: [],
   datasets: [
     {
-      label: 'Doanh thu',
+      label: getLabel(),
       backgroundColor: '#0088ff',
       data: []
     }
@@ -171,7 +184,8 @@ const fetchRevenueData = async () => {
         end_date: end_date.value,
         chart: true,
         page: pagination.current,
-        pageSize: pagination.pageSize
+        pageSize: pagination.pageSize,
+        chartColumn: chartColumn.value
       }
     });
 

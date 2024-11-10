@@ -7,7 +7,7 @@
             <span class="border-b border-dashed">Lợi nhuận gộp</span>
             <TooltipComponent title="Lợi nhuận gộp = Doanh thu thuần - Giá vốn hàng bán" />
           </div>
-          <RouterLink :to="{ name: 'report.sales' }" class="report-block-link">
+          <RouterLink :to="{ name: 'report.sales', query: { chart_column: 'total_profit' } }" class="report-block-link">
             <i class="far fa-arrow-circle-right"></i>
           </RouterLink>
         </div>
