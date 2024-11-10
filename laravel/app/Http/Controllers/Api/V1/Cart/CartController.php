@@ -43,10 +43,6 @@ class CartController extends Controller
     {
         $response = $this->cartService->createOrUpdate($request);
 
-        if (is_array($response)) {
-            return $response;
-        }
-
         $data = new CartCollection($response);
 
         return successResponse(__('messages.cart.success.create'), $data, true);

@@ -2,12 +2,13 @@
 
 namespace App\Services\Cart;
 
+use Carbon\Carbon;
+use App\Services\BaseService;
+use App\Repositories\Interfaces\Cart\CartActionRepositoryInterface;
+use App\Services\Interfaces\Cart\CartServiceInterface;
 use App\Repositories\Interfaces\Cart\CartRepositoryInterface;
 use App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
-use App\Services\BaseService;
-use App\Services\Interfaces\Cart\CartServiceInterface;
-use Carbon\Carbon;
 
 class CartService extends BaseService implements CartServiceInterface
 {
@@ -16,7 +17,8 @@ class CartService extends BaseService implements CartServiceInterface
     public function __construct(
         protected CartRepositoryInterface $cartRepository,
         protected ProductVariantRepositoryInterface $productVariantRepository,
-        protected FlashSaleRepositoryInterface $flashSaleRepository
+        protected FlashSaleRepositoryInterface $flashSaleRepository,
+        protected CartActionRepositoryInterface $cartActionRepository
     ) {}
 
     public function getCart()
@@ -102,7 +104,27 @@ class CartService extends BaseService implements CartServiceInterface
             'quantity'                                  => $request->quantity ?? 1,
             'updated_at'                                => now(),
         ]);
+
+
+        if (auth()->check()) {
+
+            $this->trackCartAction($request->product_variant_id, 'added');
+        }
     }
+
+    private function trackCartAction($productVariantId, $action)
+    {
+        $productVariantIds = is_array($productVariantId) ? $productVariantId : [$productVariantId];
+
+        foreach ($productVariantIds as $id) {
+            $this->cartActionRepository->create([
+                'product_variant_id' => $id,
+                'user_id' => auth()->id(),
+                'action' => $action,
+            ]);
+        }
+    }
+
 
 
     private function updateCartItem($cart, $request, $is_by_now = false)
@@ -174,6 +196,10 @@ class CartService extends BaseService implements CartServiceInterface
 
             $cartItem = $cart->cart_items()->where('product_variant_id', $id)->first();
 
+            if (auth()->check()) {
+                $this->trackCartAction($id, 'removed');
+            }
+
             $cartItem?->delete();
 
             return $this->getCart();
@@ -197,10 +223,21 @@ class CartService extends BaseService implements CartServiceInterface
                 return errorResponse(__('messages.cart.error.not_found'));
             }
 
+            if ($this->isLogin()) {
+                $ids = $cart->cart_items()->pluck('product_variant_id')->toArray();
+
+                $this->trackCartAction($ids, 'removed');
+            };
+
             $cart->cart_items()->delete();
 
             return successResponse(__('messages.cart.success.clean'));
         }, __('messages.cart.error.delete'));
+    }
+
+    private function isLogin()
+    {
+        return auth()->check();
     }
 
     /**
