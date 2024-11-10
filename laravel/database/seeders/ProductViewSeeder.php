@@ -18,22 +18,32 @@ class ProductViewSeeder extends Seeder
 
     public function run(): void
     {
+        // Lấy tất cả các ID của product_variant và user để tránh việc gọi DB trong mỗi vòng lặp
+        $productVariantIds = ProductVariant::pluck('id')->toArray();
+        $userIds = User::pluck('id')->toArray();
+
         $data = [];
-        $totalRecords = 1000000000;
-        for ($i = 1; $i < $totalRecords; $i++) {
+        $totalRecords = 1000000; // Giảm số lượng bản ghi để dễ kiểm tra
+
+        for ($i = 1; $i <= $totalRecords; $i++) {
             $data[] = [
-                'product_variant_id' => ProductVariant::all()->random()->id,
-                'user_id'            => rand(1, 10) === 1 ? null : User::all()->random()->id,  // Giả định bạn có các user_id từ 1 đến 50
-                'viewed_at'          => Carbon::now()->subMinutes(rand(1, 10000)),  // Thời gian xem ngẫu nhiên trong quá khứ
-                'created_at'         => Carbon::now(),
-                'updated_at'         => Carbon::now(),
+                'product_variant_id' => $productVariantIds[array_rand($productVariantIds)],
+                'user_id' => rand(1, 10) === 1 ? null : $userIds[array_rand($userIds)],
+                'viewed_at' => Carbon::now()->subMinutes(rand(1, 10000)),  // Thời gian xem ngẫu nhiên trong quá khứ
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
             ];
 
-            // Chèn dữ liệu vào DB sau mỗi 500 bản ghi để tránh tràn bộ nhớ
+            // Chèn dữ liệu vào DB sau mỗi 500 bản ghi
             if ($i % 500 === 0) {
                 DB::table('product_views')->insert($data);
-                $data = [];
+                $data = []; // Reset mảng dữ liệu sau mỗi lần insert
             }
+        }
+
+        // Chèn nốt các bản ghi còn lại nếu có
+        if (!empty($data)) {
+            DB::table('product_views')->insert($data);
         }
     }
 }

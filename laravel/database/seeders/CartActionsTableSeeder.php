@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\ProductVariant;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -13,15 +15,18 @@ class CartActionsTableSeeder extends Seeder
      */
     public function run(): void
     {
+        // Lấy tất cả các ID của product_variant và user để tránh việc gọi DB trong mỗi vòng lặp
+        $productVariantIds = ProductVariant::pluck('id')->toArray();
+        $userIds = User::pluck('id')->toArray();
 
-        $batchSize = 5000;
+        $batchSize = 1000;
         $totalRecords = 1000000;
         $data = [];
 
         for ($i = 1; $i <= $totalRecords; $i++) {
             $data[] = [
-                'product_variant_id' => fake()->numberBetween(212, 417),
-                'user_id' => fake()->numberBetween(22, 222),
+                'product_variant_id' => $productVariantIds[array_rand($productVariantIds)],
+                'user_id' => $userIds[array_rand($userIds)],
                 'action' => fake()->randomElement(['added', 'removed']),
                 'created_at' => now(),
                 'updated_at' => now(),
