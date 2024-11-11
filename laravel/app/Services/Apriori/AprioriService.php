@@ -20,94 +20,86 @@ class AprioriService implements AprioriServiceInterface
     //     order_status = 'completed',
     //     payment_status = 'paid',
 
-    public function exportOrdersToCsv()
-    {
-        try {
-            $filePath = 'orders.csv';
-            $file = fopen($filePath, 'w');
-
-            fputcsv($file, ['order_id', 'product_variant_ids']);
-
-            Order::query()
-                ->where('order_status', 'completed')
-                ->where('payment_status', 'paid')
-                ->with('order_items')
-                ->chunk(1000, function ($orders) use ($file) {
-                    foreach ($orders as $order) {
-                        $product_variant_ids = implode(',', $order->order_items->pluck('product_variant_id')->toArray());
-                        fputcsv($file, [$order->id, $product_variant_ids]);
-                    }
-                });
-
-            fclose($file);
-        } catch (\Exception $e) {
-            throw new \Exception($e->getMessage());
-        }
-    }
-
     public function suggestProducts($targetProductId, $topN = 3)
     {
-        $aprioriResults = $this->getAprioriResults();
-        $suggestions = [];
-
-        foreach ($aprioriResults as $rule) {
-            foreach ($rule['ordered_statistics'] as $stat) {
-                $baseItems = $stat['items_base'];
-                $addedItems = $stat['items_add'];
-
-                if (in_array($targetProductId, $baseItems)) {
-                    $this->addSuggestions($suggestions, $addedItems, $targetProductId, $stat);
-                } elseif (in_array($targetProductId, $addedItems)) {
-                    $this->addSuggestions($suggestions, $baseItems, $targetProductId, $stat);
-                }
-            }
-        }
-
-        usort($suggestions, function ($a, $b) {
+        // Lấy kết quả Apriori từ Redis
+        $aprioriResults = $this->getAprioriResults($targetProductId);
+        
+        // Lọc và sắp xếp các sản phẩm gợi ý theo confidence và lift
+        usort($aprioriResults, function ($a, $b) {
             return ($b['confidence'] <=> $a['confidence']) ?: ($b['lift'] <=> $a['lift']);
         });
-
+    
+        // Chọn ra các sản phẩm gợi ý duy nhất
         $uniqueSuggestions = [];
-        foreach ($suggestions as $suggestion) {
+        foreach ($aprioriResults as $suggestion) {
             $productId = $suggestion['product_variant_id'];
             if (!isset($uniqueSuggestions[$productId]) || $suggestion['confidence'] > $uniqueSuggestions[$productId]['confidence']) {
                 $uniqueSuggestions[$productId] = $suggestion;
             }
         }
-
+    
         $productVariantIds = array_slice(array_values($uniqueSuggestions), 0, $topN);
-
+    
         if (empty($productVariantIds)) {
             return [];
         }
-
+    
         $productVariantIds = collect($productVariantIds)->pluck('product_variant_id')->unique();
-
-        $productVariants = ProductVariant::query()
-            ->whereIn('id', $productVariantIds)
-            ->get();
-
+    
+        $productVariants = ProductVariant::whereIn('id', $productVariantIds)->get();
+        
         return $productVariants;
     }
-
-    private function addSuggestions(&$suggestions, $items, $targetProductId, $stat)
+    
+    private function getAprioriResults($targetProductId)
     {
-        foreach ($items as $item) {
-            if ($item != $targetProductId) {
-                $suggestions[] = [
-                    'product_variant_id' => $item,
-                    'confidence' => $stat['confidence'],
-                    'lift' => $stat['lift']
-                ];
+        $frequentItemsets = Redis::lrange('apriori_frequent_itemsets', 0, -1);
+        $associationRules = Redis::lrange('apriori_association_rules', 0, -1);
+    
+        $recommendedProducts = [];
+        $result = [];
+    
+        foreach ($frequentItemsets as $json) {
+            $itemset = json_decode($json, true);
+    
+            if (isset($itemset['items']) && in_array($targetProductId, $itemset['items'])) {
+                $recommendedProducts = array_merge($recommendedProducts, $itemset['items']);
             }
         }
+    
+        foreach ($associationRules as $json) {
+            $rule = json_decode($json, true);
+    
+            if (isset($rule['antecedent']) && in_array($targetProductId, $rule['antecedent'])) {
+                foreach ($rule['consequent'] as $productId) {
+                    $recommendedProducts[] = $productId;
+    
+                    $confidence = $rule['confidence'] ?? 0;
+                    $lift = $rule['lift'] ?? 0;
+    
+                    $result[] = [
+                        'product_variant_id' => $productId,
+                        'confidence' => $confidence,
+                        'lift' => $lift,
+                    ];
+                }
+            }
+        }
+    
+        // Loại bỏ các sản phẩm trùng lặp và sản phẩm đã chọn ban đầu
+        $recommendedProducts = array_diff($recommendedProducts, [$targetProductId]);
+        $recommendedProducts = array_unique($recommendedProducts);
+    
+        // Lọc lại mảng kết quả để chỉ bao gồm các sản phẩm gợi ý
+        $finalResult = [];
+        foreach ($result as $item) {
+            if (in_array($item['product_variant_id'], $recommendedProducts)) {
+                $finalResult[] = $item;
+            }
+        }
+    
+        return $finalResult;
     }
 
-    private function getAprioriResults()
-    {
-        $results = Redis::lrange('apriori_suggest_product', 0, -1);
-        return array_map(function ($result) {
-            return json_decode($result, true);
-        }, $results);
-    }
 }
