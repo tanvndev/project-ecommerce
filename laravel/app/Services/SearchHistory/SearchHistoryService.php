@@ -24,11 +24,8 @@ class SearchHistoryService extends BaseService implements SearchHistoryServiceIn
 
         $select = [
             'id',
-            'name',
-            'code',
-            'items',
-            'setting',
-            'publish',
+            'keyword',
+            'count',
         ];
 
         $condition = [
