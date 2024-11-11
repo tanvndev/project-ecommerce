@@ -17,8 +17,8 @@ class TestController extends Controller
     public function getOrder(Request $request)
     {
 
-        $orders = $this->aprioriService->exportOrdersToCsv();
-        // $response = $this->aprioriService->suggestProducts(54);
+        // $orders = $this->aprioriService->exportOrdersToCsv();
+        $response = $this->aprioriService->suggestProducts(54);
 
         // $data = new ClientProductVariantCollection($response);
 
