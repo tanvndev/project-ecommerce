@@ -272,19 +272,20 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
                     break;
                 case 'product_review_top':
-                    $query = $this->getProductReviewTop($start_date, $end_date);
-                    $result = $query
-                        ->filter(function ($item) {
-                            return $item->review_count > 0 && !is_null($item->avg_rating);
-                        })
-                        ->map(function ($item) {
-                            return [
-                                'product_id'                => $item->product_id,
-                                'product_name'              => $item->product['name'],
-                                'review_count'              => $item->review_count,
-                                'average_rating'            => number_format($item->avg_rating, 1, '.', ','),
-                            ];
-                        });
+                    $result = $this->getProductReviewTop($start_date, $end_date, $request);
+                    // $query = $this->getProductReviewTop($start_date, $end_date, $request);
+                    // $result = $query
+                    //     ->filter(function ($item) {
+                    //         return $item->review_count > 0 && !is_null($item->avg_rating);
+                    //     })
+                    //     ->map(function ($item) {
+                    //         return [
+                    //             'product_id'                => $item->product_id,
+                    //             'product_name'              => $item->product['name'],
+                    //             'review_count'              => $item->review_count,
+                    //             'average_rating'            => number_format($item->avg_rating, 1, '.', ','),
+                    //         ];
+                    //     });
                     break;
                 case 'product_wishlist_top':
                     $query = $this->getProductWishlistTop($start_date, $end_date);
@@ -357,27 +358,60 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         return $topSellingData;
     }
 
-    /** Top sản phẩm được đánh giá tốt nhất */
-    protected function getProductReviewTop($start_date, $end_date)
+
+    protected function getProductReviewTop($start_date, $end_date, $request)
     {
-        $productReviews = ProductReview::with(['product', 'order'])
-            ->whereHas('order', function ($query) {
-                $query->where('order_status', 'completed');
-            })
-            ->whereBetween('created_at', [$start_date, $end_date])
-            ->where('publish', 1)
-            ->select(
+        $pageSize = $request->input('pageSize', 20);
+        $page = $request->input('page', 1);
+        $cacheKey = "top-reviewing-products:$start_date:$end_date:$pageSize:$page";
+
+        $topReviewingData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
+
+            return ProductReview::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+
+                $query
+                    ->whereHas(
+                        'order',
+                        function ($q) {
+                            $q->where('order_status', Order::ORDER_STATUS_COMPLETED);
+                        }
+                    )
+                    ->whereBetween('created_at', [$start_date, $end_date])
+                    ->where('publish', 1);
+            })->select(
                 'product_reviews.product_id',
                 DB::raw('COUNT(product_reviews.id) AS review_count'),
-                DB::raw('AVG(product_reviews.rating) AS avg_rating')
+                DB::raw('AVG(product_reviews.rating) AS avg_rating'),
+
             )
-            ->groupBy('product_reviews.product_id')
-            ->orderBy('avg_rating', 'DESC')
-            ->limit(10)
-            ->get();
-        // dd($productReviews->toArray());
-        return $productReviews;
+                ->groupBy('product_reviews.product_id')
+                ->orderBy('avg_rating', 'DESC')
+                ->paginate($pageSize);
+        });
+
+        dd($topReviewingData);
     }
+    /** Top sản phẩm được đánh giá tốt nhất */
+    // protected function getProductReviewTop($start_date, $end_date)
+    // {
+    //     $productReviews = ProductReview::with(['product', 'order'])
+    //         ->whereHas('order', function ($query) {
+    //             $query->where('order_status', 'completed');
+    //         })
+    //         ->whereBetween('created_at', [$start_date, $end_date])
+    //         ->where('publish', 1)
+    //         ->select(
+    //             'product_reviews.product_id',
+    //             DB::raw('COUNT(product_reviews.id) AS review_count'),
+    //             DB::raw('AVG(product_reviews.rating) AS avg_rating')
+    //         )
+    //         ->groupBy('product_reviews.product_id')
+    //         ->orderBy('avg_rating', 'DESC')
+    //         ->limit(10)
+    //         ->get();
+    //     // dd($productReviews->toArray());
+    //     return $productReviews;
+    // }
 
     /** Top sản phẩm được yêu thích nhiều nhất */
     protected function getProductWishlistTop($start_date, $end_date)
