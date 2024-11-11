@@ -2,7 +2,7 @@
   <MasterLayout>
     <template #template>
       <div class="mx-10 mb-5 min-h-screen">
-        <BreadcrumbComponent :titlePage="state.pageTitle" />
+        <BreadcrumbComponent :titlePage="state.pageTitle" :routeCreate="state.routeCreate" />
 
         <!-- Toolbox -->
         <ToolboxComponent
@@ -113,6 +113,7 @@ const state = reactive({
   modelName: 'ProductReview',
   routeUpdate: 'evaluate.replies',
   endpoint: 'product-reviews',
+  routeCreate: '',
   isShowToolbox: false,
   modelIds: [],
   filterOptions: {},
