@@ -422,7 +422,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             $productViewToOrder = OrderItem::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
                 $query->whereHas('order', function ($q) use ($start_date, $end_date) {
                     $q->where('order_status', Order::ORDER_STATUS_COMPLETED)
-                        ->whereBetween('created_at', [$start_date, $end_date]);
+                        ->whereBetween('ordered_at', [$start_date, $end_date]);
                 });
             })
                 ->select(
