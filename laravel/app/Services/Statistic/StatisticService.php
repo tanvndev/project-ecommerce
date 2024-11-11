@@ -269,34 +269,20 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             switch ($condition) {
                 case 'product_sell_best':
                     $result = $this->getProductSellTop($start_date, $end_date, $request);
-
                     break;
                 case 'product_review_top':
                     $result = $this->getProductReviewTop($start_date, $end_date, $request);
-                    // $query = $this->getProductReviewTop($start_date, $end_date, $request);
-                    // $result = $query
-                    //     ->filter(function ($item) {
-                    //         return $item->review_count > 0 && !is_null($item->avg_rating);
-                    //     })
-                    //     ->map(function ($item) {
-                    //         return [
-                    //             'product_id'                => $item->product_id,
-                    //             'product_name'              => $item->product['name'],
-                    //             'review_count'              => $item->review_count,
-                    //             'average_rating'            => number_format($item->avg_rating, 1, '.', ','),
-                    //         ];
-                    //     });
                     break;
                 case 'product_wishlist_top':
-                    $query = $this->getProductWishlistTop($start_date, $end_date);
-                    $result = $query->get()
-                        ->map(function ($item) {
-                            return [
-                                'product_variant_id'    => $item['product_variant_id'],
-                                'name'                  => $item['product_variant']['name'],
-                                'wishlist_count'        => $item['wishlist_count'],
-                            ];
-                        });
+                    $query = $this->getProductWishlistTop($start_date, $end_date, $request);
+                    // $result = $query->get()
+                    //     ->map(function ($item) {
+                    //         return [
+                    //             'product_variant_id'    => $item['product_variant_id'],
+                    //             'name'                  => $item['product_variant']['name'],
+                    //             'wishlist_count'        => $item['wishlist_count'],
+                    //         ];
+                    //     });
                     break;
                 case 'product_views_top':
                     $query = $this->getProductTopView($start_date, $end_date);
@@ -399,16 +385,34 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
 
     /** Top sản phẩm được yêu thích nhiều nhất */
-    protected function getProductWishlistTop($start_date, $end_date)
+    protected function getProductWishlistTop($start_date, $end_date, $request)
     {
-        $topWishlistProducts = WishList::with(['product_variant'])
-            ->select('product_variant_id')
-            ->selectRaw('COUNT(product_variant_id) as wishlist_count')
-            ->whereBetween('created_at', [$start_date, $end_date])
-            ->groupBy('product_variant_id')
-            ->orderByDesc('wishlist_count')
-            ->limit(10);
-        return $topWishlistProducts;
+
+        $pageSize = $request->input('pageSize', 20);
+        $page = $request->input('page', 1);
+        $cacheKey = "top-wishlist-product:$start_date:$end_date:$pageSize:$page";
+
+        $topWishlistProduct =  Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
+            return WishList::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                $query->whereBetween('created_at', [$start_date, $end_date]);
+            })->select(
+                'product_variant_id',
+                DB::raw('COUNT(product_variant_id) as wishlist_count'),
+            )
+                ->groupBy('product_variant_id')
+                ->orderByDesc('wishlist_count')
+                ->paginate($pageSize);;
+        });
+
+        dd($topWishlistProduct->toArray());
+        // $topWishlistProducts = WishList::with(['product_variant'])
+        //     ->select('product_variant_id')
+        //     ->selectRaw('COUNT(product_variant_id) as wishlist_count')
+        //     ->whereBetween('created_at', [$start_date, $end_date])
+        //     ->groupBy('product_variant_id')
+        //     ->orderByDesc('wishlist_count')
+        //     ->limit(10);
+        // return $topWishlistProducts;
     }
 
     /** Top sản phẩm nhiều lượt xem nhất */
