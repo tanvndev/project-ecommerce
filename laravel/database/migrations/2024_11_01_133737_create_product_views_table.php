@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('product_variant_id')->constrained('product_variants')->cascadeOnDelete();
-            $table->timestamp('viewed_at');
+            $table->timestamp('viewed_at')->index();
             $table->timestamps();
         });
     }

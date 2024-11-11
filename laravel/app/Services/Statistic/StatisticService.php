@@ -282,7 +282,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             }
             return $result;
         } catch (\Exception $e) {
-            getError($e->getMessage());
+            getError($e);
             Log::error($e->getMessage());
             return response()->json(['error' => 'Có lỗi xảy ra'], 500);
         }
@@ -316,8 +316,6 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                 ->paginate($pageSize);
         });
 
-
-
         return $topSellingData;
     }
 
@@ -329,7 +327,6 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         $cacheKey = "top-reviewing-products:$start_date:$end_date:$pageSize:$page";
 
         $topReviewingData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
-
             return ProductReview::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
                 $query
                     ->whereHas('order', function ($q) {
@@ -354,6 +351,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
         $topReviewingData->map(function ($item) {
             $item->product_name = $item->product->name;
+            $item->avg_rating_percent = starsToPercent($item->avg_rating);
             unset($item->product);
             return $item;
         });
@@ -373,7 +371,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             return WishList::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
                 $query->whereBetween('created_at', [$start_date, $end_date]);
             })
-                ->with(['product_variants' => function ($query) {
+                ->with(['product_variant' => function ($query) {
                     $query->select('id', 'name');
                 }])
                 ->select(
@@ -400,7 +398,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         $cacheKey = "top-view-product:$start_date:$end_date:$pageSize:$page";
 
         $topViewProductData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
-            $productViews =  ProductView::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+            $productViews = ProductView::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
                 $query->whereBetween('viewed_at', [$start_date, $end_date]);
             })
                 ->with(['product_variant' => function ($query) {
@@ -424,7 +422,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             $productViewToOrder = OrderItem::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
                 $query->whereHas('order', function ($q) use ($start_date, $end_date) {
                     $q->where('order_status', Order::ORDER_STATUS_COMPLETED)
-                        ->whereBetween('created_at', [$start_date, $end_date]);
+                        ->whereBetween('ordered_at', [$start_date, $end_date]);
                 });
             })
                 ->select(
@@ -449,7 +447,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             }
             $productViews->map(function ($item) {
                 if ($item->product_to_order != 0) {
-                    $item->avg_product_purchase =  number_format(($item->view_count /  $item->product_to_order), 2, '.', ',');
+                    $item->avg_product_purchase =  round($item->view_count /  $item->product_to_order);
                 } else {
                     $item->avg_product_purchase = null;
                 }
