@@ -184,6 +184,9 @@ Route::middleware(['api'])->group(function () {
         // POST ROUTE
         Route::apiResource('posts', PostController::class);
 
+        // POST ROUTE
+        Route::apiResource('search-history', PostController::class);
+
         // WISHLIST ROUTE
         Route::get('wishlists', [WishListController::class, 'index']);
         Route::get('wishlists/user', [WishListController::class, 'getByUser']);
