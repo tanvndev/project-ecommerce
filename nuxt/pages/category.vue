@@ -143,7 +143,7 @@ const getProducts = async () => {
     const response = await $axios.get(`/products/filter`, {
       params: { ...queryParams.value },
     })
-    products.value = response?.data?.product_variants?.data
+    products.value = response?.data?.product_variants.data
     attributes.value = response?.data?.attributes
     totalPage.value = response?.data?.product_variants?.last_page
   } catch (error) {
