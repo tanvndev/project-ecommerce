@@ -95,11 +95,4 @@ class SearchHistoryService extends BaseService implements SearchHistoryServiceIn
 
         return $data;
     }
-
-    // CLIENT API //
-
-    public function getAll()
-    {
-        $request = request();
-    }
 }

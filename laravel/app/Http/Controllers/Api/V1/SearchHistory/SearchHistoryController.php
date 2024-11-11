@@ -79,17 +79,4 @@ class SearchHistoryController extends Controller
 
         return handleResponse($response);
     }
-
-    // CLIENT API //
-
-    /**
-     * Get all searchHistory for clients.
-     */
-    public function getAll(): JsonResponse
-    {
-        $paginator = $this->searchHistoryService->getAll();
-        $data = new SearchHistoryCollection($paginator);
-
-        return successResponse('', $data, true);
-    }
 }

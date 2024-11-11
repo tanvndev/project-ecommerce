@@ -11,6 +11,4 @@ interface SearchHistoryServiceInterface
     public function update($id);
 
     public function destroy($id);
-
-    public function getAll();
 }
