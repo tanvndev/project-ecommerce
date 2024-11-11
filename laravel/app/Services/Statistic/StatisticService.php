@@ -269,51 +269,15 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             switch ($condition) {
                 case 'product_sell_best':
                     $result = $this->getProductSellTop($start_date, $end_date, $request);
-
                     break;
                 case 'product_review_top':
-                    $query = $this->getProductReviewTop($start_date, $end_date);
-                    $result = $query
-                        ->filter(function ($item) {
-                            return $item->review_count > 0 && !is_null($item->avg_rating);
-                        })
-                        ->map(function ($item) {
-                            return [
-                                'product_id'                => $item->product_id,
-                                'product_name'              => $item->product['name'],
-                                'review_count'              => $item->review_count,
-                                'average_rating'            => number_format($item->avg_rating, 1, '.', ','),
-                            ];
-                        });
+                    $result = $this->getProductReviewTop($start_date, $end_date, $request);
                     break;
                 case 'product_wishlist_top':
-                    $query = $this->getProductWishlistTop($start_date, $end_date);
-                    $result = $query->get()
-                        ->map(function ($item) {
-                            return [
-                                'product_variant_id'    => $item['product_variant_id'],
-                                'name'                  => $item['product_variant']['name'],
-                                'wishlist_count'        => $item['wishlist_count'],
-                            ];
-                        });
+                    $result = $this->getProductWishlistTop($start_date, $end_date, $request);
                     break;
                 case 'product_views_top':
-                    $query = $this->getProductTopView($start_date, $end_date);
-                    $result = $query->map(function ($item) {
-                        if ($item->product_to_order != 0) {
-                            $avg_product_purchase = $item->view_count /  $item->product_to_order;
-                        } else {
-                            $avg_product_purchase = null;
-                        }
-
-                        return [
-                            'product_variant_id'    => $item->product_variant_id,
-                            'product_variant_name'  => $item->product_variant['name'],
-                            'view_count'            => $item->view_count,
-                            'product_to_order'      => $item->product_to_order,
-                            'avg_product_purchase'  => number_format($avg_product_purchase, 2, '.', ',')
-                        ];
-                    });
+                    $result = $this->getProductTopView($start_date, $end_date, $request);
                     break;
             }
             return $result;
@@ -357,81 +321,143 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         return $topSellingData;
     }
 
-    /** Top sản phẩm được đánh giá tốt nhất */
-    protected function getProductReviewTop($start_date, $end_date)
+
+    protected function getProductReviewTop($start_date, $end_date, $request)
     {
-        $productReviews = ProductReview::with(['product', 'order'])
-            ->whereHas('order', function ($query) {
-                $query->where('order_status', 'completed');
+        $pageSize = $request->input('pageSize', 20);
+        $page = $request->input('page', 1);
+        $cacheKey = "top-reviewing-products:$start_date:$end_date:$pageSize:$page";
+
+        $topReviewingData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
+
+            return ProductReview::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                $query
+                    ->whereHas('order', function ($q) {
+                        $q->where('order_status', Order::ORDER_STATUS_COMPLETED);
+                    })
+                    ->whereBetween('created_at', [$start_date, $end_date])
+                    ->where('publish', 1);
             })
-            ->whereBetween('created_at', [$start_date, $end_date])
-            ->where('publish', 1)
-            ->select(
-                'product_reviews.product_id',
-                DB::raw('COUNT(product_reviews.id) AS review_count'),
-                DB::raw('AVG(product_reviews.rating) AS avg_rating')
-            )
-            ->groupBy('product_reviews.product_id')
-            ->orderBy('avg_rating', 'DESC')
-            ->limit(10)
-            ->get();
-        // dd($productReviews->toArray());
-        return $productReviews;
+                ->with(['product' => function ($query) {
+                    $query->select('id', 'name');
+                }])
+                ->select(
+                    'product_reviews.product_id',
+                    DB::raw('COUNT(product_reviews.id) AS review_count'),
+                    DB::raw('AVG(product_reviews.rating) AS avg_rating')
+                )
+                ->groupBy('product_reviews.product_id')
+                ->orderBy('avg_rating', 'DESC')
+                ->paginate($pageSize);
+        });
+
+
+        $topReviewingData->map(function ($item) {
+            $item->product_name = $item->product->name;
+            unset($item->product);
+            return $item;
+        });
+        return $topReviewingData;
     }
 
+
     /** Top sản phẩm được yêu thích nhiều nhất */
-    protected function getProductWishlistTop($start_date, $end_date)
+    protected function getProductWishlistTop($start_date, $end_date, $request)
     {
-        $topWishlistProducts = WishList::with(['product_variant'])
-            ->select('product_variant_id')
-            ->selectRaw('COUNT(product_variant_id) as wishlist_count')
-            ->whereBetween('created_at', [$start_date, $end_date])
-            ->groupBy('product_variant_id')
-            ->orderByDesc('wishlist_count')
-            ->limit(10);
-        return $topWishlistProducts;
+
+        $pageSize = $request->input('pageSize', 20);
+        $page = $request->input('page', 1);
+        $cacheKey = "top-wishlist-product:$start_date:$end_date:$pageSize:$page";
+
+        $topWishlistProduct =  Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
+            return WishList::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                $query->whereBetween('created_at', [$start_date, $end_date]);
+            })
+                ->with(['product_variants' => function ($query) {
+                    $query->select('id', 'name');
+                }])
+                ->select(
+                    'product_variant_id',
+                    DB::raw('COUNT(product_variant_id) as wishlist_count'),
+                )
+                ->groupBy('product_variant_id')
+                ->orderByDesc('wishlist_count')
+                ->paginate($pageSize);;
+        });
+        $topWishlistProduct->map(function ($item) {
+            $item->product_variant_name = $item->product_variant->name;
+            unset($item->product_variant);
+            return $item;
+        });
+        return $topWishlistProduct;
     }
 
     /** Top sản phẩm nhiều lượt xem nhất */
-    protected function getProductTopView($start_date, $end_date)
+    protected function getProductTopView($start_date, $end_date, $request)
     {
-        $productViews = ProductView::with('product_variant')
-            ->whereBetween('viewed_at', [$start_date, $end_date])
-            ->select(
-                'product_views.product_variant_id',
-                DB::raw('COUNT(product_views.id) AS view_count'),
-            )
-            ->groupBy('product_views.product_variant_id')
-            ->orderBy('view_count', 'DESC')
-            ->limit(10)
-            ->get();
+        $pageSize = $request->input('pageSize', 20);
+        $page = $request->input('page', 1);
+        $cacheKey = "top-view-product:$start_date:$end_date:$pageSize:$page";
 
-        $productViewToOrder = OrderItem::with('order')
-            ->whereHas('order', function ($query) use ($start_date, $end_date) {
-                $query->where('order_status', 'completed')
-                    ->whereBetween('created_at', [$start_date, $end_date]);
+        $topViewProductData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
+            $productViews =  ProductView::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                $query->whereBetween('viewed_at', [$start_date, $end_date]);
             })
-            ->select(
-                'order_items.product_variant_id',
-                DB::raw('COUNT(order_items.id) AS product_order'),
+                ->with(['product_variant' => function ($query) {
+                    $query->select('id', 'name');
+                }])
+                ->select(
+                    'product_views.product_variant_id',
+                    DB::raw('COUNT(product_views.id) AS view_count'),
+                )
+                ->groupBy('product_views.product_variant_id')
+                ->orderBy('view_count', 'DESC')
+                ->paginate($pageSize);
 
-            )
-            ->groupBy('order_items.product_variant_id')
-            ->get();
-        foreach ($productViewToOrder as $item) {
-            $data[$item->product_variant_id] = $item->product_order;
-        }
+            $productViews->map(function ($item) {
+                $item->product_variant_name = $item->product_variant->name;
+                unset($item->product_variant);
+                return $item;
+            });
 
-        foreach ($productViews as $item) {
-            $product_variant_id = $item['product_variant_id'];
-            if (isset($data[$product_variant_id])) {
-                $item['product_to_order'] = $data[$product_variant_id];
-            } else {
-                $item['product_to_order'] = 0;
+
+            $productViewToOrder = OrderItem::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                $query->whereHas('order', function ($q) use ($start_date, $end_date) {
+                    $q->where('order_status', Order::ORDER_STATUS_COMPLETED)
+                        ->whereBetween('created_at', [$start_date, $end_date]);
+                });
+            })
+                ->select(
+                    'order_items.product_variant_id',
+                    DB::raw('COUNT(order_items.id) AS product_order')
+                )
+                ->groupBy('order_items.product_variant_id')
+                ->get();
+
+
+            foreach ($productViewToOrder as $item) {
+                $data[$item->product_variant_id] = $item->product_order;
             }
-        }
 
-        return $productViews;
+            foreach ($productViews as $item) {
+                $product_variant_id = $item['product_variant_id'];
+                if (isset($data[$product_variant_id])) {
+                    $item['product_to_order'] = $data[$product_variant_id];
+                } else {
+                    $item['product_to_order'] = 0;
+                }
+            }
+            $productViews->map(function ($item) {
+                if ($item->product_to_order != 0) {
+                    $item->avg_product_purchase =  number_format(($item->view_count /  $item->product_to_order), 2, '.', ',');
+                } else {
+                    $item->avg_product_purchase = null;
+                }
+            });
+            return $productViews;
+        });
+
+        return $topViewProductData;
     }
 
     public function seasonalSale()
