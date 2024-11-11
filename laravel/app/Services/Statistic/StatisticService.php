@@ -368,50 +368,35 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         $topReviewingData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
 
             return ProductReview::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
-
                 $query
-                    ->whereHas(
-                        'order',
-                        function ($q) {
-                            $q->where('order_status', Order::ORDER_STATUS_COMPLETED);
-                        }
-                    )
+                    ->whereHas('order', function ($q) {
+                        $q->where('order_status', Order::ORDER_STATUS_COMPLETED);
+                    })
                     ->whereBetween('created_at', [$start_date, $end_date])
                     ->where('publish', 1);
-            })->select(
-                'product_reviews.product_id',
-                DB::raw('COUNT(product_reviews.id) AS review_count'),
-                DB::raw('AVG(product_reviews.rating) AS avg_rating'),
-
-            )
+            })
+                ->with(['product' => function ($query) {
+                    $query->select('id', 'name');
+                }])
+                ->select(
+                    'product_reviews.product_id',
+                    DB::raw('COUNT(product_reviews.id) AS review_count'),
+                    DB::raw('AVG(product_reviews.rating) AS avg_rating')
+                )
                 ->groupBy('product_reviews.product_id')
                 ->orderBy('avg_rating', 'DESC')
                 ->paginate($pageSize);
         });
 
-        dd($topReviewingData);
+
+        $topReviewingData->map(function ($item) {
+            $item->product_name = $item->product->name;
+            unset($item->product);
+            return $item;
+        });
+        return $topReviewingData;
     }
-    /** Top sản phẩm được đánh giá tốt nhất */
-    // protected function getProductReviewTop($start_date, $end_date)
-    // {
-    //     $productReviews = ProductReview::with(['product', 'order'])
-    //         ->whereHas('order', function ($query) {
-    //             $query->where('order_status', 'completed');
-    //         })
-    //         ->whereBetween('created_at', [$start_date, $end_date])
-    //         ->where('publish', 1)
-    //         ->select(
-    //             'product_reviews.product_id',
-    //             DB::raw('COUNT(product_reviews.id) AS review_count'),
-    //             DB::raw('AVG(product_reviews.rating) AS avg_rating')
-    //         )
-    //         ->groupBy('product_reviews.product_id')
-    //         ->orderBy('avg_rating', 'DESC')
-    //         ->limit(10)
-    //         ->get();
-    //     // dd($productReviews->toArray());
-    //     return $productReviews;
-    // }
+
 
     /** Top sản phẩm được yêu thích nhiều nhất */
     protected function getProductWishlistTop($start_date, $end_date)
