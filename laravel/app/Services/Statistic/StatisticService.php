@@ -274,15 +274,8 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                     $result = $this->getProductReviewTop($start_date, $end_date, $request);
                     break;
                 case 'product_wishlist_top':
-                    $query = $this->getProductWishlistTop($start_date, $end_date, $request);
-                    // $result = $query->get()
-                    //     ->map(function ($item) {
-                    //         return [
-                    //             'product_variant_id'    => $item['product_variant_id'],
-                    //             'name'                  => $item['product_variant']['name'],
-                    //             'wishlist_count'        => $item['wishlist_count'],
-                    //         ];
-                    //     });
+                    $result = $this->getProductWishlistTop($start_date, $end_date, $request);
+
                     break;
                 case 'product_views_top':
                     $query = $this->getProductTopView($start_date, $end_date);
@@ -380,6 +373,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             unset($item->product);
             return $item;
         });
+        dd($topReviewingData->toArray());
         return $topReviewingData;
     }
 
@@ -395,24 +389,24 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         $topWishlistProduct =  Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
             return WishList::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
                 $query->whereBetween('created_at', [$start_date, $end_date]);
-            })->select(
-                'product_variant_id',
-                DB::raw('COUNT(product_variant_id) as wishlist_count'),
-            )
+            })
+                ->with(['product_variants' => function ($query) {
+                    $query->select('id', 'name');
+                }])
+                ->select(
+                    'product_variant_id',
+                    DB::raw('COUNT(product_variant_id) as wishlist_count'),
+                )
                 ->groupBy('product_variant_id')
                 ->orderByDesc('wishlist_count')
                 ->paginate($pageSize);;
         });
-
-        dd($topWishlistProduct->toArray());
-        // $topWishlistProducts = WishList::with(['product_variant'])
-        //     ->select('product_variant_id')
-        //     ->selectRaw('COUNT(product_variant_id) as wishlist_count')
-        //     ->whereBetween('created_at', [$start_date, $end_date])
-        //     ->groupBy('product_variant_id')
-        //     ->orderByDesc('wishlist_count')
-        //     ->limit(10);
-        // return $topWishlistProducts;
+        $topWishlistProduct->map(function ($item) {
+            $item->product_variant_name = $item->product_variant->name;
+            unset($item->product_variant);
+            return $item;
+        });
+        return $topWishlistProduct;
     }
 
     /** Top sản phẩm nhiều lượt xem nhất */
