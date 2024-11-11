@@ -27,7 +27,6 @@ class SearchHistoryResource extends JsonResource
         //   }
         return [
             'id'        => $this->id,
-            'key'       => $this->id,
             'keyword'   => $this->keyword,
             'count'     => $this->count,
         ];
