@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductAttribute;
+use App\Models\ProductRecommendation;
 use App\Models\ProductVariant;
 use App\Models\ProductVariantAttributeValue;
 use App\Repositories\Interfaces\Attribute\AttributeValueRepositoryInterface;
@@ -530,7 +531,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         // Tìm sản phẩm và biến thể
         $product = $this->productRepository->findById($productId);
-        $productVariant = $product->variants()->where('slug', $newSlug)->first();
+    $productVariant = $product->variants()->where('slug', $newSlug)->first();
 
         // Theo dõi lượt xem sản phẩm
         if (auth()->check()) {
@@ -540,7 +541,7 @@ class ProductService extends BaseService implements ProductServiceInterface
     }
 
 
-    public function trackProductView($productVariant)
+    private function trackProductView($productVariant)
     {
         $userId = auth()->user()->id;
 
@@ -560,17 +561,29 @@ class ProductService extends BaseService implements ProductServiceInterface
         }
     }
 
+    public function getRecommendedProducts()
+    {
+        $productVariantIds = auth()->user()
+            ->product_recommendations
+            ->pluck('product_variant_id')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        return $this->productVariantRepository->findByWhereIn($productVariantIds);
+    }
+
     public function filterProducts()
     {
-        $request = request()->all();
-        $catalogues = $this->getCatalogues($request);
-        $priceRange = $this->getPriceRange($request);
+        $payload = request()->all();
+        $catalogues = $this->getCatalogues($payload);
+        $priceRange = $this->getPriceRange($payload);
 
-        $sort = $request['sort'] ?? 'asc';
-        $search = $request['search'] ?? '';
-        $values = $request['values'] ?? '';
-        $stars = $request['stars'] ?? '';
-        $pageSize = $request['pageSize'] ?? 20;
+        $sort = $payload['sort'] ?? 'asc';
+        $search = $payload['search'] ?? '';
+        $values = $payload['values'] ?? '';
+        $stars = $payload['stars'] ?? '';
+        $pageSize = $payload['pageSize'] ?? 20;
 
         $productVariants = $this->getProductVariantsFilter($catalogues, $priceRange, $sort, $search, $values, $stars, $pageSize);
         $formattedAttributes = $this->getFormattedAttributes($productVariants);
@@ -629,24 +642,25 @@ class ProductService extends BaseService implements ProductServiceInterface
 
     protected function applySearch($query, $search)
     {
-        $prohibitedWords = Cache::remember('prohibited_words', 3600, function () {
-            return file(storage_path('prohibited_words.txt'), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        });
-
         if (!empty($search)) {
+            $prohibitedWords = Cache::remember('prohibited_words', 3600, function () {
+                return file(storage_path('prohibited_words.txt'), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            });
+
             $query->where('product_variants.name', 'like', '%' . $search . '%');
-        }
 
-        $pattern = '/\b(' . implode('|', array_map('preg_quote', $prohibitedWords)) . ')\b/i';
-        $containsProhibitedWord = preg_match($pattern, $search);
+            $pattern = '/\b(' . implode('|', array_map('preg_quote', $prohibitedWords)) . ')\b/i';
 
-        if (!$containsProhibitedWord) {
-            $existingKeyword  = $this->searchHistoryRepository->findByWhere(['keyword' => $search]);
-            if ($existingKeyword) {
-                $existingKeyword->increment('count');
-                $existingKeyword->update(['updated_at' => now()]);
-            } else {
-                $this->searchHistoryRepository->create(['keyword' => $search, 'count' => 1]);
+            $containsProhibitedWord = preg_match($pattern, $search);
+            if (!$containsProhibitedWord) {
+                $existingKeyword  = $this->searchHistoryRepository->findByWhere(['keyword' => $search]);
+                dd($existingKeyword);
+                if ($existingKeyword) {
+                    $existingKeyword->increment('count');
+                    $existingKeyword->update(['updated_at' => now()]);
+                } else {
+                    $this->searchHistoryRepository->create(['keyword' => $search, 'count' => 1]);
+                }
             }
         }
     }

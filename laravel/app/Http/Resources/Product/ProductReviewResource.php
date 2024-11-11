@@ -31,16 +31,16 @@ class ProductReviewResource extends JsonResource
             'status'       => $this->getStatus(),
             'average_rating' => $this->product->reviews()->avg('rating'),
             'rating_count'  => $this->product->reviews()->whereNull('parent_id')->count(),
-            'created_at'    => \Carbon\Carbon::parse($this->created_at)->format('d-m-Y H:i:s'),
+            'created_at'    => $this->created_at->format('d-m-Y H:i:s'),
             'replies'       => $this->whenLoaded('replies', function () {
                 return $this->replies->map(function ($reply) {
                     return [
                         'fullname'   => $reply->user->fullname,
                         'comment'    => $reply->comment,
-                        'created_at' => \Carbon\Carbon::parse($reply->created_at)->format('d-m-Y H:i:s'),
+                        'created_at' => $reply->created_at->format('d-m-Y H:i:s'),
                     ];
                 });
-            }),
+            })->first(),
         ];
     }
 
