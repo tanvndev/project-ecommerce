@@ -59,7 +59,9 @@ class SearchHistoryService extends BaseService implements SearchHistoryServiceIn
     {
         return $this->executeInTransaction(function () use ($id) {
 
+            $payload = $this->preparePayload();
 
+            $this->searchHistoryRepository->update($id, $payload);
 
             return successResponse(__('messages.update.success'));
         }, __('messages.update.error'));
