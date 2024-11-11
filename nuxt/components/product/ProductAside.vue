@@ -1,5 +1,4 @@
 <script setup>
-import { handleRenderPrice, resizeImage } from '#imports'
 import 'swiper/css'
 import { Autoplay, Grid, Navigation } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/vue'

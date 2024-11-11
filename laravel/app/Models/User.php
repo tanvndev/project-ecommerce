@@ -153,4 +153,9 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Post::class);
     }
+
+    public function product_recommendations()
+    {
+        return $this->hasMany(ProductRecommendation::class);
+    }
 }

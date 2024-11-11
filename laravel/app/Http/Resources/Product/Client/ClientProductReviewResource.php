@@ -19,20 +19,21 @@ class ClientProductReviewResource extends JsonResource
         return [
             'product_id'   => $this->product_id,
             'fullname'     => $user->fullname,
-            'image'        => $user->image,
+            'images'        => $user->images,
             'rating'       => $this->rating,
             'percent_rate' => starsToPercent($this->rating),
             'comment'      => $this->comment,
-            'created_at'   => $this->created_at->format('Y-m-d H:i:s'),
+            'created_at'   => $this->created_at->format('d-m-Y H:i:s'),
             'replies'      => $this->whenLoaded('replies', function () {
                 return $this->replies->map(function ($reply) {
                     return [
                         'fullname'   => $reply->user->fullname,
+                        'image'      => $reply->user->image,
                         'comment'    => $reply->comment,
-                        'created_at' => $reply->created_at->format('Y-m-d H:i:s'),
+                        'created_at' => $reply->created_at->format('d-m-Y H:i:s'),
                     ];
                 });
-            }),
+            })->first(),
         ];
     }
 }

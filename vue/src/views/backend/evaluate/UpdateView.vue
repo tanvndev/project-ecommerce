@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="content-wrapper">
+      <div class="content-wrapper" v-if="!_.isEmpty(review)">
         <a-row :gutter="16">
           <!-- Left side: User review information -->
           <a-col :span="16">
@@ -35,8 +35,8 @@
 
                 <!-- Publish Status -->
                 <a-col :span="12" class="text-right">
-                  <a-tag :color="getStatusColor(review.isPublished)">
-                    {{ review.isPublished !== 1 ? 'Hiển thị' : 'Không hiển thị' }}
+                  <a-tag :color="review?.status?.color">
+                    {{ review?.status?.text }}
                   </a-tag>
                 </a-col>
               </a-row>
@@ -44,8 +44,8 @@
               <!-- User's Review Text -->
               <a-row :gutter="16">
                 <a-divider />
-                <a-col :span="24" >
-                  <p class="text-gray-700 mb-4">{{ review.comment }}</p>
+                <a-col :span="24">
+                  <p class="mb-4 text-gray-700">{{ review.comment }}</p>
                 </a-col>
                 <!-- Review Images -->
                 <a-col :span="24" v-if="review.images">
@@ -78,6 +78,7 @@
                     <form @submit.prevent="onSubmit">
                       <a-form-item>
                         <EditorComponent
+                          label=""
                           name="reply"
                           placeholder="Viết câu trả lời của bạn ở đây..."
                         />
@@ -130,6 +131,7 @@ import { useCRUD } from '@/composables';
 import router from '@/router';
 import { formatMessages } from '@/utils/format';
 import { message } from 'ant-design-vue';
+import _ from 'lodash';
 import { useForm } from 'vee-validate';
 import { computed, onMounted, reactive, ref } from 'vue';
 import * as yup from 'yup';
@@ -169,21 +171,20 @@ const onSubmit = handleSubmit(async (values) => {
 const fetchOne = async () => {
   const responseData = await getOne(state.endpoint, id.value);
 
-  state.replyExists = responseData.replies && responseData.replies.length > 0;
+  state.replyExists = responseData.replies && !_.isEmpty(responseData.replies);
 
-  if (responseData.replies[0]?.comment) {
+  if (responseData.replies?.comment) {
     setValues({
-      reply: state.replyExists ? responseData.replies[0].comment : ''
+      reply: state.replyExists ? responseData.replies.comment : ''
     });
   }
 
   review.value = {
     rating: Number(responseData.rating),
     userName: responseData.fullname,
-    status: responseData.publish,
+    status: responseData.status,
     comment: responseData.comment,
     images: responseData.images,
-    isPublished: responseData.publish,
     date: responseData.created_at
   };
 

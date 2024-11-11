@@ -18,8 +18,8 @@ class TestController extends Controller
     {
 
         // $orders = $this->aprioriService->exportOrdersToCsv();
-        $response = $this->aprioriService->suggestProducts(54);
-
+        $response = $this->aprioriService->suggestProducts(34);
+        dd($response);
         // $data = new ClientProductVariantCollection($response);
 
         // return successResponse('', $data, true);

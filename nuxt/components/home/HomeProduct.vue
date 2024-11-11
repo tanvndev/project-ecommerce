@@ -126,7 +126,7 @@ const addToWishlist = async (variantId) => {
                       <h4 class="product-name">
                         <NuxtLink
                           :title="item?.name"
-                          :to="`product/${item.slug}-${item.product_id}`"
+                          :to="`/product/${item.slug}-${item.product_id}`"
                           >{{ item.name }}</NuxtLink
                         >
                       </h4>
@@ -141,7 +141,7 @@ const addToWishlist = async (variantId) => {
                           }}</span>
                         </div>
                         <NuxtLink
-                          :to="`product/${item.slug}-${item.product_id}`"
+                          :to="`/product/${item.slug}-${item.product_id}`"
                           class="rating-reviews"
                           >({{ item?.reviews?.count }} đánh giá)</NuxtLink
                         >

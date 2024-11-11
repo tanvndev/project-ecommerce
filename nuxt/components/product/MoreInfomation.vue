@@ -1,4 +1,5 @@
 <script setup>
+import _ from 'lodash'
 const productStore = useProductStore()
 const { $axios } = useNuxtApp()
 
@@ -8,8 +9,8 @@ const tabs = reactive([
   { name: 'specifications', label: 'Thông số kĩ thuật' },
   { name: 'reviews', label: 'Đánh giá' },
 ])
-const isReload = productStore.getIsReload
-const product = productStore.getProduct
+const isReload = computed(() => productStore.getIsReload)
+const product = computed(() => productStore.getProduct)
 const activeTab = ref('reviews')
 
 const selectTab = (tabName) => {
@@ -17,12 +18,12 @@ const selectTab = (tabName) => {
 }
 
 const getAllReviews = async () => {
-  const response = await $axios.get(`/product-reviews/${product?.id}`)
+  const response = await $axios.get(`/product-reviews/${product.value?.id}`)
   productStore.setProductReviews(response.data)
 }
 
 onMounted(() => {
-  if (isReload || reviews.value?.length == 0) {
+  if (isReload.value || reviews.value?.length == 0) {
     getAllReviews()
   }
 })
@@ -250,36 +251,29 @@ onMounted(() => {
                     </div>
                   </div>
 
-                  <ul class="comments list-style-none children" v-if="review?.replies?.length">
+                  <ul
+                    class="comments list-style-none children"
+                    v-if="!_.isEmpty(review?.replies)"
+                  >
                     <li class="comment">
                       <div class="comment-body">
                         <figure class="comment-avatar">
                           <v-img
-                            :src="review.image"
-                            :alt="review.fullname"
+                            :src="review?.replies?.image"
+                            :alt="review?.replies?.fullname"
                             width="90"
                             height="90"
                           />
                         </figure>
                         <div class="comment-content">
                           <h4 class="comment-author">
-                            <span>Admin</span>
-                            <span class="comment-date ms-3">11-22-33</span>
+                            <span>{{ review?.replies?.fullname }}</span>
+                            <span class="comment-date ms-3">{{
+                              review?.replies?.created_at
+                            }}</span>
                           </h4>
-                          <div class="ratings-container comment-rating">
-                            <div class="ratings-full">
-                              <span
-                                class="ratings"
-                                :style="`width: ${20}%`"
-                              ></span>
-                              <span class="tooltiptext tooltip-top">{{
-                                3
-                              }}</span>
-                            </div>
-                          </div>
-                          <p>
-                            {{ 'Cam on quy khach' }}
-                          </p>
+
+                          <div v-html="review?.replies?.comment"></div>
                         </div>
                       </div>
                     </li>

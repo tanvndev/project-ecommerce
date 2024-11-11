@@ -584,7 +584,14 @@ if (! function_exists('_log')) {
 
     function _log($value)
     {
-        Log::info('>>>> BỐ MÀY ĐANG KIỂM TRA GIÁ TRỊ TẠI ĐÂY ->>>>>> ' . json_encode($value, JSON_UNESCAPED_UNICODE));
+        if ($value instanceof \Illuminate\Support\Collection) {
+            $value = $value->toArray();
+        }
+        if (is_array($value)) {
+            $value = json_encode($value);  // Chuyển Array thành JSON string để dễ nhìn và ghi log
+        }
+
+        Log::info('>>>> BỐ MÀY ĐANG KIỂM TRA GIÁ TRỊ TẠI ĐÂY ->>>>>> ' . $value);
     }
 }
 

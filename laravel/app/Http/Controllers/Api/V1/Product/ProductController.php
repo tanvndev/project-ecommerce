@@ -146,6 +146,16 @@ class ProductController extends Controller
         return successResponse('', $data, true);
     }
 
+    public function getRecommendedProduct(): JsonResponse
+    {
+        if (!auth()->check())  return errorResponse('Unauthorized.', 401);
+
+        $response = $this->productService->getRecommendedProducts();
+        $data = new ClientProductVariantCollection($response);
+
+        return successResponse('', $data, true);
+    }
+
     public function filterProducts()
     {
         $response = $this->productService->filterProducts();

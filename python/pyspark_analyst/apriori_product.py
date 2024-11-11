@@ -67,7 +67,7 @@ def convert_decimal_to_float(obj):
 # Áp dụng thuật toán FPGrowth
 fp_growth = FPGrowth(
     itemsCol="product_variant_ids",
-    minSupport=0.01,
+    minSupport=0.005,
     minConfidence=0.01,
 )
 model = fp_growth.fit(order_product_df)
@@ -81,11 +81,11 @@ association_rules_data = association_rules.collect()
 
 # Lưu kết quả vào Redis
 with r.pipeline() as pipe:
-    
+
     # Xóa các key cũ trước khi lưu kết quả mới
     pipe.delete("laravel_database_apriori_frequent_itemsets")
     pipe.delete("laravel_database_apriori_association_rules")
-    
+
     # Lưu các Frequent Itemsets
     for itemset in frequent_itemsets.collect():
         result_dict = {

@@ -50,11 +50,13 @@ Route::middleware(['api'])->group(function () {
     Route::post('test/index', [TestApiController::class, 'upload']);
 
     // CLIENT ROUTE
-    Route::get('products/catalogues/list', [ProductCatalogueController::class, 'list']);
     Route::get('widgets/codes', [WidgetController::class, 'getAllWidgetCode']);
     Route::get('widgets/{code}/detail', [WidgetController::class, 'getWidget']);
     Route::get('products/{slug}/detail', [ProductController::class, 'getProduct']);
+    Route::get('products/catalogues/list', [ProductCatalogueController::class, 'list']);
+    Route::get('products/filter', [ProductController::class, 'filterProducts']);
     Route::get('products/{product_variant_id}/suggest', [ProductController::class, 'getSuggestedProduct']);
+    Route::get('products/recommendation', [ProductController::class, 'getRecommendedProduct']);
     Route::get('vouchers/all', [VoucherController::class, 'getAllVoucher']);
     Route::get('sliders/all', [SliderController::class, 'getAllSlider']);
     Route::get('payment-methods/all', [PaymentMethodController::class, 'getAllPaymentMethod']);

@@ -1,9 +1,9 @@
 <script setup>
-import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Navigation, Autoplay } from 'swiper/modules'
-import QuantityComponent from '~/components/includes/QuantityComponent.vue'
 import 'swiper/css'
+import { Autoplay, Navigation } from 'swiper/modules'
+import { Swiper, SwiperSlide } from 'swiper/vue'
 import { useRouter } from 'vue-router'
+import QuantityComponent from '~/components/includes/QuantityComponent.vue'
 import ProductRecent from '~/components/product/ProductRecent.vue'
 
 const modules = [Navigation, Autoplay]
@@ -108,7 +108,7 @@ const handleAlbum = () => {
   const album = JSON.parse(variant.value?.album || '[]')
 
   if (album.length > 0) {
-    images.value = album?.map((image) => resizeImage(image, '500', '500'))
+    images.value = album?.map((image) => resizeImage(image))
   }
 }
 
@@ -396,6 +396,9 @@ const onHide = () => (visibleRef.value = false)
       <ProductMoreInfomation :product="product" />
       <!-- End of MoreInfomation -->
 
+      <!-- Product recommendations -->
+      <ProductRecommendation :product="product" />
+      <!-- End of Product recommendations -->
       <!-- Start of MoreInfomation -->
       <!-- <ProductRecent :product="product" /> -->
       <!-- End of MoreInfomation -->

@@ -17,7 +17,6 @@ defineProps({
     type: String,
     required: true
   },
-
   routeCreate: {
     type: String,
     default: ''
@@ -45,7 +44,7 @@ defineProps({
         </a-button>
 
         <a-button
-          v-if="routeCreate"
+          v-if="routeCreate && routeCreate != ''"
           size="large"
           type="primary"
           class="btn-success"
