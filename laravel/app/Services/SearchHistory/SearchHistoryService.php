@@ -45,6 +45,9 @@ class SearchHistoryService extends BaseService implements SearchHistoryServiceIn
     {
         return $this->executeInTransaction(function () {
 
+            $payload = $this->preparePayload();
+
+            $this->searchHistoryRepository->create($payload);
 
             return successResponse(__('messages.create.success'));
         }, __('messages.create.error'));
@@ -83,22 +86,10 @@ class SearchHistoryService extends BaseService implements SearchHistoryServiceIn
     private function formatPayload($payload)
     {
         $data = [
-            'setting' => [
-                'effect' => $payload['effect'],
-                'effectSpeed' => $payload['effectSpeed'],
-                'transitionSpeed' => $payload['transitionSpeed'],
-                'navigation' => $payload['navigation'],
-                'autoPlay' => $payload['autoPlay'],
-                'pauseOnHover' => $payload['pauseOnHover'],
-                'showArrow' => $payload['showArrow'],
-                'width' => $payload['width'],
-                'height' => $payload['height'],
-            ],
-            'items' => $payload['items'],
 
-            'code' => $payload['code'],
+            'keyword' => $payload['keyword'],
 
-            'name' => $payload['name'],
+            'count' => $payload['count'],
         ];
 
         return $data;
