@@ -398,26 +398,19 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         $cacheKey = "top-view-product:$start_date:$end_date:$pageSize:$page";
 
         $topViewProductData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
+
             $productViews = ProductView::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
                 $query->whereBetween('viewed_at', [$start_date, $end_date]);
             })
-                ->with(['product_variant' => function ($query) {
-                    $query->select('id', 'name');
-                }])
+                ->join('product_variants', 'product_views.product_variant_id', '=', 'product_variants.id')
                 ->select(
                     'product_views.product_variant_id',
-                    DB::raw('COUNT(product_views.id) AS view_count'),
+                    'product_variants.name AS product_variant_name',
+                    DB::raw('COUNT(product_views.id) AS view_count')
                 )
-                ->groupBy('product_views.product_variant_id')
+                ->groupBy('product_views.product_variant_id', 'product_variants.name')
                 ->orderBy('view_count', 'DESC')
                 ->paginate($pageSize);
-
-            $productViews->map(function ($item) {
-                $item->product_variant_name = $item->product_variant->name;
-                unset($item->product_variant);
-                return $item;
-            });
-
 
             $productViewToOrder = OrderItem::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
                 $query->whereHas('order', function ($q) use ($start_date, $end_date) {
@@ -430,28 +423,22 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                     DB::raw('COUNT(order_items.id) AS product_order')
                 )
                 ->groupBy('order_items.product_variant_id')
-                ->get();
+                ->get()
+                ->keyBy('product_variant_id');
 
+            $productViews->transform(function ($item) use ($productViewToOrder) {
+                $product_variant_id = $item->product_variant_id;
+                $item->product_to_order = $productViewToOrder->get($product_variant_id)->product_order ?? 0;
 
-            foreach ($productViewToOrder as $item) {
-                $data[$item->product_variant_id] = $item->product_order;
-            }
-
-            foreach ($productViews as $item) {
-                $product_variant_id = $item['product_variant_id'];
-                if (isset($data[$product_variant_id])) {
-                    $item['product_to_order'] = $data[$product_variant_id];
-                } else {
-                    $item['product_to_order'] = 0;
-                }
-            }
-            $productViews->map(function ($item) {
                 if ($item->product_to_order != 0) {
-                    $item->avg_product_purchase =  round($item->view_count /  $item->product_to_order);
+                    $item->avg_product_purchase = number_format(($item->view_count / $item->product_to_order), 2, '.', ',');
                 } else {
                     $item->avg_product_purchase = null;
                 }
+
+                return $item;
             });
+
             return $productViews;
         });
 
