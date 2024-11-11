@@ -71,6 +71,7 @@ class SearchHistoryService extends BaseService implements SearchHistoryServiceIn
     {
         return $this->executeInTransaction(function () use ($id) {
 
+            $this->searchHistoryRepository->delete($id);
 
             return successResponse(__('messages.delete.success'));
         }, __('messages.delete.error'));
@@ -88,9 +89,7 @@ class SearchHistoryService extends BaseService implements SearchHistoryServiceIn
     private function formatPayload($payload)
     {
         $data = [
-
             'keyword' => $payload['keyword'],
-
             'count' => $payload['count'],
         ];
 
