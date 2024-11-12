@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\V1\Attribute\AttributeValueController;
 use App\Http\Controllers\Api\V1\Product\ProductCatalogueController;
 use App\Http\Controllers\Api\V1\SystemConfig\SystemConfigController;
 use App\Http\Controllers\Api\V1\PaymentMethod\PaymentMethodController;
+use App\Http\Controllers\Api\V1\SearchHistory\SearchHistoryController;
 use App\Http\Controllers\Api\V1\ShippingMethod\ShippingMethodController;
 use App\Http\Controllers\Api\V1\Statistic\StatisticController;
 
@@ -183,6 +184,9 @@ Route::middleware(['api'])->group(function () {
 
         // POST ROUTE
         Route::apiResource('posts', PostController::class);
+
+        // POST ROUTE
+        Route::apiResource('search-history', SearchHistoryController::class);
 
         // WISHLIST ROUTE
         Route::get('wishlists', [WishListController::class, 'index']);
