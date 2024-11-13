@@ -54,10 +54,4 @@ class ProhibitedWordsController extends Controller
         return handleResponse($response);
     }
 
-    public function destroy(string $id): JsonResponse
-    {
-        $response = $this->prohibitedWordService->destroy($id);
-
-        return handleResponse($response);
-    }
 }

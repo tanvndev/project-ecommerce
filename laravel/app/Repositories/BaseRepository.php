@@ -37,6 +37,22 @@ class BaseRepository implements BaseRepositoryInterface
         return $query->get();
     }
 
+
+    public function pluck(string $column = 'id', array $relation = [], array $orderBy = []){
+        $query = $this->model->newQuery();
+
+        if (!empty($orderBy)) {
+            $query->customOrderBy($orderBy);
+        }
+
+        if (!empty($relation)) {
+            $query->with($relation);
+        }
+
+        $results = $query->pluck($column);
+
+        return $results->toArray();
+    }
     /**
      * Find a record by its ID.
      *

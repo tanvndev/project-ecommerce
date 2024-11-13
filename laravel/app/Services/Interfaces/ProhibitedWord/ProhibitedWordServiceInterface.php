@@ -10,5 +10,4 @@ interface ProhibitedWordServiceInterface
 
     public function update($id);
 
-    public function destroy($id);
 }
