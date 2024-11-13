@@ -267,6 +267,8 @@ Route::middleware(['api'])->group(function () {
             // Thống kê khách hàng trung thành
             Route::get('loyal-customers', 'loyalCustomers')->name('loyalCustomers');
 
+            Route::get('search-history', 'searchHistory')->name('searchHistory');
+
             // Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
         });
 });

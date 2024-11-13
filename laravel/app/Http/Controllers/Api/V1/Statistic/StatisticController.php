@@ -57,4 +57,11 @@ class StatisticController extends Controller
 
         return successResponse('', $response, true);
     }
+
+    public function searchHistory(): JsonResponse
+    {
+        $paginator = $this->statisticService->getSearchHistory();
+
+        return successResponse('', $paginator, true);
+    }
 }

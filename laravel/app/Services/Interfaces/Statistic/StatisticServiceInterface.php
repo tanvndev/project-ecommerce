@@ -12,4 +12,6 @@ interface StatisticServiceInterface
 
 
     public function getProductReport();
+
+    public function getSearchHistory();
 }

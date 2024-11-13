@@ -288,6 +288,39 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         }
     }
 
+    public function getSearchHistory()
+{
+    try {
+        $request = request();
+        [$start_date, $end_date] = $this->getDateRangeByRequest($request);
+
+        $pageSize = $request->input('pageSize', 20);
+        $page = $request->input('page', 1);
+        $cacheKey = "top-search-keywords:$start_date:$end_date:$pageSize:$page";
+
+        $topSearchData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
+            return DB::table('search_histories')
+                ->when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                    $query->whereBetween('created_at', [$start_date, $end_date]);
+                })
+                ->select(
+                    'keyword',
+                    DB::raw('SUM(count) as total_count')
+                )
+                ->groupBy('keyword')
+                ->orderByDesc('total_count')
+                ->paginate($pageSize);
+        });
+
+        return $topSearchData;
+    } catch (\Exception $e) {
+        getError($e);
+        Log::error($e->getMessage());
+        return response()->json(['error' => 'Có lỗi xảy ra'], 500);
+    }
+}
+
+
     protected function getProductSellTop($start_date, $end_date, $request)
     {
         $pageSize = $request->input('pageSize', 20);
