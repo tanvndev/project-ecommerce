@@ -112,6 +112,10 @@ const sidebar = [
       {
         name: 'Danh sách slider',
         route: 'slider.index'
+      },
+      {
+        name: 'Danh sách từ ngữ khiếm nhã',
+        route: 'prohibited-word.index'
       }
     ]
   },

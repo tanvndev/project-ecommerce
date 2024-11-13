@@ -7,7 +7,6 @@ use App\Http\Controllers\Api\V1\Cart\CartController;
 use App\Http\Controllers\Api\V1\Chat\ChatController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\Post\PostController;
-use App\Http\Controllers\Api\V1\Post\PostCatalogueController;
 use App\Http\Controllers\Api\V1\User\UserController;
 use App\Http\Controllers\Api\V1\Brand\BrandController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
@@ -21,9 +20,11 @@ use App\Http\Controllers\Api\V1\User\UserAddressController;
 use App\Http\Controllers\Api\V1\Auth\VerificationController;
 use App\Http\Controllers\Api\V1\Location\LocationController;
 use App\Http\Controllers\Api\V1\WishList\WishListController;
+use App\Http\Controllers\Api\V1\Post\PostCatalogueController;
 use App\Http\Controllers\Api\V1\User\UserCatalogueController;
 use App\Http\Controllers\Api\V1\Attribute\AttributeController;
 use App\Http\Controllers\Api\V1\FlashSale\FlashSaleController;
+use App\Http\Controllers\Api\V1\Statistic\StatisticController;
 use App\Http\Controllers\Api\V1\Permission\PermissionController;
 use App\Http\Controllers\Api\V1\Product\ProductReviewController;
 use App\Http\Controllers\Api\V1\Attribute\AttributeValueController;
@@ -32,7 +33,7 @@ use App\Http\Controllers\Api\V1\SystemConfig\SystemConfigController;
 use App\Http\Controllers\Api\V1\PaymentMethod\PaymentMethodController;
 use App\Http\Controllers\Api\V1\SearchHistory\SearchHistoryController;
 use App\Http\Controllers\Api\V1\ShippingMethod\ShippingMethodController;
-use App\Http\Controllers\Api\V1\Statistic\StatisticController;
+use App\Http\Controllers\Api\V1\ProhibitedWords\ProhibitedWordsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -236,6 +237,17 @@ Route::middleware(['api'])->group(function () {
         Route::delete('carts/delete-cart-selected', 'deleteCartSelected')->name('deleteCartSelected');
         Route::get('carts/add-paid-products', 'addPaidProductsToCart')->name('addPaidProducts');
     });
+
+
+    // PROHIBITED WORDS ROUTE
+    route::controller(ProhibitedWordsController::class)->name('prohibited-words.')->group(function () {
+        Route::get('prohibited-words', 'index')->name('index');
+        Route::post('prohibited-words', 'store')->name('store');
+        Route::get('prohibited-words/{id}', 'show')->name('show');
+        Route::put('prohibited-words/{id}', 'update')->name('update');
+        Route::delete('prohibited-words/{id}', 'destroy')->name('destroy');
+    });
+
 
     // Statistics
     Route::controller(StatisticController::class)
