@@ -12,3 +12,4 @@ export { default as flashSaleRoutes } from './flashSaleRoutes';
 export { default as evaluateRoutes } from './evaluateRoutes';
 export { default as reportRoutes } from './reportRoutes';
 export { default as sliderRoutes } from './sliderRoutes';
+export { default as prohibitedWordRoutes } from './prohibitedWordRoutes';

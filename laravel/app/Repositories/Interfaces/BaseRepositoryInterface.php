@@ -18,6 +18,9 @@ interface BaseRepositoryInterface
      * @param  array|string  $column
      * @return mixed
      */
+
+     public function pluck(string $column = 'id', array $relation = [], array $orderBy = []);
+     
     public function findById($modelId, $column = ['*'], array $relation = [], bool $lockForUpdate = false);
 
     /**
