@@ -77,7 +77,7 @@ class UploadService extends BaseService implements UploadServiceInterface
             $images[] = $imageInfo;
         }
         // Sắp xếp mảng theo thời gian sửa đổi cuối cùng (lastModified), giảm dần
-        if ( ! empty($images)) {
+        if (! empty($images)) {
             usort($images, function ($a, $b) {
                 return $b['lastModified'] - $a['lastModified'];
             });
@@ -91,11 +91,16 @@ class UploadService extends BaseService implements UploadServiceInterface
         try {
             $payload = request()->except('_token');
             $files = $payload['files'] ?? null;
+            $folderName = 'others';
+
+            if (isset($payload['folder_name']) && ! empty($payload['folder_name'])) {
+                $folderName = $payload['folder_name'];
+            }
 
             // Xu ly anh resize
             if (isset($files) && ! empty($files)) {
                 foreach ($files as $key => $file) {
-                    $message = Upload::uploadImage($file);
+                    $message = Upload::uploadImage($file, $folderName);
                     if ($message['status'] == 'error') {
                         $messages[] = $message['message'];
                     }

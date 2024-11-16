@@ -11,7 +11,7 @@ use Spatie\ImageOptimizer\OptimizerChainFactory;
 
 class Upload
 {
-    public static function uploadImage($image)
+    public static function uploadImage($image, string $folderName = 'others')
     {
         // dd($image);
         $imageSrc = env('IMAGE_SOURCE_PATH');
@@ -20,7 +20,6 @@ class Upload
             $extension = strtolower($image->getClientOriginalExtension());
             $originalName = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '.' . $extension;
             if ($image != null && in_array($extension, $fileList)) {
-
                 // Kiểm tra kích thước của ảnh
                 if ($image->getSize() > 5000000) {
                     return [
@@ -31,8 +30,8 @@ class Upload
                 // dd($image);
 
                 $uuid = uniqid();
-                $path = $imageSrc . date('Y') . '/' . date('m');
-                $filename = Str::slug($originalName) . '_' . $uuid . '.webp'; // Change the extension to .webp
+                $path = $imageSrc;
+                $filename = Str::slug($originalName) . '_' . date('d') . '_' . date('m') . '_' . date('Y') . '_' . $uuid . '.webp'; // Change the extension to .webp
 
                 // Create the directory if it doesn't exist
                 if (!Storage::exists($path)) {
@@ -61,6 +60,9 @@ class Upload
 
                 // Move the optimized image to the final destination
                 $storedPath = $path . '/' . $filename;
+                if (!empty($folderName) && $folderName != '') {
+                    $storedPath = $path . '/' . $folderName . '/' . $filename;
+                }
                 Storage::put($storedPath, file_get_contents($temporaryPath));
 
                 // Remove temporary file
