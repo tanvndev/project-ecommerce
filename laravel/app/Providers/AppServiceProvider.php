@@ -78,6 +78,8 @@ class AppServiceProvider extends ServiceProvider
         'App\Services\Interfaces\FlashSale\FlashSaleServiceInterface' => 'App\Services\FlashSale\FlashSaleService',
         // STATISTIC
         'App\Services\Interfaces\Statistic\StatisticServiceInterface' => 'App\Services\Statistic\StatisticService',
+        // SearchHistory
+        'App\Services\Interfaces\SearchHistory\SearchHistoryServiceInterface' => 'App\Services\SearchHistory\SearchHistoryService',
     ];
 
     public function register(): void
