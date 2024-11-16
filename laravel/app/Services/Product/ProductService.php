@@ -4,24 +4,25 @@
 
 namespace App\Services\Product;
 
-use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\Product;
-use App\Models\ProductAttribute;
-use App\Models\ProductRecommendation;
-use App\Models\ProductVariant;
-use App\Models\ProductVariantAttributeValue;
-use App\Repositories\Interfaces\Attribute\AttributeValueRepositoryInterface;
-use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
-use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
-use App\Repositories\Interfaces\Product\SearchHistoryRepositoryInterface;
-use App\Services\BaseService;
-use App\Services\Interfaces\Product\ProductServiceInterface;
-use Carbon\Carbon;
 use Exception;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use App\Models\Order;
 use Ramsey\Uuid\Uuid;
+use App\Models\Product;
+use App\Models\OrderItem;
+use App\Services\BaseService;
+use App\Models\ProductVariant;
+use App\Models\ProductAttribute;
+use Illuminate\Support\Facades\DB;
+use App\Models\ProductRecommendation;
+use Illuminate\Support\Facades\Cache;
+use App\Models\ProductVariantAttributeValue;
+use App\Services\Interfaces\Product\ProductServiceInterface;
+use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
+use App\Repositories\Interfaces\Product\SearchHistoryRepositoryInterface;
+use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
+use App\Repositories\Interfaces\Attribute\AttributeValueRepositoryInterface;
+use App\Repositories\Interfaces\ProhibitedWord\ProhibitedWordRepositoryInterface;
 
 class ProductService extends BaseService implements ProductServiceInterface
 {
@@ -29,7 +30,8 @@ class ProductService extends BaseService implements ProductServiceInterface
         protected ProductRepositoryInterface $productRepository,
         protected ProductVariantRepositoryInterface $productVariantRepository,
         protected AttributeValueRepositoryInterface $attributeValueRepository,
-        protected SearchHistoryRepositoryInterface $searchHistoryRepository
+        protected SearchHistoryRepositoryInterface $searchHistoryRepository,
+        protected ProhibitedWordRepositoryInterface $prohibitedWordRepository
     ) {}
 
     public function paginate()
@@ -640,30 +642,56 @@ class ProductService extends BaseService implements ProductServiceInterface
         return $query;
     }
 
+    // protected function applySearch($query, $search)
+    // {
+    //     if (!empty($search)) {
+    //         $prohibitedWords = Cache::remember('prohibited_words', 3600, function () {
+    //             return file(storage_path('prohibited_words.txt'), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    //         });
+
+    //         $query->where('product_variants.name', 'like', '%' . $search . '%');
+
+    //         $pattern = '/\b(' . implode('|', array_map('preg_quote', $prohibitedWords)) . ')\b/i';
+
+    //         $containsProhibitedWord = preg_match($pattern, $search);
+    //         if (!$containsProhibitedWord) {
+    //             $existingKeyword  = $this->searchHistoryRepository->findByWhere(['keyword' => $search]);
+    //             dd($existingKeyword);
+    //             if ($existingKeyword) {
+    //                 $existingKeyword->increment('count');
+    //                 $existingKeyword->update(['updated_at' => now()]);
+    //             } else {
+    //                 $this->searchHistoryRepository->create(['keyword' => $search, 'count' => 1]);
+    //             }
+    //         }
+    //     }
+    // }
+
     protected function applySearch($query, $search)
-    {
-        if (!empty($search)) {
-            $prohibitedWords = Cache::remember('prohibited_words', 3600, function () {
-                return file(storage_path('prohibited_words.txt'), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            });
+{
+    if (!empty($search)) {
+        $prohibitedWords = Cache::remember('prohibited_words', 3600, function () {
+            return $this->prohibitedWordRepository->pluck('keyword');
+        });
 
-            $query->where('product_variants.name', 'like', '%' . $search . '%');
+        $query->where('product_variants.name', 'like', '%' . $search . '%');
 
-            $pattern = '/\b(' . implode('|', array_map('preg_quote', $prohibitedWords)) . ')\b/i';
+        $pattern = '/\b(' . implode('|', array_map('preg_quote', $prohibitedWords)) . ')\b/i';
+        $containsProhibitedWord = preg_match($pattern, $search);
 
-            $containsProhibitedWord = preg_match($pattern, $search);
-            if (!$containsProhibitedWord) {
-                $existingKeyword  = $this->searchHistoryRepository->findByWhere(['keyword' => $search]);
-                dd($existingKeyword);
-                if ($existingKeyword) {
-                    $existingKeyword->increment('count');
-                    $existingKeyword->update(['updated_at' => now()]);
-                } else {
-                    $this->searchHistoryRepository->create(['keyword' => $search, 'count' => 1]);
-                }
+        if (!$containsProhibitedWord) {
+            $existingKeyword = $this->searchHistoryRepository->findByWhere(['keyword' => $search]);
+
+            if ($existingKeyword) {
+                $existingKeyword->increment('count');
+                $existingKeyword->update(['updated_at' => now()]);
+            } else {
+                $this->searchHistoryRepository->create(['keyword' => $search, 'count' => 1]);
             }
         }
     }
+}
+
 
     protected function applyValueFilter($query, $values)
     {

@@ -10,6 +10,8 @@
     <TopProductSell :date="date" :startDate="start_date" :endDate="end_date" />
     <!-- AvgTotalPriceOrder -->
     <AvgTotalPriceOrder :date="date" :startDate="start_date" :endDate="end_date" />
+    <!-- TopSearchHistory -->
+    <TopSearchHistory :date="date" :startDate="start_date" :endDate="end_date" />
   </a-row>
 </template>
 <script setup>
@@ -20,6 +22,7 @@ import NetRevenua from './NetRevenua.vue';
 import ProfitView from './ProfitView.vue';
 import TopOverView from './TopOverView.vue';
 import TopProductSell from './TopProductSell.vue';
+import TopSearchHistory from './TopSearchHistory.vue';
 
 const route = useRoute();
 const date = computed(() => route.query.date || 'last_30_days');

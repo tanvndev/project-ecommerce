@@ -19,6 +19,12 @@ const reportRoutes = [
     component: () => import('@/views/backend/report/TopProductView.vue'),
     beforeEnter: [isLoggedIn]
   },
+  {
+    path: '/report/top-search-history',
+    name: 'report.top.search.history',
+    component: () => import('@/views/backend/report/TopSearchHistoryView.vue'),
+    beforeEnter: [isLoggedIn]
+  }
 ];
 
 export default reportRoutes;

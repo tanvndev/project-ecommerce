@@ -15,7 +15,8 @@ import {
   flashSaleRoutes,
   evaluateRoutes,
   reportRoutes,
-  sliderRoutes
+  sliderRoutes,
+  prohibitedWordRoutes
 } from './backend';
 
 import { isLoggedIn } from '@/middlewares/authenticate';
@@ -57,7 +58,8 @@ const routes = [
   ...flashSaleRoutes,
   ...evaluateRoutes,
   ...reportRoutes,
-  ...sliderRoutes
+  ...sliderRoutes,
+  ...prohibitedWordRoutes
 ];
 
 const router = createRouter({

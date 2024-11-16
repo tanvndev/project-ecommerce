@@ -78,6 +78,8 @@ class AppRepositoryProvider extends ServiceProvider
         'App\Repositories\Interfaces\Cart\CartActionRepositoryInterface' => 'App\Repositories\Cart\CartActionRepository',
         // SearchHistory
         'App\Repositories\Interfaces\SearchHistory\SearchHistoryRepositoryInterface' => 'App\Repositories\SearchHistory\SearchHistoryRepository',
+        // ProhibitedWords
+        'App\Repositories\Interfaces\ProhibitedWord\ProhibitedWordRepositoryInterface' => 'App\Repositories\ProhibitedWord\ProhibitedWordRepository',
 
     ];
 
