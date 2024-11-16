@@ -137,12 +137,15 @@
 
 <script setup>
 import { AleartError } from '@/components/backend';
-import { ref, watch, reactive } from 'vue';
 import { useCRUD } from '@/composables';
-import { formatTimestampToDate, formatBytesToKBMB, formatMessages } from '@/utils/format';
+import { formatBytesToKBMB, formatMessages, formatTimestampToDate } from '@/utils/format';
 import { resizeImage } from '@/utils/helpers';
 import { message } from 'ant-design-vue';
+import { computed, reactive, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
+const route = useRoute();
+const routePath = computed(() => route.path);
 const errors = ref({});
 const dragging = ref(false);
 const top = ref(window.innerHeight / 2);
@@ -190,10 +193,15 @@ const onChangePage = (page, pageSize) => fetchData({ page: page, pageSize: pageS
 
 const handleUploadFile = async (event) => {
   selectedFileInput.value = event.target.files;
+
+  const pathArray = routePath.value?.split('/');
+  const folderName = pathArray[1] || '';
+
   const payload = new FormData();
   for (let i = 0; i < selectedFileInput.value.length; i++) {
     payload.append('files[]', selectedFileInput.value[i]);
   }
+  payload.append('folder_name', folderName);
   await create('uploads', payload);
   errors.value = formatMessages(messages.value);
   dataImage.value = data.value.data;
