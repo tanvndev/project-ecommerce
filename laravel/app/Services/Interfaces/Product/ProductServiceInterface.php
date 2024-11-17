@@ -27,4 +27,6 @@ interface ProductServiceInterface
     public function getRecommendedProducts();
 
     public function filterProducts();
+
+    public function searchByImage();
 }

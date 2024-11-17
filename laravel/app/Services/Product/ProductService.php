@@ -23,6 +23,9 @@ use App\Repositories\Interfaces\Product\SearchHistoryRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
 use App\Repositories\Interfaces\Attribute\AttributeValueRepositoryInterface;
 use App\Repositories\Interfaces\ProhibitedWord\ProhibitedWordRepositoryInterface;
+use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class ProductService extends BaseService implements ProductServiceInterface
 {
@@ -533,7 +536,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         // Tìm sản phẩm và biến thể
         $product = $this->productRepository->findById($productId);
-    $productVariant = $product->variants()->where('slug', $newSlug)->first();
+        $productVariant = $product->variants()->where('slug', $newSlug)->first();
 
         // Theo dõi lượt xem sản phẩm
         if (auth()->check()) {
@@ -668,29 +671,29 @@ class ProductService extends BaseService implements ProductServiceInterface
     // }
 
     protected function applySearch($query, $search)
-{
-    if (!empty($search)) {
-        $prohibitedWords = Cache::remember('prohibited_words', 3600, function () {
-            return $this->prohibitedWordRepository->pluck('keyword');
-        });
+    {
+        if (!empty($search)) {
+            $prohibitedWords = Cache::remember('prohibited_words', 3600, function () {
+                return $this->prohibitedWordRepository->pluck('keyword');
+            });
 
-        $query->where('product_variants.name', 'like', '%' . $search . '%');
+            $query->where('product_variants.name', 'like', '%' . $search . '%');
 
-        $pattern = '/\b(' . implode('|', array_map('preg_quote', $prohibitedWords)) . ')\b/i';
-        $containsProhibitedWord = preg_match($pattern, $search);
+            $pattern = '/\b(' . implode('|', array_map('preg_quote', $prohibitedWords)) . ')\b/i';
+            $containsProhibitedWord = preg_match($pattern, $search);
 
-        if (!$containsProhibitedWord) {
-            $existingKeyword = $this->searchHistoryRepository->findByWhere(['keyword' => $search]);
+            if (!$containsProhibitedWord) {
+                $existingKeyword = $this->searchHistoryRepository->findByWhere(['keyword' => $search]);
 
-            if ($existingKeyword) {
-                $existingKeyword->increment('count');
-                $existingKeyword->update(['updated_at' => now()]);
-            } else {
-                $this->searchHistoryRepository->create(['keyword' => $search, 'count' => 1]);
+                if ($existingKeyword) {
+                    $existingKeyword->increment('count');
+                    $existingKeyword->update(['updated_at' => now()]);
+                } else {
+                    $this->searchHistoryRepository->create(['keyword' => $search, 'count' => 1]);
+                }
             }
         }
     }
-}
 
 
     protected function applyValueFilter($query, $values)
@@ -795,5 +798,75 @@ class ProductService extends BaseService implements ProductServiceInterface
         }
 
         return $formatted;
+    }
+
+    public function searchByImage()
+    {
+        try {
+            $request = request();
+
+            if (!$request->hasFile('image')) {
+                throw new Exception('No file provided');
+            }
+
+            $file = $request->file('image');
+
+            $path = $file->storeAs('temp',  time() . '_' . $file->getClientOriginalName(), 'public');
+            $filePath = storage_path('app/public/' . $path);
+            $client = new Client();
+
+            $response = $client->post('http://127.0.0.1:5000/search-image', [
+                'json' => [
+                    'image_path' => $filePath
+                ]
+            ]);
+
+            if ($response->getStatusCode() !== 200) {
+                throw new Exception('Error from Flask API');
+            }
+
+            $data = json_decode($response->getBody()->getContents(), true);
+
+            $condition = $this->formatConditionSearchImage($data);
+
+            $productVariants = $this->productVariantRepository->findByWhereIn(
+                $condition->pluck('image')->toArray(),
+                'image',
+                ['*'],
+                [],
+                [],
+                [
+                    'id' => 'DESC'
+                ]
+            )->map(function ($variant) use ($condition) {
+                $similarity = $condition
+                    ->where('image', $variant->image)
+                    ->first()['similarity'];
+                $variant->similarity = $similarity;
+
+                return $variant;
+            })
+                ->sortBy('similarity')
+                ->values();
+
+            File::delete($filePath);
+            return $productVariants;
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    private function formatConditionSearchImage($data)
+    {
+        $path = env('APP_URL') . '/images/product/thumb/';
+
+        $condition = array_map(function ($item) use ($path) {
+            return [
+                'image' => $path . $item['image_path'],
+                'similarity' => $item['distance'],
+            ];
+        }, $data);
+
+        return collect($condition);
     }
 }

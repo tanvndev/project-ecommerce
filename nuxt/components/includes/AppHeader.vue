@@ -1,13 +1,14 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import MenuItem from '../MenuItem.vue'
-import { useProductCatalogueStore } from '~/stores/productCatalogue'
 import _ from 'lodash'
+import { onMounted, ref } from 'vue'
+import { useProductCatalogueStore } from '~/stores/productCatalogue'
+import MenuItem from '../MenuItem.vue'
 
 const { $axios, $pusher } = useNuxtApp()
 const authStore = useAuthStore()
 const cartStore = useCartStore()
 const chatStore = useChatStore()
+const productStore = useProductStore()
 const notificationStore = useNotificationStore()
 const wishlistStore = useWishlistStore()
 const productCatalogueStore = useProductCatalogueStore()
@@ -22,6 +23,9 @@ const isShowBell = ref(false)
 const config = useRuntimeConfig()
 const router = useRouter()
 const search = ref('')
+const searchInputRef = ref(null)
+const selectedImage = ref(null)
+const isShowSearchImage = ref(false)
 
 let lastScrollPosition = 0
 
@@ -66,8 +70,38 @@ const handleSearchProduct = () => {
   }
 }
 
+const openSearchImage = () => {
+  isShowSearchImage.value = true
+  selectedImage.value = null
+}
+const closeSearchImage = () => {
+  isShowSearchImage.value = false
+  selectedImage.value = null
+}
+
+const handleSearchProductByImage = () => {
+  productStore.setImageSearch(selectedImage.value)
+  router.push('/product/search')
+  selectedImage.value = null
+  isShowSearchImage.value = false
+}
+
 const getChats = async () => {
   await chatStore.getAllChats()
+}
+
+const triggerFileInput = () => {
+  searchInputRef.value.click()
+}
+const handleFileChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      selectedImage.value = e.target.result
+    }
+    reader.readAsDataURL(file)
+  }
 }
 
 watch(notifications, (newValue) => {
@@ -171,39 +205,146 @@ onUnmounted(() => {
       <div class="header-middle">
         <div class="container">
           <div class="header-left mr-md-4">
-            <a
-              v-if="!authStore.isSignedIn"
-              :href="`${config.public.VUE_APP_URL}/login`"
-              class="mobile-menu-toggle w-icon-hamburger"
-              aria-label="menu-toggle"
-            >
-            </a>
-            <NuxtLink to="/" class="logo ml-lg-0">
-              <img
-                src="assets/images/logo.png"
-                alt="logo"
-                width="144"
-                height="45"
-              />
-            </NuxtLink>
-            <div
-              class="header-search hs-expanded hs-round d-none d-md-flex input-wrapper"
-            >
-              <input
-                type="text"
-                v-model="search"
-                class="form-control"
-                placeholder="Tìm kiếm ở đây..."
-                required
-                @keyup.enter="handleSearchProduct"
-              />
-              <button
-                class="btn btn-search"
-                type="button"
-                @click="handleSearchProduct"
+            <div>
+              <a
+                v-if="!authStore.isSignedIn"
+                :href="`${config.public.VUE_APP_URL}/login`"
+                class="mobile-menu-toggle w-icon-hamburger"
+                aria-label="menu-toggle"
               >
-                <i class="w-icon-search"></i>
-              </button>
+              </a>
+              <NuxtLink to="/" class="logo ml-lg-0">
+                <img
+                  src="assets/images/logo.png"
+                  alt="logo"
+                  width="144"
+                  height="45"
+                />
+              </NuxtLink>
+            </div>
+            <div class="w-100">
+              <div
+                class="header-search hs-expanded hs-round d-none d-md-flex input-wrapper"
+              >
+                <button
+                  class="btn btn-search btn-img"
+                  type="button"
+                  @click="handleSearchProduct"
+                >
+                  <i class="w-icon-search"></i>
+                </button>
+                <input
+                  type="text"
+                  v-model="search"
+                  class="form-control"
+                  placeholder="Tìm kiếm ở đây..."
+                  required
+                  @keyup.enter="handleSearchProduct"
+                />
+                <button
+                  class="btn btn-search"
+                  type="button"
+                  @click="openSearchImage"
+                >
+                  <i class="fal fa-camera mr-1"></i>
+                  <v-tooltip
+                    activator="parent"
+                    location="bottom"
+                    v-if="!isShowSearchImage"
+                  >
+                    Tìm kiếm bằng hình ảnh
+                  </v-tooltip>
+                </button>
+
+                <div class="search-image-wrapper" v-if="isShowSearchImage">
+                  <div class="search-header">
+                    <h4>Tìm kiếm bằng hình ảnh</h4>
+                    <div>
+                      <i class="fal fa-times" @click="closeSearchImage"></i>
+                    </div>
+                  </div>
+
+                  <div class="search-image-content">
+                    <div class="search-image-inner">
+                      <div class="search-image-icon" v-if="!selectedImage">
+                        <i class="fal fa-images icon-image"></i>
+                        <small>Tải hình ảnh lên</small>
+                      </div>
+
+                      <div class="search-image-img" v-if="selectedImage">
+                        <img
+                          class="img-thumbnail"
+                          :src="selectedImage"
+                          alt="search-image"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="d-none">
+                    <input
+                      type="file"
+                      ref="searchInputRef"
+                      @change="handleFileChange"
+                      accept="image/*"
+                    />
+                  </div>
+
+                  <button
+                    class="upload-image-btn"
+                    @click="triggerFileInput"
+                    v-if="!selectedImage"
+                  >
+                    Tải ảnh lên
+                  </button>
+
+                  <button
+                    class="upload-image-btn"
+                    @click="handleSearchProductByImage"
+                    v-if="selectedImage"
+                  >
+                    Tìm kiếm
+                  </button>
+                </div>
+              </div>
+
+              <div class="search-history">
+                <NuxtLink to="#" class="search-history-link"
+                  >iphone 12</NuxtLink
+                >
+                <NuxtLink to="#" class="search-history-link"
+                  >iphone 12</NuxtLink
+                >
+                <NuxtLink to="#" class="search-history-link"
+                  >iphone 12</NuxtLink
+                >
+                <NuxtLink to="#" class="search-history-link"
+                  >iphone 12</NuxtLink
+                >
+                <NuxtLink to="#" class="search-history-link"
+                  >iphone 12</NuxtLink
+                >
+                <NuxtLink to="#" class="search-history-link"
+                  >iphone 12</NuxtLink
+                >
+                <NuxtLink to="#" class="search-history-link"
+                  >iphone 12</NuxtLink
+                >
+                <NuxtLink to="#" class="search-history-link"
+                  >iphone 12</NuxtLink
+                >
+                <NuxtLink to="#" class="search-history-link"
+                  >iphone 12</NuxtLink
+                >
+                <NuxtLink to="#" class="search-history-link"
+                  >iphone 12</NuxtLink
+                >
+                <NuxtLink to="#" class="search-history-link"
+                  >iphone 12</NuxtLink
+                >
+                <NuxtLink to="#" class="search-history-link"
+                  >iphone 12</NuxtLink
+                >
+              </div>
             </div>
           </div>
           <div class="header-right ml-4">

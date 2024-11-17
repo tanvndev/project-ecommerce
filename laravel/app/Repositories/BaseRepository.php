@@ -145,7 +145,8 @@ class BaseRepository implements BaseRepositoryInterface
         string $field = 'id',
         array $columns = ['*'],
         array $relations = [],
-        array $relationConditions = []
+        array $relationConditions = [],
+        array $orderBy = []
     ) {
         $query = $this->model->newQuery()->whereIn($field, $values);
 
@@ -162,6 +163,10 @@ class BaseRepository implements BaseRepositoryInterface
             //     ['field', 'operator', 'value'],
             // ]
             $query->whereHasRelations($relationConditions);
+        }
+
+        if ( ! empty($orderBy)) {
+            $query->customOrderBy($orderBy);
         }
 
         return $query->get();

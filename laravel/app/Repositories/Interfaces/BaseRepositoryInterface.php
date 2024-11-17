@@ -20,7 +20,7 @@ interface BaseRepositoryInterface
      */
 
      public function pluck(string $column = 'id', array $relation = [], array $orderBy = []);
-     
+
     public function findById($modelId, $column = ['*'], array $relation = [], bool $lockForUpdate = false);
 
     /**
@@ -59,7 +59,8 @@ interface BaseRepositoryInterface
         string $field = 'id',
         array $columns = ['*'],
         array $relations = [],
-        array $relationConditions = []
+        array $relationConditions = [],
+        array $orderBy = []
     );
 
     /**

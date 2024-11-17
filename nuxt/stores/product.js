@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia'
 import { useLoadingStore } from '#imports'
+import { defineStore } from 'pinia'
 
 export const useProductStore = defineStore('product', {
   state: () => {
@@ -8,6 +8,7 @@ export const useProductStore = defineStore('product', {
       isReload: true,
       productReviews: [],
       productRecommendations: [],
+      imageSearch: '',
     }
   },
   getters: {
@@ -15,6 +16,7 @@ export const useProductStore = defineStore('product', {
     getIsReload: (state) => state.isReload,
     getProductReviews: (state) => state.productReviews,
     getProductRecommendations: (state) => state.productRecommendations,
+    getImageSearch: (state) => state.imageSearch,
   },
   actions: {
     setIsReload(value) {
@@ -28,6 +30,9 @@ export const useProductStore = defineStore('product', {
     },
     setProductReviews(productReviews) {
       this.productReviews = productReviews
+    },
+    setImageSearch(imageSearch) {
+      this.imageSearch = imageSearch
     },
   },
 })

@@ -156,7 +156,7 @@ class ProductController extends Controller
         return successResponse('', $data, true);
     }
 
-    public function filterProducts()
+    public function filterProducts(): JsonResponse
     {
         $response = $this->productService->filterProducts();
 
@@ -164,6 +164,15 @@ class ProductController extends Controller
             'product_variants' => new ClientProductVariantCollection($response['product_variants']),
             'attributes' => $response['attributes'],
         ];
+
+        return successResponse('', $data, true);
+    }
+
+
+    public function searchByImage(): JsonResponse
+    {
+        $response = $this->productService->searchByImage();
+        $data = new ClientProductVariantCollection($response);
 
         return successResponse('', $data, true);
     }
