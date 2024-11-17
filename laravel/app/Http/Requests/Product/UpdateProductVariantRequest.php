@@ -28,9 +28,9 @@ class UpdateProductVariantRequest extends FormRequest
             'variable_is_used'    => 'required',
         ];
 
-        if ($this->variable_is_used != false) {
-            $rules['variable_is_used'] = 'required|in:false';
-        }
+        // if ($this->variable_is_used != false) {
+        //     $rules['variable_is_used'] = 'required|in:false';
+        // }
 
         return $rules;
     }
