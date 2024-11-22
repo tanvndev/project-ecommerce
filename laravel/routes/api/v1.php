@@ -1,39 +1,38 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\TestApiController;
+use App\Http\Controllers\Api\V1\Attribute\AttributeController;
+use App\Http\Controllers\Api\V1\Attribute\AttributeValueController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Auth\VerificationController;
+use App\Http\Controllers\Api\V1\Brand\BrandController;
 use App\Http\Controllers\Api\V1\Cart\CartController;
 use App\Http\Controllers\Api\V1\Chat\ChatController;
 use App\Http\Controllers\Api\V1\DashboardController;
-use App\Http\Controllers\Api\V1\Post\PostController;
-use App\Http\Controllers\Api\V1\User\UserController;
-use App\Http\Controllers\Api\V1\Brand\BrandController;
-use App\Http\Controllers\Api\V1\Order\OrderController;
-use App\Http\Controllers\Api\V1\NotificationController;
-use App\Http\Controllers\Api\V1\Slider\SliderController;
-use App\Http\Controllers\Api\V1\Upload\UploadController;
-use App\Http\Controllers\Api\V1\Widget\WidgetController;
-use App\Http\Controllers\Api\V1\Product\ProductController;
-use App\Http\Controllers\Api\V1\Voucher\VoucherController;
-use App\Http\Controllers\Api\V1\User\UserAddressController;
-use App\Http\Controllers\Api\V1\Auth\VerificationController;
-use App\Http\Controllers\Api\V1\Location\LocationController;
-use App\Http\Controllers\Api\V1\WishList\WishListController;
-use App\Http\Controllers\Api\V1\Post\PostCatalogueController;
-use App\Http\Controllers\Api\V1\User\UserCatalogueController;
-use App\Http\Controllers\Api\V1\Attribute\AttributeController;
 use App\Http\Controllers\Api\V1\FlashSale\FlashSaleController;
-use App\Http\Controllers\Api\V1\Statistic\StatisticController;
-use App\Http\Controllers\Api\V1\Permission\PermissionController;
-use App\Http\Controllers\Api\V1\Product\ProductReviewController;
-use App\Http\Controllers\Api\V1\Attribute\AttributeValueController;
-use App\Http\Controllers\Api\V1\Product\ProductCatalogueController;
-use App\Http\Controllers\Api\V1\SystemConfig\SystemConfigController;
+use App\Http\Controllers\Api\V1\Location\LocationController;
+use App\Http\Controllers\Api\V1\NotificationController;
+use App\Http\Controllers\Api\V1\Order\OrderController;
 use App\Http\Controllers\Api\V1\PaymentMethod\PaymentMethodController;
+use App\Http\Controllers\Api\V1\Permission\PermissionController;
+use App\Http\Controllers\Api\V1\Post\PostController;
+use App\Http\Controllers\Api\V1\Product\ProductCatalogueController;
+use App\Http\Controllers\Api\V1\Product\ProductController;
+use App\Http\Controllers\Api\V1\Product\ProductReviewController;
+use App\Http\Controllers\Api\V1\ProhibitedWords\ProhibitedWordsController;
 use App\Http\Controllers\Api\V1\SearchHistory\SearchHistoryController;
 use App\Http\Controllers\Api\V1\ShippingMethod\ShippingMethodController;
-use App\Http\Controllers\Api\V1\ProhibitedWords\ProhibitedWordsController;
+use App\Http\Controllers\Api\V1\Slider\SliderController;
+use App\Http\Controllers\Api\V1\Statistic\StatisticController;
+use App\Http\Controllers\Api\V1\SystemConfig\SystemConfigController;
+use App\Http\Controllers\Api\V1\Upload\UploadController;
+use App\Http\Controllers\Api\V1\User\UserAddressController;
+use App\Http\Controllers\Api\V1\User\UserCatalogueController;
+use App\Http\Controllers\Api\V1\User\UserController;
+use App\Http\Controllers\Api\V1\Voucher\VoucherController;
+use App\Http\Controllers\Api\V1\Widget\WidgetController;
+use App\Http\Controllers\Api\V1\WishList\WishListController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,7 +70,6 @@ Route::middleware(['api'])->group(function () {
     Route::get('system-configs', [SystemConfigController::class, 'index']);
     Route::get('search-history/list', [SearchHistoryController::class, 'index']);
     Route::get('flash-sales/list', [FlashSaleController::class, 'getFlashSale']);
-
 
     // Order
     Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
@@ -201,7 +199,6 @@ Route::middleware(['api'])->group(function () {
         Route::delete('wishlists/{id}', [WishListController::class, 'destroy']);
         Route::get('wishlists/send-mail', [WishListController::class, 'sendWishListMail']);
 
-
         // CREATE ORDER WITH ADMIN
         Route::post('orders/create', [OrderController::class, 'createOrder']);
 
@@ -209,9 +206,6 @@ Route::middleware(['api'])->group(function () {
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{code}', [OrderController::class, 'show'])->name('orders.show');
         Route::put('orders/{id}', [OrderController::class, 'update'])->name('orders.update');
-
-
-
 
         // PRODUCT REVIEW ROUTE
         Route::controller(ProductReviewController::class)->name('product-reviews.')->group(function () {
@@ -241,7 +235,6 @@ Route::middleware(['api'])->group(function () {
         Route::get('carts/add-paid-products', 'addPaidProductsToCart')->name('addPaidProducts');
     });
 
-
     // PROHIBITED WORDS ROUTE
     route::controller(ProhibitedWordsController::class)->name('prohibited-words.')->group(function () {
         Route::get('prohibited-words', 'index')->name('index');
@@ -250,7 +243,6 @@ Route::middleware(['api'])->group(function () {
         Route::put('prohibited-words/{id}', 'update')->name('update');
         Route::delete('prohibited-words/{id}', 'destroy')->name('destroy');
     });
-
 
     // Statistics
     Route::controller(StatisticController::class)

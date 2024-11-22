@@ -14,7 +14,6 @@ use Illuminate\Http\JsonResponse;
 
 class SearchHistoryController extends Controller
 {
-
     protected $searchHistoryService;
 
     protected $searchHistoryRepository;

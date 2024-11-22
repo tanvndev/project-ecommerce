@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\FlashSale\Client;
 
+use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use DateTime;
 
 class ClientFlashSaleProductVariantResource extends JsonResource
 {
@@ -44,10 +44,9 @@ class ClientFlashSaleProductVariantResource extends JsonResource
         return round(($soldQuantity / $maxQuantity) * 100, 2);
     }
 
-
     private function handleDiscountValue()
     {
-        if (! $this->sale_price || ! $this->price) {
+        if ( ! $this->sale_price || ! $this->price) {
             return null;
         }
 

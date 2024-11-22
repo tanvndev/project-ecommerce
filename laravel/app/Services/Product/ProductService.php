@@ -4,28 +4,25 @@
 
 namespace App\Services\Product;
 
-use Exception;
-use Carbon\Carbon;
-use App\Models\Order;
-use Ramsey\Uuid\Uuid;
 use App\Models\Product;
-use App\Models\OrderItem;
-use App\Services\BaseService;
-use App\Models\ProductVariant;
 use App\Models\ProductAttribute;
-use Illuminate\Support\Facades\DB;
-use App\Models\ProductRecommendation;
-use Illuminate\Support\Facades\Cache;
+use App\Models\ProductVariant;
 use App\Models\ProductVariantAttributeValue;
-use App\Services\Interfaces\Product\ProductServiceInterface;
-use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
-use App\Repositories\Interfaces\Product\SearchHistoryRepositoryInterface;
-use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
 use App\Repositories\Interfaces\Attribute\AttributeValueRepositoryInterface;
+use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
+use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
+use App\Repositories\Interfaces\Product\SearchHistoryRepositoryInterface;
 use App\Repositories\Interfaces\ProhibitedWord\ProhibitedWordRepositoryInterface;
+use App\Services\BaseService;
+use App\Services\Interfaces\Product\ProductServiceInterface;
+use Carbon\Carbon;
+use Exception;
 use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use Ramsey\Uuid\Uuid;
 
 class ProductService extends BaseService implements ProductServiceInterface
 {
@@ -188,7 +185,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
     private function createProductAttribute($product, array $payload)
     {
-        if (! isset($payload['attributes']) || empty($payload['attributes'])) {
+        if ( ! isset($payload['attributes']) || empty($payload['attributes'])) {
             return false;
         }
 
@@ -225,7 +222,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
     private function combineVariantAttributeValue($productVariants)
     {
-        if (! count($productVariants)) {
+        if ( ! count($productVariants)) {
             return [];
         }
 
@@ -298,7 +295,7 @@ class ProductService extends BaseService implements ProductServiceInterface
                 }
 
                 if ($catalogues = json_decode($request->input('catalogues', '[]'), true)) {
-                    if (! empty($catalogues)) {
+                    if ( ! empty($catalogues)) {
                         $q->whereHas('catalogues', function ($q) use ($catalogues) {
                             $q->whereIn('product_catalogue_id', $catalogues);
                         });
@@ -343,7 +340,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         // Transform keys by removing "variable_" prefix
         $payloadFormat = array_combine(
-            array_map(fn($key) => str_replace('variable_', '', $key), array_keys($payload)),
+            array_map(fn ($key) => str_replace('variable_', '', $key), array_keys($payload)),
             array_values($payload)
         );
 
@@ -366,20 +363,20 @@ class ProductService extends BaseService implements ProductServiceInterface
                 'is_used' => ['=', false],
             ]);
 
-            if (! $variant) {
+            if ( ! $variant) {
                 throw new Exception('VARIANT_NOT_FOUND');
             }
 
-            if (! $variant->delete()) {
+            if ( ! $variant->delete()) {
                 throw new Exception('FAILED_TO_DELETE_VARIANT');
             }
 
             $remainingAttributes = ProductVariantAttributeValue::query()
-                ->whereHas('product_variant', fn($query) => $query->where('product_id', $variant->product_id))
+                ->whereHas('product_variant', fn ($query) => $query->where('product_id', $variant->product_id))
                 ->with('attribute_value:id,attribute_id')
                 ->get(['attribute_value_id'])
                 ->groupBy('attribute_value.attribute_id')
-                ->map(fn($group) => [
+                ->map(fn ($group) => [
                     'product_id'          => $variant->product_id,
                     'attribute_id'        => $group->first()->attribute_value->attribute_id,
                     'attribute_value_ids' => $group->pluck('attribute_value_id')->unique()->values()->toArray(),
@@ -464,7 +461,7 @@ class ProductService extends BaseService implements ProductServiceInterface
         $existingAttributeCombines = $productVariants->pluck('attribute_value_combine')->toArray();
 
         $productVariantPayload = $attributeValueCombines->map(function ($attributeValueCombine, $key) use ($existingAttributeCombines, $product) {
-            if (! in_array($attributeValueCombine['attribute_value_combine'], $existingAttributeCombines)) {
+            if ( ! in_array($attributeValueCombine['attribute_value_combine'], $existingAttributeCombines)) {
                 $productName = $product->name;
                 $options = explode(' - ', $attributeValueCombine['attributeText'] ?? '');
                 $sku = generateSKU($productName, 3, $options) . '-' . ($key + 1);
@@ -542,9 +539,9 @@ class ProductService extends BaseService implements ProductServiceInterface
         if (auth()->check()) {
             $this->trackProductView($productVariant);
         }
+
         return $product;
     }
-
 
     private function trackProductView($productVariant)
     {
@@ -557,7 +554,7 @@ class ProductService extends BaseService implements ProductServiceInterface
             ->latest('viewed_at')
             ->first();
         // Kiểm tra 1 tiếng mới thêm 1 lần
-        if (!$lastView || Carbon::now()->diffInHours($lastView->viewed_at) >= 1) {
+        if ( ! $lastView || Carbon::now()->diffInHours($lastView->viewed_at) >= 1) {
             $productVariant->product_views()->create([
                 'product_variant_id' => $productVariant->id,
                 'user_id'            => $userId,
@@ -595,7 +592,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         return [
             'product_variants' => $productVariants,
-            'attributes' => $formattedAttributes,
+            'attributes'       => $formattedAttributes,
         ];
     }
 
@@ -609,8 +606,8 @@ class ProductService extends BaseService implements ProductServiceInterface
     protected function getPriceRange($data)
     {
         return [
-            'min' => isset($data['min_price']) ? (float)$data['min_price'] : null,
-            'max' => isset($data['max_price']) ? (float)$data['max_price'] : null,
+            'min' => isset($data['min_price']) ? (float) $data['min_price'] : null,
+            'max' => isset($data['max_price']) ? (float) $data['max_price'] : null,
         ];
     }
 
@@ -672,7 +669,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
     protected function applySearch($query, $search)
     {
-        if (!empty($search) && is_string($search)) {
+        if ( ! empty($search) && is_string($search)) {
             $prohibitedWords = Cache::remember('prohibited_words', 3600, function () {
                 return $this->prohibitedWordRepository->pluck('keyword');
             });
@@ -682,7 +679,7 @@ class ProductService extends BaseService implements ProductServiceInterface
             $pattern = '/\b(' . implode('|', array_map('preg_quote', $prohibitedWords)) . ')\b/i';
             $containsProhibitedWord = preg_match($pattern, $search);
 
-            if (!$containsProhibitedWord) {
+            if ( ! $containsProhibitedWord) {
                 $existingKeyword = $this->searchHistoryRepository->findByWhere(['keyword' => $search]);
 
                 if ($existingKeyword) {
@@ -695,17 +692,15 @@ class ProductService extends BaseService implements ProductServiceInterface
         }
     }
 
-
     protected function applyValueFilter($query, $values)
     {
-        if (!empty($values)) {
+        if ( ! empty($values)) {
             $valueArray = explode(',', $values);
             $query->whereHas('attribute_values', function ($q) use ($valueArray) {
                 $q->whereIn('attribute_values.id', $valueArray);
             });
         }
     }
-
 
     protected function applySorting($query, $sort)
     {
@@ -730,7 +725,7 @@ class ProductService extends BaseService implements ProductServiceInterface
     // lọc danh mục
     protected function filterByCatalogue($query, $catalogues)
     {
-        if (!empty($catalogues)) {
+        if ( ! empty($catalogues)) {
             $query->where(function ($q) use ($catalogues) {
                 foreach ($catalogues as $catalogue) {
                     $q->orWhereHas('product.catalogues', function ($subQuery) use ($catalogue) {
@@ -739,12 +734,13 @@ class ProductService extends BaseService implements ProductServiceInterface
                 }
             });
         }
+
         return $query;
     }
 
     protected function filterByStars($query, $stars)
     {
-        if (!empty($stars)) {
+        if ( ! empty($stars)) {
             $star = (float) $stars;
 
             $productIds = DB::table('product_reviews')
@@ -784,14 +780,14 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         foreach ($attributeValues as $attributeId => $values) {
             $formatted[$attributeId] = [
-                'id' => $values[0]->attribute_id,
-                'name' => $values[0]->attribute_name,
-                'values' => []
+                'id'     => $values[0]->attribute_id,
+                'name'   => $values[0]->attribute_name,
+                'values' => [],
             ];
 
             foreach ($values as $value) {
                 $formatted[$attributeId]['values'][] = [
-                    'id' => $value->value_id,
+                    'id'   => $value->value_id,
                     'name' => $value->value_name,
                 ];
             }
@@ -805,7 +801,7 @@ class ProductService extends BaseService implements ProductServiceInterface
         try {
             $request = request();
 
-            if (!$request->hasFile('image')) {
+            if ( ! $request->hasFile('image')) {
                 throw new Exception('No file provided');
             }
 
@@ -813,12 +809,12 @@ class ProductService extends BaseService implements ProductServiceInterface
 
             $path = $file->storeAs('temp',  time() . '_' . $file->getClientOriginalName(), 'public');
             $filePath = storage_path('app/public/' . $path);
-            $client = new Client();
+            $client = new Client;
 
             $response = $client->post('http://127.0.0.1:5000/search-image', [
                 'json' => [
-                    'image_path' => $filePath
-                ]
+                    'image_path' => $filePath,
+                ],
             ]);
 
             if ($response->getStatusCode() !== 200) {
@@ -836,7 +832,7 @@ class ProductService extends BaseService implements ProductServiceInterface
                 [],
                 [],
                 [
-                    'id' => 'DESC'
+                    'id' => 'DESC',
                 ]
             )->map(function ($variant) use ($condition) {
                 $similarity = $condition
@@ -850,8 +846,9 @@ class ProductService extends BaseService implements ProductServiceInterface
                 ->values();
 
             File::delete($filePath);
+
             return $productVariants;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [];
         }
     }
@@ -862,7 +859,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
         $condition = array_map(function ($item) use ($path) {
             return [
-                'image' => $path . $item['image_path'],
+                'image'      => $path . $item['image_path'],
                 'similarity' => $item['distance'],
             ];
         }, $data);

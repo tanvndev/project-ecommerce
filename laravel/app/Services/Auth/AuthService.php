@@ -40,7 +40,7 @@ class AuthService extends BaseService implements AuthServiceInterface
                 ]
             );
 
-            if (! empty($user)) {
+            if ( ! empty($user)) {
                 if ($user->hasVerifiedEmail()) {
                     return errorResponse(__('messages.auth.register.email_verified'));
                 }

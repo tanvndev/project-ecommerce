@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
-use Doctrine\Inflector\Rules\Word;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,12 +20,12 @@ class ProductReviewFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id'       => User::all()->random()->id,
-            'product_id'    => Product::all()->random()->id,
-            'order_id'      => Order::all()->random()->id,
-            'rating'        => $this->faker->numberBetween(1, 5),
-            'parent_id'     => null,
-            'comment'       => $this->faker->sentence(10),
+            'user_id'        => User::all()->random()->id,
+            'product_id'     => Product::all()->random()->id,
+            'order_id'       => Order::all()->random()->id,
+            'rating'         => $this->faker->numberBetween(1, 5),
+            'parent_id'      => null,
+            'comment'        => $this->faker->sentence(10),
             'images'         => null,
             'publish'        => $this->faker->numberBetween(1, 2),
 

@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\FlashSale\Client;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Carbon\Carbon;
 
 class ClientFlashSaleResource extends JsonResource
 {
@@ -16,9 +16,10 @@ class ClientFlashSaleResource extends JsonResource
     public function toArray(Request $request): array
     {
         $remainingTime = $this->calculateRemainingTime($this->end_date);
+
         return [
-            'id'            => $this->id,
-            'remaining_time'  => $remainingTime,
+            'id'               => $this->id,
+            'remaining_time'   => $remainingTime,
             'product_variants' => ClientFlashSaleProductVariantResource::collection($this->whenLoaded('product_variants')),
         ];
     }
@@ -30,6 +31,7 @@ class ClientFlashSaleResource extends JsonResource
 
         if ($now < $end) {
             $remainingTime = $now->diff($end);
+
             return [
                 'h' => $remainingTime->h,
                 'i' => $remainingTime->i,

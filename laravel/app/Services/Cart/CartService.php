@@ -2,18 +2,17 @@
 
 namespace App\Services\Cart;
 
-use Carbon\Carbon;
-use App\Services\BaseService;
 use App\Repositories\Interfaces\Cart\CartActionRepositoryInterface;
-use App\Services\Interfaces\Cart\CartServiceInterface;
 use App\Repositories\Interfaces\Cart\CartRepositoryInterface;
 use App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
+use App\Services\BaseService;
+use App\Services\Interfaces\Cart\CartServiceInterface;
+use Carbon\Carbon;
+use Exception;
 
 class CartService extends BaseService implements CartServiceInterface
 {
-
-
     public function __construct(
         protected CartRepositoryInterface $cartRepository,
         protected ProductVariantRepositoryInterface $productVariantRepository,
@@ -41,7 +40,7 @@ class CartService extends BaseService implements CartServiceInterface
     public function createOrUpdate($request)
     {
         return $this->executeInTransaction(function () use ($request) {
-            if (! $request->product_variant_id) {
+            if ( ! $request->product_variant_id) {
                 return errorResponse(__('messages.cart.error.not_found'));
             }
 
@@ -69,10 +68,10 @@ class CartService extends BaseService implements CartServiceInterface
 
         $flashSale = $this->flashSaleRepository->findByWhere([
             'start_date' => ['<=', $now],
-            'end_date' => ['>=', $now]
+            'end_date'   => ['>=', $now],
         ]);
 
-        if (!$flashSale) {
+        if ( ! $flashSale) {
             return false;
         }
 
@@ -83,7 +82,7 @@ class CartService extends BaseService implements CartServiceInterface
     {
         $cart = $this->cartRepository->findByWhere($conditions);
 
-        if (! $cart) {
+        if ( ! $cart) {
             return;
         }
 
@@ -105,7 +104,6 @@ class CartService extends BaseService implements CartServiceInterface
             'updated_at'                                => now(),
         ]);
 
-
         if (auth()->check()) {
 
             $this->trackCartAction($request->product_variant_id, 'added');
@@ -119,13 +117,11 @@ class CartService extends BaseService implements CartServiceInterface
         foreach ($productVariantIds as $id) {
             $this->cartActionRepository->create([
                 'product_variant_id' => $id,
-                'user_id' => auth()->id(),
-                'action' => $action,
+                'user_id'            => auth()->id(),
+                'action'             => $action,
             ]);
         }
     }
-
-
 
     private function updateCartItem($cart, $request, $is_by_now = false)
     {
@@ -144,7 +140,6 @@ class CartService extends BaseService implements CartServiceInterface
         $cartItem->update($updateData);
     }
 
-
     /**
      * Check stock of product variants in cart and update cart.
      *
@@ -157,7 +152,7 @@ class CartService extends BaseService implements CartServiceInterface
     {
         $cart = $this->cartRepository->findByWhere($conditions);
 
-        if (! $cart) {
+        if ( ! $cart) {
             return;
         }
 
@@ -190,7 +185,7 @@ class CartService extends BaseService implements CartServiceInterface
             $conditions = $this->getUserOrSessionConditions($sessionId);
             $cart = $this->cartRepository->findByWhere($conditions);
 
-            if (! $cart) {
+            if ( ! $cart) {
                 return errorResponse(__('messages.cart.error.not_found'));
             }
 
@@ -219,7 +214,7 @@ class CartService extends BaseService implements CartServiceInterface
             $conditions = $this->getUserOrSessionConditions($sessionId);
             $cart = $this->cartRepository->findByWhere($conditions);
 
-            if (! $cart) {
+            if ( ! $cart) {
                 return errorResponse(__('messages.cart.error.not_found'));
             }
 
@@ -227,7 +222,7 @@ class CartService extends BaseService implements CartServiceInterface
                 $ids = $cart->cart_items()->pluck('product_variant_id')->toArray();
 
                 $this->trackCartAction($ids, 'removed');
-            };
+            }
 
             $cart->cart_items()->delete();
 
@@ -258,7 +253,7 @@ class CartService extends BaseService implements CartServiceInterface
             $conditions = $this->getUserOrSessionConditions($sessionId);
             $cart = $this->cartRepository->findByWhere($conditions);
 
-            if (! $cart) {
+            if ( ! $cart) {
                 return errorResponse(__('messages.cart.error.not_found'));
             }
 
@@ -287,7 +282,7 @@ class CartService extends BaseService implements CartServiceInterface
             $conditions = $this->getUserOrSessionConditions($sessionId);
             $cart = $this->cartRepository->findByWhere($conditions);
 
-            if (! $cart) {
+            if ( ! $cart) {
                 return errorResponse(__('messages.cart.error.not_found'));
             }
 
@@ -323,13 +318,14 @@ class CartService extends BaseService implements CartServiceInterface
      */
     private function getUserOrSessionConditions($sessionId): array
     {
-        if (!auth()->check() && $sessionId == 'undefined')  throw new \Exception('Session id is not defined.');
+        if ( ! auth()->check() && $sessionId == 'undefined') {
+            throw new Exception('Session id is not defined.');
+        }
 
         return auth()->check()
             ? ['user_id' => auth()->user()->id]
             : ['session_id' => $sessionId];
     }
-
 
     public function buyNow($request)
     {
@@ -375,6 +371,7 @@ class CartService extends BaseService implements CartServiceInterface
     {
         $sessionId = $request->input('session_id', 0);
         $conditions = $this->getUserOrSessionConditions($sessionId);
+
         return $this->cartRepository->findByWhere($conditions) ?? $this->cartRepository->create($conditions);
     }
 
@@ -397,7 +394,6 @@ class CartService extends BaseService implements CartServiceInterface
             : $this->createCartItem($cart, $request);
     }
 
-
     /**
      * Merge session cart to user cart when user logged in.
      *
@@ -405,7 +401,7 @@ class CartService extends BaseService implements CartServiceInterface
      */
     public function mergeSessionCartToUserCart($sessionId): void
     {
-        if (! auth()->check()) {
+        if ( ! auth()->check()) {
             return;
         }
 
@@ -413,11 +409,11 @@ class CartService extends BaseService implements CartServiceInterface
         $userCart = $this->cartRepository->findByWhere(['user_id' => $userId]);
         $sessionCart = $this->cartRepository->findByWhere(['session_id' => $sessionId]);
 
-        if (! $sessionCart) {
+        if ( ! $sessionCart) {
             return;
         }
 
-        if (! $userCart) {
+        if ( ! $userCart) {
             $userCart = $this->cartRepository->create(['user_id' => $userId]);
         }
 

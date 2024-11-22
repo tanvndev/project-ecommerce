@@ -179,7 +179,7 @@ class ChatService extends BaseService implements ChatServiceInterface
         foreach ($images as $image) {
             $uploadResponse = Upload::uploadImage($image);
 
-            if (! $uploadResponse['status'] === 'success') {
+            if ( ! $uploadResponse['status'] === 'success') {
                 return [
                     'status'  => 'error',
                     'message' => $uploadResponse['message'],

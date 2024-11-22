@@ -53,8 +53,6 @@ class SearchHistoryService extends BaseService implements SearchHistoryServiceIn
         }, __('messages.create.error'));
     }
 
-
-
     public function update($id)
     {
         return $this->executeInTransaction(function () use ($id) {
@@ -90,7 +88,7 @@ class SearchHistoryService extends BaseService implements SearchHistoryServiceIn
     {
         $data = [
             'keyword' => $payload['keyword'],
-            'count' => $payload['count'],
+            'count'   => $payload['count'],
         ];
 
         return $data;

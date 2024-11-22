@@ -23,7 +23,7 @@ class Upload
                 // Kiểm tra kích thước của ảnh
                 if ($image->getSize() > 5000000) {
                     return [
-                        'status' => 'error',
+                        'status'  => 'error',
                         'message' => 'Dung lượng tệp ---> ' . $originalName . ' <--- không được vượt quá 5MB.',
                     ];
                 }
@@ -34,7 +34,7 @@ class Upload
                 $filename = Str::slug($originalName) . '_' . date('d') . '_' . date('m') . '_' . date('Y') . '_' . $uuid . '.webp'; // Change the extension to .webp
 
                 // Create the directory if it doesn't exist
-                if (!Storage::exists($path)) {
+                if ( ! Storage::exists($path)) {
                     Storage::makeDirectory($path);
                 }
                 // dd($path . '/' . $filename);
@@ -45,7 +45,7 @@ class Upload
 
                 $temporaryDirectory = storage_path('app/temp/');
 
-                if (!File::exists($temporaryDirectory)) {
+                if ( ! File::exists($temporaryDirectory)) {
                     // Nếu chưa tồn tại, tạo thư mục
                     File::makeDirectory($temporaryDirectory, $mode = 0755, true, true);
                 }
@@ -60,7 +60,7 @@ class Upload
 
                 // Move the optimized image to the final destination
                 $storedPath = $path . '/' . $filename;
-                if (!empty($folderName) && $folderName != '') {
+                if ( ! empty($folderName) && $folderName != '') {
                     $storedPath = $path . '/' . $folderName . '/' . $filename;
                 }
                 Storage::put($storedPath, file_get_contents($temporaryPath));
@@ -71,19 +71,19 @@ class Upload
                 $newPath = Str::replaceFirst($imageSrc, 'images/', $storedPath);
 
                 return [
-                    'status' => 'success',
+                    'status'  => 'success',
                     'message' => __('messages.upload.create.success'),
-                    'data' => asset($newPath),
+                    'data'    => asset($newPath),
                 ];
             } else {
                 return [
-                    'status' => 'error',
+                    'status'  => 'error',
                     'message' => 'Định dạng tệp ---> ' . $originalName . ' <--- không hợp lệ. Chỉ chấp nhận các định dạng: JPG, JPEG, PNG, WEBP, SVG, GIF, TIFF, HEIC, RAW.',
                 ];
             }
         } catch (Exception $e) {
             return [
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Có lỗi từ tệp ---> ' . $originalName . ' <--- vui lòng thử tải lại.',
             ];
         }

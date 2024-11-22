@@ -3,22 +3,22 @@
 namespace App\Http\Controllers\Api\V1\FlashSale;
 
 use App\Enums\ResponseEnum;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\FlashSale\FlashSaleCollection;
 use App\Http\Requests\FlashSale\FlashSaleStoreRequest;
 use App\Http\Requests\FlashSale\FlashSaleUpdateRequest;
 use App\Http\Resources\FlashSale\Client\ClientFlashSaleResource;
+use App\Http\Resources\FlashSale\FlashSaleCollection;
 use App\Http\Resources\FlashSale\FlashSaleResource;
-use App\Services\Interfaces\FlashSale\FlashSaleServiceInterface;
 use App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface;
+use App\Services\Interfaces\FlashSale\FlashSaleServiceInterface;
+use Illuminate\Http\JsonResponse;
 
 class FlashSaleController extends Controller
 {
     protected $flashSaleService;
 
     protected $flashSaleRepository;
+
     public function __construct(
         FlashSaleServiceInterface $flashSaleService,
         FlashSaleRepositoryInterface $flashSaleRepository
@@ -26,6 +26,7 @@ class FlashSaleController extends Controller
         $this->flashSaleService = $flashSaleService;
         $this->flashSaleRepository = $flashSaleRepository;
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -72,10 +73,7 @@ class FlashSaleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
-    {
-        //
-    }
+    public function destroy(string $id) {}
 
     public function getFlashSale()
     {

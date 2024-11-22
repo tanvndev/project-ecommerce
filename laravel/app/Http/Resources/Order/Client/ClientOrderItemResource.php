@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources\Order\Client;
 
-use App\Http\Resources\Product\Client\ClientProductReviewResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -30,7 +29,7 @@ class ClientOrderItemResource extends JsonResource
             'slug'                          => $this->product_variant->slug ?? '',
             'product_id'                    => $this->product_variant->product_id ?? '',
             'attribute_values'              => $this->product_variant->attribute_values->pluck('name')->implode(' - ') ?? 'Default',
-            'is_reviewed'                   => $this->hasUserReviewed($user, $this->product_variant->product_id, $this->order_id)
+            'is_reviewed'                   => $this->hasUserReviewed($user, $this->product_variant->product_id, $this->order_id),
         ];
     }
 

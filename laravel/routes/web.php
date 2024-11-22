@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Statistic\StatisticController;
-use App\Http\Controllers\Api\V1\User\UserAddressController;
 use App\Http\Controllers\Payment\MomoController;
 use App\Http\Controllers\Payment\PaypalController;
 use App\Http\Controllers\Payment\VnpController;
@@ -45,5 +44,3 @@ Route::get('stringee/answer', [StringeeController::class, 'answer']);
 Route::get('test/order', [TestController::class, 'getOrder']);
 
 Route::get('test', [StatisticController::class, 'loyalCustomers']);
-
-

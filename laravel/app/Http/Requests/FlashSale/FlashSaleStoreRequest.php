@@ -23,13 +23,13 @@ class FlashSaleStoreRequest extends FormRequest
     {
 
         return [
-            'name' => 'required|string|max:255|unique:flash_sales',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_at',
-            'max_quantities' => 'required|array',
+            'name'             => 'required|string|max:255|unique:flash_sales',
+            'start_date'       => 'required|date',
+            'end_date'         => 'required|date|after:start_at',
+            'max_quantities'   => 'required|array',
             'max_quantities.*' => 'required|integer|min:1',
-            'sale_prices' => 'required|array',
-            'sale_prices.*' => 'required|numeric|min:0',
+            'sale_prices'      => 'required|array',
+            'sale_prices.*'    => 'required|numeric|min:0',
         ];
     }
 
@@ -37,10 +37,10 @@ class FlashSaleStoreRequest extends FormRequest
     {
         return [
             'max_quantities.*' => 'Số lượng tối đa',
-            'sale_prices.*' => 'Giá khuyến mãi',
-            'name' => 'Tên khuyến mãi',
-            'start_date' => 'Bắt đầu khuyến mãi',
-            'end_date' => 'Kết thúc khuyến mãi',
+            'sale_prices.*'    => 'Giá khuyến mãi',
+            'name'             => 'Tên khuyến mãi',
+            'start_date'       => 'Bắt đầu khuyến mãi',
+            'end_date'         => 'Kết thúc khuyến mãi',
         ];
     }
 

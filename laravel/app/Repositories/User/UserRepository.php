@@ -27,16 +27,16 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     ) {
         $query = $this->model->select($column);
 
-        if (! empty($relation)) {
+        if ( ! empty($relation)) {
             $query->relation($relation);
         }
 
         $query->customWhere($conditions);
 
-        if (! empty($whereInParams)) {
+        if ( ! empty($whereInParams)) {
             $query->whereIn($whereInParams['field'], $whereInParams['value']);
         }
-        if (! empty($searchTerm)) {
+        if ( ! empty($searchTerm)) {
             $query->when($searchTerm, function ($query, $searchTerm) {
                 $query->where(function ($query) use ($searchTerm) {
                     $query->where('fullname', 'like', '%' . $searchTerm . '%')

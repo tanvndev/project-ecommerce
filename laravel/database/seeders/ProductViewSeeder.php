@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\ProductVariant;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -14,8 +13,6 @@ class ProductViewSeeder extends Seeder
     /**
      * Run the database seeds.
      */
-
-
     public function run(): void
     {
         // Lấy tất cả các ID của product_variant và user để tránh việc gọi DB trong mỗi vòng lặp
@@ -28,10 +25,10 @@ class ProductViewSeeder extends Seeder
         for ($i = 1; $i <= $totalRecords; $i++) {
             $data[] = [
                 'product_variant_id' => $productVariantIds[array_rand($productVariantIds)],
-                'user_id' => $userIds[array_rand($userIds)],
-                'viewed_at' => Carbon::now()->subMinutes(rand(1, 10000)),  // Thời gian xem ngẫu nhiên trong quá khứ
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
+                'user_id'            => $userIds[array_rand($userIds)],
+                'viewed_at'          => Carbon::now()->subMinutes(rand(1, 10000)),  // Thời gian xem ngẫu nhiên trong quá khứ
+                'created_at'         => Carbon::now(),
+                'updated_at'         => Carbon::now(),
             ];
 
             // Chèn dữ liệu vào DB sau mỗi 500 bản ghi
@@ -42,7 +39,7 @@ class ProductViewSeeder extends Seeder
         }
 
         // Chèn nốt các bản ghi còn lại nếu có
-        if (!empty($data)) {
+        if ( ! empty($data)) {
             DB::table('product_views')->insert($data);
         }
     }

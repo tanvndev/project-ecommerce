@@ -3,26 +3,23 @@
 namespace App\Http\Controllers\Api\V1\Product;
 
 use App\Enums\ResponseEnum;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Product\ProductResource;
-use App\Http\Resources\Product\ProductCollection;
 use App\Http\Requests\Product\StoreProductRequest;
-use App\Http\Requests\Product\UpdateProductRequest;
-use App\Http\Resources\Product\ProductVariantCollection;
-use App\Http\Requests\Product\UpdateProductVariantRequest;
 use App\Http\Requests\Product\UpdateProductAttributeRequest;
+use App\Http\Requests\Product\UpdateProductRequest;
+use App\Http\Requests\Product\UpdateProductVariantRequest;
 use App\Http\Resources\Product\Client\ClientProductResource;
+use App\Http\Resources\Product\Client\ClientProductVariantCollection;
+use App\Http\Resources\Product\ProductCollection;
+use App\Http\Resources\Product\ProductResource;
+use App\Http\Resources\Product\ProductVariantCollection;
+use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
 use App\Services\Interfaces\Apriori\AprioriServiceInterface;
 use App\Services\Interfaces\Product\ProductServiceInterface;
-use App\Repositories\Interfaces\Product\ProductRepositoryInterface;
-use App\Http\Resources\Product\Client\ClientProductVariantCollection;
-use App\Http\Resources\Product\Client\ClientProductVariantResource;
+use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
-
     public function __construct(
         protected ProductServiceInterface $productService,
         protected ProductRepositoryInterface $productRepository,
@@ -123,7 +120,6 @@ class ProductController extends Controller
         return handleResponse($response);
     }
 
-
     // CLIENT API //
 
     /**
@@ -148,7 +144,9 @@ class ProductController extends Controller
 
     public function getRecommendedProduct(): JsonResponse
     {
-        if (!auth()->check())  return errorResponse('Unauthorized.', 401);
+        if ( ! auth()->check()) {
+            return errorResponse('Unauthorized.', 401);
+        }
 
         $response = $this->productService->getRecommendedProducts();
         $data = new ClientProductVariantCollection($response);
@@ -162,12 +160,11 @@ class ProductController extends Controller
 
         $data = [
             'product_variants' => new ClientProductVariantCollection($response['product_variants']),
-            'attributes' => $response['attributes'],
+            'attributes'       => $response['attributes'],
         ];
 
         return successResponse('', $data, true);
     }
-
 
     public function searchByImage(): JsonResponse
     {

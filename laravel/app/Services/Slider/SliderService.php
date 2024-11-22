@@ -59,8 +59,6 @@ class SliderService extends BaseService implements SliderServiceInterface
         }, __('messages.create.error'));
     }
 
-
-
     public function update($id)
     {
         return $this->executeInTransaction(function () use ($id) {
@@ -94,16 +92,16 @@ class SliderService extends BaseService implements SliderServiceInterface
     private function formatPayload($payload)
     {
         $data = [
-            'setting' =>[
-                'effect' => $payload['effect'],
-                'effectSpeed' => $payload['effectSpeed'],
+            'setting' => [
+                'effect'          => $payload['effect'],
+                'effectSpeed'     => $payload['effectSpeed'],
                 'transitionSpeed' => $payload['transitionSpeed'],
-                'navigation' => $payload['navigation'],
-                'autoPlay' => $payload['autoPlay'],
-                'pauseOnHover' => $payload['pauseOnHover'],
-                'showArrow' => $payload['showArrow'],
-                'width' => $payload['width'],
-                'height' => $payload['height'],
+                'navigation'      => $payload['navigation'],
+                'autoPlay'        => $payload['autoPlay'],
+                'pauseOnHover'    => $payload['pauseOnHover'],
+                'showArrow'       => $payload['showArrow'],
+                'width'           => $payload['width'],
+                'height'          => $payload['height'],
             ],
             'items' => $payload['items'],
 

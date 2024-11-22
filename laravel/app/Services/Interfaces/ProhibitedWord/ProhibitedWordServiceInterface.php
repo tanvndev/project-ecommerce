@@ -9,5 +9,4 @@ interface ProhibitedWordServiceInterface
     public function create();
 
     public function update($id);
-
 }

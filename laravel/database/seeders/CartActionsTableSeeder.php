@@ -6,7 +6,6 @@ use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class CartActionsTableSeeder extends Seeder
 {
@@ -26,12 +25,11 @@ class CartActionsTableSeeder extends Seeder
         for ($i = 1; $i <= $totalRecords; $i++) {
             $data[] = [
                 'product_variant_id' => $productVariantIds[array_rand($productVariantIds)],
-                'user_id' => $userIds[array_rand($userIds)],
-                'action' => fake()->randomElement(['added', 'removed']),
-                'created_at' => now(),
-                'updated_at' => now(),
+                'user_id'            => $userIds[array_rand($userIds)],
+                'action'             => fake()->randomElement(['added', 'removed']),
+                'created_at'         => now(),
+                'updated_at'         => now(),
             ];
-
 
             if ($i % $batchSize === 0 || $i === $totalRecords) {
                 DB::table('cart_actions')->insert($data);

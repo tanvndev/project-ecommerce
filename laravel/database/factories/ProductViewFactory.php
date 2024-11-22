@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-
 use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -12,8 +11,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ProductViewFactory extends Factory
 {
-
-
     /**
      * Define the model's default state.
      *
@@ -22,9 +19,9 @@ class ProductViewFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::all()->random()->id,
+            'user_id'            => User::all()->random()->id,
             'product_variant_id' => ProductVariant::all()->random()->id,
-            'viewed_at' => fake()->dateTimeBetween('-3 month', '-2 month'),
+            'viewed_at'          => fake()->dateTimeBetween('-3 month', '-2 month'),
         ];
     }
 }

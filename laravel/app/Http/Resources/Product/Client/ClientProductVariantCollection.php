@@ -7,7 +7,6 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class ClientProductVariantCollection extends ResourceCollection
 {
-
     public function toArray(Request $request): array
     {
         if (

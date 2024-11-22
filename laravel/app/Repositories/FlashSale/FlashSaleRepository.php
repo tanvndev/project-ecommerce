@@ -8,7 +8,6 @@ use App\Models\FlashSale;
 use App\Repositories\BaseRepository;
 use App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface;
 
-
 class FlashSaleRepository extends BaseRepository implements FlashSaleRepositoryInterface
 {
     protected $model;

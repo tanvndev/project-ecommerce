@@ -4,7 +4,6 @@ namespace App\Http\Resources\ProhibitedWords;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
-use App\Http\Resources\ProhibitedWords\ProhibitedWordResource;
 
 class ProhibitedWordCollection extends ResourceCollection
 {
