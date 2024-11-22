@@ -9116,7 +9116,7 @@ body .product-popup {
 
 .product-name {
   margin-bottom: 0.5000rem;
-  font-size: 0.8125rem;
+  font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
