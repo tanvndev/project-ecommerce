@@ -1131,3 +1131,7 @@
 .search-history-link:hover {
   color: #336699 !important;
 }
+.header-middle{
+    padding-top: 20px;
+    padding-bottom: 20px;
+}

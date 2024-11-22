@@ -11,7 +11,8 @@ const tabs = reactive([
 ])
 const isReload = computed(() => productStore.getIsReload)
 const product = computed(() => productStore.getProduct)
-const activeTab = ref('reviews')
+const activeTab = ref('description')
+const isCollapsed = ref(true)
 
 const selectTab = (tabName) => {
   activeTab.value = tabName
@@ -50,7 +51,17 @@ onMounted(() => {
         :class="{ active: activeTab == 'description' }"
         v-show="activeTab == 'description'"
       >
-        <div v-html="product.description || 'Đang cập nhập mô tả...'"></div>
+        <div
+          :class="{collapsed: isCollapsed}"
+          v-html="product.description || 'Đang cập nhập mô tả...'"
+        ></div>
+        <div class="text-center mt-2">
+          <v-btn @click="isCollapsed = !isCollapsed" variant="text">
+            <span class="mr-1">{{ isCollapsed ? 'Xem thêm' : 'Thu gọn' }}</span>
+            <i class="fas fa-chevron-down fs-13" v-if="isCollapsed"></i>
+            <i class="fas fa-chevron-up fs-13" v-else></i>
+          </v-btn>
+        </div>
       </div>
       <div
         id="product-tab-specifications"
@@ -314,5 +325,9 @@ onMounted(() => {
 
 .progress-bar span {
   background-color: #f77c29;
+}
+.collapsed {
+  overflow: hidden;
+  height: 1000px;
 }
 </style>
