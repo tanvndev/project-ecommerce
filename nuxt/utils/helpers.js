@@ -453,40 +453,70 @@ const timeAgo = (dateString) => {
 }
 
 const numberWithCommas = (x) => {
-    x = x.toString().replace(/[^0-9]/g, '');
-    return x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, '.');
-};
+  x = x.toString().replace(/[^0-9]/g, '')
+  return x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, '.')
+}
 const getErrorMsg = (error) => {
-    if (error.response) {
-      return error?.response?.data?.messages || 'Something went wrong!';
-    }
-    return error?.message || 'Something went wrong!';
-  };
+  if (error.response) {
+    return error?.response?.data?.messages || 'Something went wrong!'
+  }
+  return error?.message || 'Something went wrong!'
+}
+
+const base64ToFile = (base64String, fileName) => {
+  const arr = base64String.split(',')
+
+  if (arr.length < 2) {
+    throw new Error('Invalid Base64 string')
+  }
+
+  const mimeType = arr[0].match(/:(.*?);/)[1] // Tìm kiếm kiểu MIME (image/png, image/jpeg, ...)
+  const byteCharacters = atob(arr[1]) // Giải mã chuỗi Base64 thành dữ liệu nhị phân
+
+  const byteArray = new Uint8Array(byteCharacters.length)
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteArray[i] = byteCharacters.charCodeAt(i)
+  }
+
+  const blob = new Blob([byteArray], { type: mimeType })
+
+  const file = new File([blob], fileName, { type: mimeType })
+
+  return file
+}
+
+// Sử dụng hàm này để chuyển Base64 thành File và append vào FormData
+const appendBase64ToFormData = (formData, base64String, fileName) => {
+  const file = base64ToFile(base64String, fileName)
+  formData.append('image', file)
+  return formData
+}
 export {
-  debounce,
-  resizeImage,
-  getBase64,
-  getFileNameFromUrl,
-  getFileFromFileList,
-  getImageToAnt,
-  isJSONString,
+  appendBase64ToFormData,
   cleanedData,
+  debounce,
+  formatTime,
+  generateRandomString,
   generateSlug,
-  handleDateChangeToAnt,
-  sortAndConcatenate,
+  generateUUID,
+  getBase64,
+  getErrorMsg,
+  getFileFromFileList,
+  getFileNameFromUrl,
+  getImageToAnt,
   getLastPartOfSlug,
-  removeLastSegment,
-  handleSocialIconClick,
+  handleDateChangeToAnt,
   handlePrice,
   handleRenderPrice,
-  toast,
-  generateUUID,
-  generateRandomString,
-  hintPhoneNumber,
+  handleSocialIconClick,
   hintEmail,
-  formatTime,
-  showNotification,
-  timeAgo,
+  hintPhoneNumber,
+  isJSONString,
   numberWithCommas,
-  getErrorMsg
+  removeLastSegment,
+  resizeImage,
+  showNotification,
+  sortAndConcatenate,
+  timeAgo,
+  toast,
 }

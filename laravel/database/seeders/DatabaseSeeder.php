@@ -16,7 +16,6 @@ class DatabaseSeeder extends Seeder
         \App\Models\ProductReview::factory(1000000000)->create();
         \App\Models\WishList::factory(1000000000)->create();
 
-
         // \App\Models\User::factory()->create([
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',

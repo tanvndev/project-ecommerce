@@ -1,32 +1,26 @@
 <script setup>
 import '~/assets/css/main.min.css'
-import { useLoadingStore } from '#imports'
 
 useSeoMeta({
   title: 'Trang chủ',
   ogTitle: 'Trang chủ',
-  description: 'This is my amazing site, let me tell you all about it.',
-  ogDescription: 'This is my amazing site, let me tell you all about it.',
-  ogImage: 'https://example.com/image.png',
-  twitterCard: 'summary_large_image',
+  description: 'Trang chủ.',
+  ogDescription: 'Trang chủ.',
+  ogImage: '/og-image.png',
 })
 
 const widgetCodes = ref([])
 const widgets = ref([])
 const { $axios } = useNuxtApp()
-const loadingStore = useLoadingStore()
 const currentWidgetIndex = ref(0)
 const isLoading = ref(false)
 
 const getAllWidgetCode = async () => {
-  loadingStore.setLoading(true)
   try {
     const response = await $axios.get('/widgets/codes')
     widgetCodes.value = response.data
   } catch (error) {
     console.error('Error fetching widget codes:', error)
-  } finally {
-    loadingStore.setLoading(false)
   }
 }
 
@@ -83,6 +77,9 @@ onUnmounted(() => {
   <!-- Home Category -->
   <HomeCategory />
 
+  <!-- Home Flash Sale -->
+  <HomeFlashSale />
+
   <div class="container">
     <div v-for="widget in widgets" :key="widget.id">
       <HomeAdvertisement
@@ -99,8 +96,10 @@ onUnmounted(() => {
       <!-- End of Category Banner Wrapper -->
     </div>
 
-    <div class="mx-auto d-flex justify-center mb-5 mt-5" v-if="isLoading">
-      <span class="loader"></span>
+    <div class="row py-5" v-if="isLoading">
+      <div class="col-lg-3 mb-5" v-for="i in 8" :key="i">
+        <v-skeleton-loader type="card"></v-skeleton-loader>
+      </div>
     </div>
 
     <!-- <v-lazy

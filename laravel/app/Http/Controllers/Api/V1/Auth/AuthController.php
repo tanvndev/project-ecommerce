@@ -2,26 +2,26 @@
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
-use Log;
-use Exception;
-use App\Models\User;
 use App\Classes\Stringee;
 use App\Enums\ResponseEnum;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\ForgotRequest;
+use App\Http\Requests\Auth\LoginOtpRequest;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Resources\User\Client\ClientUserResource;
+use App\Http\Resources\User\UserResource;
+use App\Models\User;
+use App\Services\Interfaces\Auth\AuthServiceInterface;
+use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
-use App\Http\Requests\Auth\LoginOtpRequest;
-use App\Http\Requests\Auth\LoginRequest;
 use Laravel\Socialite\Facades\Socialite;
-use App\Http\Requests\Auth\ForgotRequest;
-use App\Http\Resources\User\UserResource;
-use App\Http\Requests\Auth\RegisterRequest;
-use App\Http\Resources\User\Client\ClientUserResource;
-use App\Services\Interfaces\Auth\AuthServiceInterface;
+use Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -61,7 +61,7 @@ class AuthController extends Controller
     {
         $response = $this->verifyRecaptcha($request->input('g-recaptcha-response'));
 
-        if (! $response) {
+        if ( ! $response) {
             return errorResponse('Xác minh captcha không thành công', true);
         }
 
@@ -69,11 +69,11 @@ class AuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if (! $user) {
+        if ( ! $user) {
             return errorResponse('Email hoặc mật khẩu không chính xác.', true);
         }
 
-        if (! $user->hasVerifiedEmail()) {
+        if ( ! $user->hasVerifiedEmail()) {
             return errorResponse('Vui lòng xác nhận email của bạn trước khi đăng nhập.', true);
         }
 
@@ -88,7 +88,7 @@ class AuthController extends Controller
     {
         $response = $this->verifyRecaptcha($request->input('g-recaptcha-response'));
 
-        if (! $response) {
+        if ( ! $response) {
             return errorResponse('Xác minh captcha không thành công', true);
         }
 
@@ -102,7 +102,7 @@ class AuthController extends Controller
             return errorResponse($response['messages'], true);
         }
 
-        if (! $user->hasVerifiedEmail()) {
+        if ( ! $user->hasVerifiedEmail()) {
             return errorResponse('Vui lòng xác nhận email của bạn trước khi đăng nhập.', true);
         }
 
@@ -204,11 +204,11 @@ class AuthController extends Controller
         }
 
         $phone = $request->input('phone');
-        if (! $phone) {
+        if ( ! $phone) {
             return errorResponse('Vui lòng nhập số điện thoại.', true);
         }
         $user = User::where('phone', $phone)->first();
-        if (! $user) {
+        if ( ! $user) {
             return errorResponse('Số điện thoại không tồn tại trong hệ thống.', true);
         }
 
@@ -237,7 +237,7 @@ class AuthController extends Controller
         $idToken = $request->input('id_token');
 
         // Xác minh id_token trực tiếp với Google
-        $client = new \GuzzleHttp\Client();
+        $client = new \GuzzleHttp\Client;
         $response = $client->get('https://oauth2.googleapis.com/tokeninfo?id_token=' . $idToken);
 
         if ($response->getStatusCode() !== 200) {
@@ -246,18 +246,20 @@ class AuthController extends Controller
 
         $googleUser = json_decode($response->getBody());
 
-
         $existingUser = User::where('email', $googleUser->email)->first();
 
         if ($existingUser) {
             Auth::login($existingUser);
         } else {
             $newUser = User::create([
-                'fullname' => $googleUser->name,
-                'email' => $googleUser->email,
-                'google_id' => $googleUser->sub,
-                'password' => Hash::make(uniqid()),
-                'user_catalogue_id' => 2,
+                'fullname'          => $googleUser->name,
+                'email'             => $googleUser->email,
+                'google_id'         => $googleUser->sub,
+                'password'          => Hash::make(uniqid()),
+                'ip'                => $request->ip(),
+                'user_agent'        => $request->header('User-Agent'),
+                'user_catalogue_id' => User::ROLE_CUSTOMER,
+                'email_verified_at' => now(),
             ]);
             Auth::login($newUser);
         }

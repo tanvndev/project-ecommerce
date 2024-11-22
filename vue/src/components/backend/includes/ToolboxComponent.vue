@@ -1,6 +1,7 @@
 <script setup>
 import BaseService from '@/services/BaseService';
 import { PUBLISH as publishFilter } from '@/static/constants';
+import { ORDER_STATUS_SELECT, PAYMENT_STATUS_SELECT } from '@/static/order';
 import { debounce } from '@/utils/helpers';
 import { message } from 'ant-design-vue';
 import { reactive, ref } from 'vue';
@@ -83,7 +84,9 @@ const handleDeleteMultiple = async (force = 0) => {
 
 const filterOptions = reactive({
   publish: 0,
-  search: ''
+  search: '',
+  order_status: ORDER_STATUS_SELECT[0].value,
+  payment_status: PAYMENT_STATUS_SELECT[0].value
 });
 
 const hideArchive = () => {
@@ -115,6 +118,13 @@ const removePublish = () => {
   return true;
 };
 
+const removeOrderFilter = () => {
+  const routeHide = ['order.index'];
+  if (routeHide.includes(route.name)) {
+    return true;
+  }
+  return false;
+};
 const onSearch = (searchValue) => {
   filterOptions.search = searchValue.target.value;
   emits('onFilter', filterOptions);
@@ -124,7 +134,16 @@ const handleDebounceSearch = debounce(onSearch, 500);
 
 const handleFilterChange = debounce(() => {
   emits('onFilter', filterOptions);
-}, 500);
+}, 300);
+
+const handleReloadData = () => {
+  filterOptions.publish = 0;
+  filterOptions.search = '';
+  filterOptions.order_status = ORDER_STATUS_SELECT[0].value;
+  filterOptions.payment_status = PAYMENT_STATUS_SELECT[0].value;
+  
+  handleFilterChange();
+};
 </script>
 
 <template>
@@ -132,11 +151,30 @@ const handleFilterChange = debounce(() => {
     <div class="flex justify-between">
       <a-space :size="12" class="flex justify-end">
         <a-select
+          v-if="removePublish()"
           size="large"
           @change="handleFilterChange"
           v-model:value="filterOptions.publish"
           class="w-[230px]"
           :options="publishFilter"
+        >
+        </a-select>
+        <a-select
+          v-if="removeOrderFilter()"
+          size="large"
+          @change="handleFilterChange"
+          v-model:value="filterOptions.order_status"
+          class="w-[230px]"
+          :options="ORDER_STATUS_SELECT"
+        >
+        </a-select>
+        <a-select
+          v-if="removeOrderFilter()"
+          size="large"
+          @change="handleFilterChange"
+          v-model:value="filterOptions.payment_status"
+          class="w-[230px]"
+          :options="PAYMENT_STATUS_SELECT"
         >
         </a-select>
 
@@ -240,7 +278,7 @@ const handleFilterChange = debounce(() => {
           </a-dropdown>
         </div>
 
-        <a-button size="large">
+        <a-button size="large" @click="handleReloadData">
           <i class="far fa-redo mr-2 text-[14px]"></i>
           <span>Tải lại trang</span>
         </a-button>

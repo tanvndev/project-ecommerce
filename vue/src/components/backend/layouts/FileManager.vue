@@ -192,20 +192,28 @@ watch(visible, () => {
 const onChangePage = (page, pageSize) => fetchData({ page: page, pageSize: pageSize });
 
 const handleUploadFile = async (event) => {
-  selectedFileInput.value = event.target.files;
+  try {
+    selectedFileInput.value = event.target.files;
 
-  const pathArray = routePath.value?.split('/');
-  const folderName = pathArray[1] || '';
+    const pathArray = routePath.value?.split('/');
 
-  const payload = new FormData();
-  for (let i = 0; i < selectedFileInput.value.length; i++) {
-    payload.append('files[]', selectedFileInput.value[i]);
+    if (!pathArray || pathArray.length == 0 || pathArray[1] == '')
+      throw new Error('Url không hợp lệ');
+
+    const folderName = `${pathArray[1] || ''}/${selectedFileInput.value?.length > 1 ? 'album' : 'thumb'}`;
+
+    const payload = new FormData();
+    for (let i = 0; i < selectedFileInput.value.length; i++) {
+      payload.append('files[]', selectedFileInput.value[i]);
+    }
+    payload.append('folder_name', folderName);
+    await create('uploads', payload);
+    errors.value = formatMessages(messages.value);
+    dataImage.value = data.value.data;
+    reloadAll();
+  } catch (error) {
+    message.error('Có lỗi vui lòng thử lại.');
   }
-  payload.append('folder_name', folderName);
-  await create('uploads', payload);
-  errors.value = formatMessages(messages.value);
-  dataImage.value = data.value.data;
-  reloadAll();
 };
 
 const handleSaveFile = async () => {

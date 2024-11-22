@@ -4,7 +4,6 @@
 
 namespace App\Repositories\ProhibitedWord;
 
-
 use App\Models\ProhibitedWord;
 use App\Repositories\BaseRepository;
 use App\Repositories\Interfaces\ProhibitedWord\ProhibitedWordRepositoryInterface;

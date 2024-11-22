@@ -3,8 +3,12 @@
     <div class="flex w-[100%] items-center justify-between px-10">
       <div class="flex items-center">
         <div class="leading-none">
-          <button type="button" class="leading-none">
-            <i class="fas fa-outdent text-[22px] text-gray-500 hover:text-gray-700"></i>
+          <button type="button" class="leading-none" @click="handleSidebar">
+            <i
+              class="fas fa-outdent text-[22px] text-gray-500 hover:text-gray-700"
+              v-if="!isShowSidebar"
+            ></i>
+            <i class="fas fa-indent text-[22px] text-gray-500 hover:text-gray-700" v-else></i>
           </button>
         </div>
         <div class="input-search ml-7">
@@ -22,10 +26,13 @@
       </div>
       <ul class="mb-0 flex flex-shrink-0 items-center justify-end space-x-8">
         <li class="relative inline-block text-left">
-         <button>
-            <i class="fal fa-expand text-[22px] text-gray-500 hover:text-gray-600"></i>
-            <!-- <i class="fal fa-compress-wide text-[22px] text-gray-500 hover:text-gray-600"></i> -->
-         </button>
+          <button @click="handleFullscreen" type="button">
+            <i
+              class="fal fa-compress-wide text-[22px] text-gray-500 hover:text-gray-600"
+              v-if="isFullscreen"
+            ></i>
+            <i class="fal fa-expand text-[22px] text-gray-500 hover:text-gray-600" v-else></i>
+          </button>
         </li>
         <li class="relative inline-block text-left">
           <a-dropdown>
@@ -101,7 +108,7 @@
                   </RouterLink>
                 </a-menu-item>
                 <a-menu-item>
-                  <RouterLink :to="{ name: 'user.update', params: { id: user.id } }">
+                  <RouterLink :to="{ name: 'user.update', params: { id: user?.id } }" v-if="user">
                     <i class="far fa-cog mr-2"></i>
                     <span>Chỉnh sửa hồ sơ</span>
                   </RouterLink>
@@ -120,13 +127,25 @@
 </template>
 
 <script setup>
-import { useStore } from 'vuex';
-import { computed } from 'vue';
-import { RouterLink } from 'vue-router';
 import { resizeImage } from '@/utils/helpers';
+import screenfull from 'screenfull';
+import { computed, ref } from 'vue';
+import { RouterLink } from 'vue-router';
+import { useStore } from 'vuex';
 
+const isFullscreen = ref(false);
 const store = useStore();
 const user = computed(() => store.getters['authStore/getUser']);
+const isShowSidebar = computed(() => store.getters['sidebarStore/getIsShow']);
+
+const handleFullscreen = () => {
+  isFullscreen.value = !isFullscreen.value;
+  screenfull.toggle();
+};
+
+const handleSidebar = () => {
+  store.commit('sidebarStore/setIsShow', !isShowSidebar.value);
+};
 </script>
 <style scoped>
 .box-shadow {

@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\DB;
 
 class FlashSale extends Model
 {
-
     use HasFactory, QueryScopes, SoftDeletes;
 
     protected $fillable = ['name', 'start_date', 'end_date', 'publish'];
@@ -25,8 +24,6 @@ class FlashSale extends Model
 
     /**
      * Check if the flash sale is currently active.
-     *
-     * @return bool
      */
     public function isActive(): bool
     {
@@ -37,9 +34,6 @@ class FlashSale extends Model
 
     /**
      * Check if purchases can still be made.
-     *
-     * @param string $variantId
-     * @return bool
      */
     public function canPurchase(string $variantId): bool
     {

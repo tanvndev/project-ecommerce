@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources\Product;
 
-use App\Http\Resources\Attribute\AttributeValueResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -20,8 +19,7 @@ class FlashSaleProductVariantResource extends JsonResource
             'name'        => $this->name,
             'image'       => $this->image,
             'max_quantity'=> $this->pivot->max_quantity,
-            'sale_price'  => $this->pivot->sale_price,   
+            'sale_price'  => $this->pivot->sale_price,
         ];
     }
-
 }

@@ -19,5 +19,4 @@ class ProhibitedWordResource extends JsonResource
             'keyword' => $this->keyword,
         ];
     }
-
 }

@@ -38,7 +38,7 @@ transform = transforms.Compose([
 ])
 
 # Thư mục chứa ảnh
-image_folder = "../../laravel/storage/app/public/uploads/photos/2024"
+image_folder = "../../laravel/storage/app/public/uploads/photos/product/thumb"
 feature_list_resnet = []
 feature_list_efficientnet = []
 image_names = []

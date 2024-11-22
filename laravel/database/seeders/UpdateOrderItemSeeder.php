@@ -20,7 +20,7 @@ class UpdateOrderItemSeeder extends Seeder
         foreach ($productVariants as $productVariant) {
             OrderItem::where('product_variant_id', $productVariant->id)
                 ->update([
-                    'cost_price' => $productVariant->cost_price, 
+                    'cost_price' => $productVariant->cost_price,
                     'updated_at' => now(),
                 ]);
         }

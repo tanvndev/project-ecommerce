@@ -2,11 +2,10 @@
 
 namespace App\Services\FlashSale;
 
-use App\Services\BaseService;
-use Illuminate\Support\Facades\DB;
-use App\Services\Interfaces\FlashSale\FlashSaleServiceInterface;
 use App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface;
 use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
+use App\Services\BaseService;
+use App\Services\Interfaces\FlashSale\FlashSaleServiceInterface;
 
 class FlashSaleService extends BaseService implements FlashSaleServiceInterface
 {
@@ -34,15 +33,12 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
 
         $select = ['id', 'name', 'start_date', 'end_date', 'publish'];
 
-
         $pageSize = $request->pageSize;
-
 
         $data = $this->flashSaleRepository->pagination($select, $condition, $pageSize, [], [], ['product_variants']);
 
         return $data;
     }
-
 
     public function findById($id)
     {
@@ -59,14 +55,14 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
             // TAI CUNG 1 THOI DIEM CHI TON TAI 1 FLASH SALE
             if ($this->checkFlashSaleDateExists($payload)) {
                 return errorResponse(__('messages.flash_sale.error.time_exist'));
-            };
+            }
 
             $flashSale = $this->flashSaleRepository->create($payload);
 
             foreach ($data['max_quantities'] as $productVariantId => $quantity) {
                 $productVariant = $this->productVariantRepository->findById($productVariantId, ['*'], [], true);
 
-                if (!$productVariant) {
+                if ( ! $productVariant) {
                     return errorResponse(__('messages.flash_sale.error.not_found'));
                 }
 
@@ -81,15 +77,13 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
         }, __('messages.create.error'));
     }
 
-
-
     private function updateProductVariant($productVariant, $productVariantId, $payload)
     {
         $productVariant->update([
-            'sale_price' => $payload['sale_prices'][$productVariantId],
-            'is_discount_time' => true,
+            'sale_price'          => $payload['sale_prices'][$productVariantId],
+            'is_discount_time'    => true,
             'sale_price_start_at' => $payload['start_date'],
-            'sale_price_end_at' => $payload['end_date'],
+            'sale_price_end_at'   => $payload['end_date'],
         ]);
     }
 
@@ -101,13 +95,13 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
             // TAI CUNG 1 THOI DIEM CHI TON TAI 1 FLASH SALE
             if ($this->checkFlashSaleDateExists($payload, $flashSaleId)) {
                 return errorResponse(__('messages.flash_sale.error.time_exist'));
-            };
+            }
 
             $flashSale = $this->flashSaleRepository->findByWhere([
-                'id' => $flashSaleId
+                'id' => $flashSaleId,
             ]);
 
-            if (! $flashSale) {
+            if ( ! $flashSale) {
                 return errorResponse(__('messages.flash_sale.error.not_found'));
             }
 
@@ -131,7 +125,7 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
     {
         $condition = [
             'start_date' => ['<=', $payload['start_date']],
-            'end_date' => ['>=', $payload['end_date']],
+            'end_date'   => ['>=', $payload['end_date']],
 
         ];
         if ($id) {
@@ -139,7 +133,7 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
         }
         $flashSale = $this->flashSaleRepository->findByWhere($condition);
 
-        return !empty($flashSale);
+        return ! empty($flashSale);
     }
 
     private function preparePayload($data)
@@ -149,7 +143,7 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
 
         $payload = array_merge($data, [
             'start_date' => $startDate ?? null,
-            'end_date' => $endDate ?? null,
+            'end_date'   => $endDate ?? null,
         ]);
 
         return $payload;
@@ -178,8 +172,8 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
                         if ($newMaxQuantity <= 0) {
                             $productVariant->update([
                                 'sale_price_start_at' => null,
-                                'sale_price_end_at' => null,
-                                'is_discount_time' => false,
+                                'sale_price_end_at'   => null,
+                                'is_discount_time'    => false,
                             ]);
                         }
 
@@ -206,5 +200,19 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
             ->whereHas('product_variants', function ($query) use ($productVariantId) {
                 $query->where('id', $productVariantId);
             });
+    }
+
+    public function getFlashSale()
+    {
+        $now = now();
+        $condition = [
+            'publish'    => 1,
+            'start_date' => ['<=', $now],
+            'end_date'   => ['>=', $now],
+        ];
+
+        $data = $this->flashSaleRepository->findByWhere($condition, ['*'], ['product_variants']);
+
+        return $data;
     }
 }

@@ -9,7 +9,9 @@ use Illuminate\Support\Str;
 class PostCatalogue extends Model
 {
     use HasFactory;
+
     protected $table = 'post_catalogues';
+
     protected $fillable = [
         'name',
         'description',
@@ -18,6 +20,7 @@ class PostCatalogue extends Model
         'meta_description',
         'publish',
     ];
+
     protected static function boot()
     {
         parent::boot();

@@ -23,7 +23,7 @@ class UpdateSearchHistoryRequest extends FormRequest
     {
         $rules = [
             'keyword' => 'nullable|string',
-            'count'   => 'nullable|integer'
+            'count'   => 'nullable|integer',
         ];
 
         return $rules;
@@ -33,7 +33,7 @@ class UpdateSearchHistoryRequest extends FormRequest
     {
         return [
             'keyword'    => 'Từ tìm kiếm',
-            'count'    => 'Số lần tìm kiếm',
+            'count'      => 'Số lần tìm kiếm',
         ];
     }
 

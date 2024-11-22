@@ -8,6 +8,7 @@ use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
 use App\Repositories\Interfaces\Widget\WidgetRepositoryInterface;
 use App\Services\BaseService;
 use App\Services\Interfaces\Widget\WidgetServiceInterface;
+use Illuminate\Support\Facades\Cache;
 
 class WidgetService extends BaseService implements WidgetServiceInterface
 {
@@ -97,58 +98,68 @@ class WidgetService extends BaseService implements WidgetServiceInterface
 
     public function getWidgetByCode(string $code)
     {
-        $widgets = $this->widgetRepository->findByWhere(
-            [
-                'code'    => $code,
-                'publish' => 1,
-            ],
-            ['id', 'name', 'code', 'order', 'model_ids', 'advertisement_banners', 'type'],
-            [],
-            true,
-            ['order' => 'ASC']
-        );
+        $cacheKey = 'widget_by_code_' . $code;
 
-        // Process each widget based on its type and model
-        $widgets->transform(function ($item) {
-            // Match same switch-case
-            $item->items =
-                match ($item->type) {
-                    'advertisement' => $item->advertisement_banners,
-                    'product'       => $this->getProductVariants($item),
-                    default         => [],
-                };
+        return Cache::remember($cacheKey, now()->addMinutes(15), function () use ($code) {
+            $widgets = $this->widgetRepository->findByWhere(
+                [
+                    'code'    => $code,
+                    'publish' => 1,
+                ],
+                ['id', 'name', 'code', 'order', 'model_ids', 'advertisement_banners', 'type'],
+                [],
+                true,
+                ['order' => 'ASC']
+            );
 
-            return $item;
+            $widgets->transform(function ($item) {
+                $item->items =
+                    match ($item->type) {
+                        'advertisement' => $item->advertisement_banners,
+                        'product'       => $this->getProductVariants($item),
+                        default         => [],
+                    };
+
+                return $item;
+            });
+
+            return $widgets;
         });
-
-        return $widgets;
     }
 
     private function getProductVariants($item)
     {
-        return $this->productVariantRepository->findByWhereIn(
-            $item->model_ids, // -> value
-            'id', // -> field
-            ['*'],
-            [], // -> relation
-            [
-                'product' => [
-                    ['publish', '1'],
-                ],
-            ] // -> whereHas
-        ) ?? [];
+        $cacheKey = 'product_variants_' . implode('_', $item->model_ids);
+
+        return Cache::remember($cacheKey, now()->addMinutes(15), function () use ($item) {
+            return $this->productVariantRepository->findByWhereIn(
+                $item->model_ids,
+                'id',
+                ['*'],
+                [],
+                [
+                    'product' => [
+                        ['publish', '1'],
+                    ],
+                ]
+            ) ?? [];
+        });
     }
 
     public function getAllWidgetCode()
     {
-        return $this->widgetRepository->findByWhere(
-            [
-                'publish' => 1,
-            ],
-            ['id', 'code', 'order'],
-            [],
-            true,
-            ['order' => 'ASC']
-        );
+        $cacheKey = 'widgets_publish_list';
+
+        return Cache::remember($cacheKey, now()->addMinutes(15), function () {
+            return $this->widgetRepository->findByWhere(
+                [
+                    'publish' => 1,
+                ],
+                ['id', 'code', 'order'],
+                [],
+                true,
+                ['order' => 'ASC']
+            );
+        });
     }
 }

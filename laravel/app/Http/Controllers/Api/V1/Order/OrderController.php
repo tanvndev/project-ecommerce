@@ -3,22 +3,21 @@
 namespace App\Http\Controllers\Api\V1\Order;
 
 use App\Classes\Momo;
-use App\Models\Order;
-use Illuminate\Http\Request;
-use App\Classes\Vnpay;
 use App\Classes\Paypal;
+use App\Classes\Vnpay;
 use App\Enums\ResponseEnum;
-use App\Models\PaymentMethod;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Order\CreateOrderRequest;
-use App\Http\Resources\Order\OrderResource;
-use App\Http\Resources\Order\OrderCollection;
 use App\Http\Requests\Order\StoreOrderRequest;
 use App\Http\Requests\Order\UpdateOrderRequest;
-use App\Http\Resources\Order\Client\ClientOrderResource;
-use App\Services\Interfaces\Order\OrderServiceInterface;
 use App\Http\Resources\Order\Client\ClientOrderCollection;
+use App\Http\Resources\Order\Client\ClientOrderResource;
+use App\Http\Resources\Order\OrderCollection;
+use App\Http\Resources\Order\OrderResource;
+use App\Models\Order;
+use App\Models\PaymentMethod;
+use App\Services\Interfaces\Order\OrderServiceInterface;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
@@ -90,11 +89,11 @@ class OrderController extends Controller
     {
         $order = $this->orderService->getOrderUserByCode($orderCode);
 
-        if (!$order) {
+        if ( ! $order) {
             $response = [
-                'status' => 'error',
+                'status'   => 'error',
                 'messages' => __('messages.order.error.create'),
-                'url' => env('NUXT_APP_URL') . '/payment-fail',
+                'url'      => env('NUXT_APP_URL') . '/payment-fail',
             ];
 
             return handleResponse($response);
@@ -125,9 +124,9 @@ class OrderController extends Controller
                 break;
             case PaymentMethod::COD_ID:
                 $response = [
-                    'status' => 'success',
+                    'status'   => 'success',
                     'messages' => __('messages.order.success.create'),
-                    'url' => env('NUXT_APP_URL') . '/order-success?code=' . $order->code,
+                    'url'      => env('NUXT_APP_URL') . '/order-success?code=' . $order->code,
                 ];
             default:
 

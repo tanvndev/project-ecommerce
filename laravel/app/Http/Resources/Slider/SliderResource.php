@@ -36,8 +36,8 @@ class SliderResource extends JsonResource
                 ->toArray(), // Convert back to array
             'setting' => [
                 ...$this->setting,
-                'autoPlay'    => filter_var($this->setting['autoPlay'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                'showArrow'   => filter_var($this->setting['showArrow'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'autoPlay'     => filter_var($this->setting['autoPlay'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'showArrow'    => filter_var($this->setting['showArrow'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 'pauseOnHover' => filter_var($this->setting['pauseOnHover'] ?? false, FILTER_VALIDATE_BOOLEAN),
             ],
             'publish' => $this->publish,

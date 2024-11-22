@@ -51,9 +51,9 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
             'search'  => addslashes($request->search),
             'publish' => $request->publish,
             'archive' => $request->boolean('archive'),
-            'where' => [
+            'where'   => [
                 'parent_id' => null,
-            ]
+            ],
         ];
 
         $pageSize = $request->pageSize;
@@ -84,7 +84,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
 
             $order = $user->orders()->where('id', $data['order_id'])->first();
 
-            if (! $order) {
+            if ( ! $order) {
                 return errorResponse(__('messages.product_review.error.order_not_found'));
             }
 
@@ -95,7 +95,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
             $data['user_id'] = $user->id;
 
             $uploadedImages = [];
-            if (! empty($data['images']) && is_array($data['images'])) {
+            if ( ! empty($data['images']) && is_array($data['images'])) {
                 $uploadResponse = $this->handleImageUploads($data['images']);
 
                 if ($uploadResponse['status'] === 'error') {
@@ -112,7 +112,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
                         $query->where('product_id', $productId);
                     })->exists();
 
-                if (! $orderItems) {
+                if ( ! $orderItems) {
                     return errorResponse(__('messages.product_review.error.order_item_not_found'));
                 }
 
@@ -156,7 +156,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
                 'id' => $data['review_id'],
             ]);
 
-            if (! $parentReview) {
+            if ( ! $parentReview) {
                 return errorResponse(__('messages.product_review.error.parent_not_found'));
             }
 
@@ -169,7 +169,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
             }
 
             $uploadedImages = [];
-            if (! empty($data['images']) && is_array($data['images'])) {
+            if ( ! empty($data['images']) && is_array($data['images'])) {
                 $uploadResponse = $this->handleImageUploads($data['images']);
 
                 if ($uploadResponse['status'] === 'error') {
@@ -216,7 +216,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
                 'parent_id' => $replyId,
             ]);
 
-            if (! $parentReview) {
+            if ( ! $parentReview) {
                 return errorResponse(__('messages.product_review.error.parent_not_found'));
             }
 
@@ -236,7 +236,7 @@ class ProductReviewService extends BaseService implements ProductReviewServiceIn
         foreach ($images as $image) {
             $uploadResponse = Upload::uploadImage($image);
 
-            if (! $uploadResponse['status'] === 'success') {
+            if ( ! $uploadResponse['status'] === 'success') {
                 return [
                     'status'  => 'error',
                     'message' => $uploadResponse['message'],

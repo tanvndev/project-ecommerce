@@ -4,13 +4,14 @@
 
 namespace App\Services\ProhibitedWord;
 
+use App\Repositories\Interfaces\ProhibitedWord\ProhibitedWordRepositoryInterface;
 use App\Services\BaseService;
 use App\Services\Interfaces\ProhibitedWord\ProhibitedWordServiceInterface;
-use App\Repositories\Interfaces\ProhibitedWord\ProhibitedWordRepositoryInterface;
 
 class ProhibitedWordService extends BaseService implements ProhibitedWordServiceInterface
 {
     protected $prohibitedWordRepository;
+
     protected $filePath;
 
     public function __construct(
@@ -44,11 +45,9 @@ class ProhibitedWordService extends BaseService implements ProhibitedWordService
             $payload = $this->preparePayload();
             $this->prohibitedWordRepository->create($payload);
 
-
             return successResponse(__('messages.create.success'));
         }, __('messages.create.error'));
     }
-
 
     public function update($id)
     {
@@ -61,7 +60,6 @@ class ProhibitedWordService extends BaseService implements ProhibitedWordService
             return successResponse(__('messages.update.success'));
         }, __('messages.update.error'));
     }
-
 
     private function preparePayload(): array
     {

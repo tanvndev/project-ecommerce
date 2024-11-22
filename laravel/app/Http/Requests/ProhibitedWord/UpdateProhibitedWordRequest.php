@@ -29,7 +29,7 @@ class UpdateProhibitedWordRequest extends FormRequest
     public function attributes()
     {
         return [
-          'keyword' => 'Từ khóa tìm kiếm',
+            'keyword' => 'Từ khóa tìm kiếm',
         ];
     }
 
@@ -37,6 +37,4 @@ class UpdateProhibitedWordRequest extends FormRequest
     {
         return __('request.messages');
     }
-
-    
 }

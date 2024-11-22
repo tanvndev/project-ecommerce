@@ -1,7 +1,13 @@
 <template>
-  <aside class="z-30 hidden w-64 flex-shrink-0 overflow-y-auto bg-[#001529] shadow-lg lg:block">
+  <aside
+    class="z-30 w-64 flex-shrink-0 overflow-y-auto bg-[#001529] shadow-lg"
+    :class="{ hidden: isShowSidebar }"
+  >
     <div class="h-full">
-      <RouterLink :to="{ name: 'dashboard' }" class="flex items-center justify-center border-b border-gray-700">
+      <RouterLink
+        :to="{ name: 'dashboard' }"
+        class="flex items-center justify-center border-b border-gray-700"
+      >
         <div class="flex items-center gap-3 py-[18px]">
           <div>
             <img
@@ -58,10 +64,13 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
-import { RouterLink, useRoute } from 'vue-router';
 import sidebar from '@/static/sidebar';
 import _ from 'lodash';
+import { computed, ref, watch } from 'vue';
+import { RouterLink, useRoute } from 'vue-router';
+import { useStore } from 'vuex';
+const store = useStore();
+const isShowSidebar = computed(() => store.getters['sidebarStore/getIsShow']);
 
 const selectedKeys = ref([]);
 const openKeys = ref([]);

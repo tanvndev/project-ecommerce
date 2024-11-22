@@ -65,8 +65,8 @@ class ProductVariant extends Model
 
         while (
             self::where('slug', $slug)
-            ->where('id', '!=', $excludeId)
-            ->exists()
+                ->where('id', '!=', $excludeId)
+                ->exists()
         ) {
             $slug = "{$originalSlug}-" . $count++;
         }
@@ -99,7 +99,6 @@ class ProductVariant extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
-
 
     public function flashSales()
     {

@@ -77,7 +77,7 @@ class UploadService extends BaseService implements UploadServiceInterface
             $images[] = $imageInfo;
         }
         // Sắp xếp mảng theo thời gian sửa đổi cuối cùng (lastModified), giảm dần
-        if (! empty($images)) {
+        if ( ! empty($images)) {
             usort($images, function ($a, $b) {
                 return $b['lastModified'] - $a['lastModified'];
             });

@@ -17,14 +17,14 @@ class ClientProductReviewResource extends JsonResource
         $user = $this->user;
 
         return [
-            'product_id'   => $this->product_id,
-            'fullname'     => $user->fullname,
+            'product_id'    => $this->product_id,
+            'fullname'      => $user->fullname,
             'images'        => $user->images,
-            'rating'       => $this->rating,
-            'percent_rate' => starsToPercent($this->rating),
-            'comment'      => $this->comment,
-            'created_at'   => $this->created_at->format('d-m-Y H:i:s'),
-            'replies'      => $this->whenLoaded('replies', function () {
+            'rating'        => $this->rating,
+            'percent_rate'  => starsToPercent($this->rating),
+            'comment'       => $this->comment,
+            'created_at'    => $this->created_at->format('d-m-Y H:i:s'),
+            'replies'       => $this->whenLoaded('replies', function () {
                 return $this->replies->map(function ($reply) {
                     return [
                         'fullname'   => $reply->user->fullname,

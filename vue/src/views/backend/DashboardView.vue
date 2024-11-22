@@ -16,11 +16,14 @@
 import { MasterLayout } from '@/components/backend/';
 import InputFinderComponent from '@/components/backend/includes/input/InputFinderComponent.vue';
 import pusher from '@/plugins/pusher';
+import router from '@/router';
 import { useForm } from 'vee-validate';
 import { onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 const { handleSubmit } = useForm();
 
 onMounted(() => {
+    router.push({name: 'report.index'});
   const channel = pusher.subscribe('vouchers-created');
   channel.bind('new-voucher-created', function (data) {
     console.log('<><><><><><><><><>:', data);

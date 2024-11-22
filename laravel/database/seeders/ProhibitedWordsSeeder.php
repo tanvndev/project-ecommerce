@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\ProhibitedWord;
+use Illuminate\Database\Seeder;
 
 class ProhibitedWordsSeeder extends Seeder
 {

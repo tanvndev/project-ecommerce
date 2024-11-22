@@ -1,22 +1,22 @@
-import { createRouter, createWebHistory } from 'vue-router';
 import store from '@/store';
+import { createRouter, createWebHistory } from 'vue-router';
 
 import {
-  userRoutes,
-  authRoutes,
-  productRoutes,
-  brandRoutes,
   attributeRoutes,
-  widgetRoutes,
-  voucherRoutes,
-  orderRoutes,
+  authRoutes,
+  brandRoutes,
   chatRoutes,
-  postRoutes,
-  flashSaleRoutes,
   evaluateRoutes,
+  flashSaleRoutes,
+  orderRoutes,
+  postRoutes,
+  productRoutes,
+  prohibitedWordRoutes,
   reportRoutes,
   sliderRoutes,
-  prohibitedWordRoutes
+  userRoutes,
+  voucherRoutes,
+  widgetRoutes
 } from './backend';
 
 import { isLoggedIn } from '@/middlewares/authenticate';
@@ -66,14 +66,4 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
 });
-
-router.beforeEach((to, from, next) => {
-  store.dispatch('loadingStore/startLoading');
-  next();
-});
-
-router.afterEach(() => {
-  store.dispatch('loadingStore/stopLoading');
-});
-
 export default router;

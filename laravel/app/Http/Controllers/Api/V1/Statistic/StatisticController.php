@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\V1\Statistic;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Statistic\StatisticCollection;
 use App\Services\Interfaces\Statistic\StatisticServiceInterface;
 use Illuminate\Http\JsonResponse;
 
@@ -26,24 +25,28 @@ class StatisticController extends Controller
 
         return successResponse('', $paginator, true);
     }
+
     public function revenueByDate(): JsonResponse
     {
         $response = $this->statisticService->revenueByDate();
 
         return successResponse('', $response, true);
     }
+
     public function seasonalSale(): JsonResponse
     {
         $paginator = $this->statisticService->seasonalSale();
 
         return successResponse('', $paginator, true);
     }
+
     public function popularProducts(): JsonResponse
     {
         $paginator = $this->statisticService->popularProducts();
 
         return successResponse('', $paginator, true);
     }
+
     public function loyalCustomers(): JsonResponse
     {
         $paginator = $this->statisticService->loyalCustomers();

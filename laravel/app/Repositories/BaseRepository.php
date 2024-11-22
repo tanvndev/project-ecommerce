@@ -26,26 +26,26 @@ class BaseRepository implements BaseRepositoryInterface
     public function all(array $column = ['*'], array $relation = [], array $orderBy = [])
     {
         $query = $this->model->select($column);
-        if (!empty($orderBy)) {
+        if ( ! empty($orderBy)) {
             $query->customOrderBy($orderBy);
         }
 
-        if (!empty($relation)) {
+        if ( ! empty($relation)) {
             return $query->relation($relation)->get();
         }
 
         return $query->get();
     }
 
-
-    public function pluck(string $column = 'id', array $relation = [], array $orderBy = []){
+    public function pluck(string $column = 'id', array $relation = [], array $orderBy = [])
+    {
         $query = $this->model->newQuery();
 
-        if (!empty($orderBy)) {
+        if ( ! empty($orderBy)) {
             $query->customOrderBy($orderBy);
         }
 
-        if (!empty($relation)) {
+        if ( ! empty($relation)) {
             $query->with($relation);
         }
 
@@ -53,13 +53,12 @@ class BaseRepository implements BaseRepositoryInterface
 
         return $results->toArray();
     }
+
     /**
      * Find a record by its ID.
      *
      * @param  mixed  $modelId
      * @param  array|string  $column
-     * @param  array  $relation
-     * @param  bool  $lockForUpdate
      * @return mixed
      */
     public function findById($modelId, $column = ['*'], array $relation = [], bool $lockForUpdate = false)
@@ -145,7 +144,8 @@ class BaseRepository implements BaseRepositoryInterface
         string $field = 'id',
         array $columns = ['*'],
         array $relations = [],
-        array $relationConditions = []
+        array $relationConditions = [],
+        array $orderBy = []
     ) {
         $query = $this->model->newQuery()->whereIn($field, $values);
 
@@ -162,6 +162,10 @@ class BaseRepository implements BaseRepositoryInterface
             //     ['field', 'operator', 'value'],
             // ]
             $query->whereHasRelations($relationConditions);
+        }
+
+        if ( ! empty($orderBy)) {
+            $query->customOrderBy($orderBy);
         }
 
         return $query->get();

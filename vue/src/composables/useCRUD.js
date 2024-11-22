@@ -1,6 +1,6 @@
-import { ref } from 'vue';
 import { BaseService } from '@/services';
 import store from '@/store';
+import { ref } from 'vue';
 
 export default function useCRUD() {
   const loading = ref(false);
@@ -42,7 +42,7 @@ export default function useCRUD() {
     }
   };
   const create = async (endpoint, payload, isLoading = true) => {
-    isLoading && store.dispatch('loadingStore/startLoading');
+    // isLoading && store.dispatch('loadingStore/startLoading');
     loading.value = true;
     error.value = null;
     try {
@@ -53,12 +53,12 @@ export default function useCRUD() {
     } catch (err) {
       error.value = err;
     } finally {
-      isLoading && store.dispatch('loadingStore/stopLoading');
+      //   isLoading && store.dispatch('loadingStore/stopLoading');
       loading.value = false;
     }
   };
   const update = async (endpoint, id, payload) => {
-    store.dispatch('loadingStore/startLoading');
+    // store.dispatch('loadingStore/startLoading');
     loading.value = true;
     error.value = null;
     try {
@@ -68,7 +68,7 @@ export default function useCRUD() {
     } catch (err) {
       error.value = err;
     } finally {
-      store.dispatch('loadingStore/stopLoading');
+      //   store.dispatch('loadingStore/stopLoading');
       loading.value = false;
     }
   };

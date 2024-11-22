@@ -10,7 +10,7 @@
     "require": {
         "php": "^8.1",
         "anhskohbo/no-captcha": "^3.6",
-        "guzzlehttp/guzzle": "^7.2",
+        "guzzlehttp/guzzle": "^7.9",
         "intervention/image": "^2.7",
         "laravel/framework": "^10.10",
         "laravel/octane": "^2.5",

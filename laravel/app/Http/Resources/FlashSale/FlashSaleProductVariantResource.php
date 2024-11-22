@@ -15,12 +15,12 @@ class FlashSaleProductVariantResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'          => $this->id,
-            'name'        => $this->name,
-            'image'       => $this->image,
-            'max_quantity' => $this->pivot->max_quantity,
+            'id'            => $this->id,
+            'name'          => $this->name,
+            'image'         => $this->image,
+            'max_quantity'  => $this->pivot->max_quantity,
             'sold_quantity' => $this->pivot->sold_quantity,
-            'sale_price' => $this->sale_price,
+            'sale_price'    => $this->sale_price,
         ];
     }
 }

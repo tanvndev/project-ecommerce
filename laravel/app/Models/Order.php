@@ -40,7 +40,6 @@ class Order extends Model
 
     const PAYMENT_STATUS_UNPAID = 'unpaid';
 
-
     protected $fillable = [
         'code',
         'customer_name',

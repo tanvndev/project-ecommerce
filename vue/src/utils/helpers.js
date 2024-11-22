@@ -244,7 +244,36 @@ const numberWithCommas = (x) => {
   return x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, '.');
 };
 
+const base64ToFile = (base64String, fileName) => {
+  const arr = base64String.split(',');
+
+  if (arr.length < 2) {
+    throw new Error('Invalid Base64 string');
+  }
+
+  const mimeType = arr[0].match(/:(.*?);/)[1]; // Tìm kiếm kiểu MIME (image/png, image/jpeg, ...)
+  const byteCharacters = atob(arr[1]); // Giải mã chuỗi Base64 thành dữ liệu nhị phân
+
+  const byteArray = new Uint8Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteArray[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const blob = new Blob([byteArray], { type: mimeType });
+
+  const file = new File([blob], fileName, { type: mimeType });
+
+  return file;
+};
+
+// Sử dụng hàm này để chuyển Base64 thành File và append vào FormData
+const appendBase64ToFormData = (formData, base64String, fileName) => {
+  const file = base64ToFile(base64String, fileName);
+  formData.append('image', file);
+};
+
 export {
+  appendBase64ToFormData,
   cleanedData,
   debounce,
   generateRandomString,

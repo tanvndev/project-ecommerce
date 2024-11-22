@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Api\V1\Product;
 
 use App\Enums\ResponseEnum;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Product\ProductReviewResource;
-use App\Http\Resources\Product\ProductReviewCollection;
 use App\Http\Requests\Product\StoreProductReviewRequest;
-use App\Services\Interfaces\Product\ProductReviewServiceInterface;
 use App\Http\Resources\Product\Client\ClientProductReviewCollection;
+use App\Http\Resources\Product\ProductReviewCollection;
+use App\Http\Resources\Product\ProductReviewResource;
 use App\Repositories\Interfaces\Product\ProductReviewRepositoryInterface;
+use App\Services\Interfaces\Product\ProductReviewServiceInterface;
+use Illuminate\Http\JsonResponse;
 
 class ProductReviewController extends Controller
 {
@@ -39,7 +39,8 @@ class ProductReviewController extends Controller
         return successResponse('', $data, true);
     }
 
-    public function adminGetReplies(string $id): JsonResponse{
+    public function adminGetReplies(string $id): JsonResponse
+    {
 
         $replies = $this->productReviewService->getReplies($id);
 

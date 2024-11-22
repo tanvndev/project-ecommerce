@@ -3,7 +3,7 @@
     <template #template>
       <div class="mx-10 mb-24 min-h-screen">
         <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
-        <form @submit.prevent="onSubmit">
+        <form @submit.prevent="onSubmit" v-if="data">
           <a-row :gutter="16">
             <a-col :span="17">
               <!-- Thông tin chung -->
@@ -119,6 +119,18 @@
             </a-button>
           </div>
         </form>
+        <div class="mb-24 mt-10" v-else>
+          <a-row :gutter="[20, 20]">
+            <a-col span="17">
+              <a-skeleton active />
+              <a-skeleton active />
+            </a-col>
+            <a-col span="7">
+              <a-skeleton active />
+              <a-skeleton active />
+            </a-col>
+          </a-row>
+        </div>
       </div>
     </template>
   </MasterLayout>
@@ -126,27 +138,27 @@
 
 <script setup>
 import {
-  MasterLayout,
-  BreadcrumbComponent,
   AleartError,
-  InputComponent,
+  BreadcrumbComponent,
   EditorComponent,
+  InputComponent,
+  MasterLayout,
   SEOComponent,
   SelectComponent,
   TreeSelectComponent
 } from '@/components/backend';
-import _ from 'lodash';
-import { computed, onMounted, reactive, watch } from 'vue';
-import { useForm } from 'vee-validate';
-import { useStore } from 'vuex';
-import { formatDataToSelect, formatDataToTreeSelect, formatMessages } from '@/utils/format';
-import * as yup from 'yup';
-import router from '@/router';
 import { useCRUD } from '@/composables';
+import router from '@/router';
 import { PRODUCT_TYPE } from '@/static/constants';
-import ProductVariantView from './partials/ProductVariantView.vue';
+import { formatDataToSelect, formatDataToTreeSelect, formatMessages } from '@/utils/format';
 import { message } from 'ant-design-vue';
+import _ from 'lodash';
+import { useForm } from 'vee-validate';
+import { computed, onMounted, reactive, watch } from 'vue';
+import { useStore } from 'vuex';
+import * as yup from 'yup';
 import ProductAttributeView from './partials/ProductAttributeView.vue';
+import ProductVariantView from './partials/ProductVariantView.vue';
 import UpsellView from './partials/UpsellView.vue';
 
 // STATE

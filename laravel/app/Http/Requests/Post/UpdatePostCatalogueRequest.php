@@ -22,7 +22,7 @@ class UpdatePostCatalogueRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required',
+            'name'      => 'required',
             'canonical' => 'unique:Post_catalogues,canonical,' . $this->catalogue,
         ];
     }
@@ -30,7 +30,7 @@ class UpdatePostCatalogueRequest extends FormRequest
     public function attributes()
     {
         return [
-            'name' => 'Tên nhóm post',
+            'name'      => 'Tên nhóm post',
             'canonical' => 'Đường dẫn',
         ];
     }

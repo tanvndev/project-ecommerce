@@ -3,20 +3,17 @@
 namespace App\Http\Controllers\Api\V1\ProhibitedWords;
 
 use App\Enums\ResponseEnum;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\ProhibitedWords\ProhibitedWordResource;
-use App\Http\Requests\ProhibitedWord\{
-    StoreProhibitedWordRequest,
-    UpdateProhibitedWordRequest
-};
+use App\Http\Requests\ProhibitedWord\StoreProhibitedWordRequest;
+use App\Http\Requests\ProhibitedWord\UpdateProhibitedWordRequest;
 use App\Http\Resources\ProhibitedWords\ProhibitedWordCollection;
-use App\Services\Interfaces\ProhibitedWord\ProhibitedWordServiceInterface;
+use App\Http\Resources\ProhibitedWords\ProhibitedWordResource;
 use App\Repositories\Interfaces\ProhibitedWord\ProhibitedWordRepositoryInterface;
+use App\Services\Interfaces\ProhibitedWord\ProhibitedWordServiceInterface;
+use Illuminate\Http\JsonResponse;
 
 class ProhibitedWordsController extends Controller
 {
-
     public function __construct(
         protected ProhibitedWordServiceInterface $prohibitedWordService,
         protected ProhibitedWordRepositoryInterface $prohibitedWordRepository
@@ -53,5 +50,4 @@ class ProhibitedWordsController extends Controller
 
         return handleResponse($response);
     }
-
 }

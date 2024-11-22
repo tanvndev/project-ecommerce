@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Redis;
 
 class AprioriService implements AprioriServiceInterface
 {
-
     public function __construct(
         protected OrderRepositoryInterface $orderRepository
     ) {}
@@ -34,7 +33,7 @@ class AprioriService implements AprioriServiceInterface
         $uniqueSuggestions = [];
         foreach ($aprioriResults as $suggestion) {
             $productId = $suggestion['product_variant_id'];
-            if (!isset($uniqueSuggestions[$productId]) || $suggestion['confidence'] > $uniqueSuggestions[$productId]['confidence']) {
+            if ( ! isset($uniqueSuggestions[$productId]) || $suggestion['confidence'] > $uniqueSuggestions[$productId]['confidence']) {
                 $uniqueSuggestions[$productId] = $suggestion;
             }
         }
@@ -80,8 +79,8 @@ class AprioriService implements AprioriServiceInterface
 
                     $result[] = [
                         'product_variant_id' => $productId,
-                        'confidence' => $confidence,
-                        'lift' => $lift,
+                        'confidence'         => $confidence,
+                        'lift'               => $lift,
                     ];
                 }
             }
@@ -101,5 +100,4 @@ class AprioriService implements AprioriServiceInterface
 
         return $finalResult;
     }
-
 }

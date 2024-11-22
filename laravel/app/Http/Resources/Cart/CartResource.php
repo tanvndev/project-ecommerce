@@ -4,7 +4,6 @@ namespace App\Http\Resources\Cart;
 
 use DateTime;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class CartResource extends JsonResource
@@ -35,7 +34,7 @@ class CartResource extends JsonResource
     private function handleSalePrice()
     {
         $productVariant = $this->product_variant;
-        if (!$productVariant->sale_price || !$productVariant->price) {
+        if ( ! $productVariant->sale_price || ! $productVariant->price) {
             return null;
         }
 
@@ -44,19 +43,17 @@ class CartResource extends JsonResource
         // }
 
         if ($productVariant->sale_price_start_at && $productVariant->sale_price_end_at) {
-            $now = new \DateTime();
-            $start = new \DateTime($productVariant->sale_price_start_at);
-            $end = new \DateTime($productVariant->sale_price_end_at);
+            $now = new DateTime;
+            $start = new DateTime($productVariant->sale_price_start_at);
+            $end = new DateTime($productVariant->sale_price_end_at);
 
             if ($now < $start || $now > $end) {
                 return null;
             }
         }
 
-
         return $productVariant->sale_price;
     }
-
 
     public function getSubTotal()
     {

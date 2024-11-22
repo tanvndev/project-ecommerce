@@ -1,5 +1,13 @@
+import {
+  antStore,
+  authStore,
+  finderStore,
+  loadingStore,
+  productStore,
+  reportStore,
+  sidebarStore
+} from '@/store/modules/';
 import { createStore } from 'vuex';
-import { authStore, antStore, finderStore, loadingStore, productStore, reportStore } from '@/store/modules/';
 
 // Create a new store instance.
 const store = createStore({
@@ -9,7 +17,8 @@ const store = createStore({
     finderStore,
     loadingStore,
     productStore,
-    reportStore
+    reportStore,
+    sidebarStore
   }
 });
 

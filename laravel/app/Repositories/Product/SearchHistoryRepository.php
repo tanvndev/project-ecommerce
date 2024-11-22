@@ -4,7 +4,6 @@
 
 namespace App\Repositories\Product;
 
-use App\Models\ProductVariant;
 use App\Models\SearchHistory;
 use App\Repositories\BaseRepository;
 use App\Repositories\Interfaces\Product\SearchHistoryRepositoryInterface;
