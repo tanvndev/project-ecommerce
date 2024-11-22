@@ -68,6 +68,9 @@ Route::middleware(['api'])->group(function () {
     Route::get('product-reviews', [ProductReviewController::class, 'getAllProductReviews'])->name('index');
     Route::get('posts/all', [PostController::class, 'getAllPost']);
     Route::get('posts/{canonical}/detail', [PostController::class, 'getPostByCanonical']);
+    Route::get('system-configs', [SystemConfigController::class, 'index']);
+    Route::get('search-history/list', [SearchHistoryController::class, 'index']);
+
 
     // Order
     Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
@@ -172,7 +175,6 @@ Route::middleware(['api'])->group(function () {
         Route::apiResource('flash-sales', FlashSaleController::class);
 
         // SYSTEM CONFIG ROUTE
-        Route::get('system-configs', [SystemConfigController::class, 'index']);
         Route::put('system-configs', [SystemConfigController::class, 'update']);
 
         // WIDGET ROUTE

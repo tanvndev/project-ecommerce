@@ -672,7 +672,7 @@ class ProductService extends BaseService implements ProductServiceInterface
 
     protected function applySearch($query, $search)
     {
-        if (!empty($search)) {
+        if (!empty($search) && is_string($search)) {
             $prohibitedWords = Cache::remember('prohibited_words', 3600, function () {
                 return $this->prohibitedWordRepository->pluck('keyword');
             });

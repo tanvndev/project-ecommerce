@@ -12,6 +12,7 @@ const productStore = useProductStore()
 const notificationStore = useNotificationStore()
 const wishlistStore = useWishlistStore()
 const productCatalogueStore = useProductCatalogueStore()
+const systemConfigStore = useSystemConfigStore()
 const headerMain = ref(null)
 const productCatalogues = ref([])
 const cartCount = computed(() => cartStore.getCartCount)
@@ -19,6 +20,7 @@ const wishlistCount = computed(() => wishlistStore.getWishlistCount)
 const notifications = computed(() => notificationStore.getNotifications)
 const chatCount = computed(() => chatStore.getChatCount)
 const isSignedIn = computed(() => authStore.isSignedIn)
+const systemConfigs = computed(() => systemConfigStore.getSystemConfigs)
 const isShowBell = ref(false)
 const config = useRuntimeConfig()
 const router = useRouter()
@@ -26,6 +28,7 @@ const search = ref('')
 const searchInputRef = ref(null)
 const selectedImage = ref(null)
 const isShowSearchImage = ref(false)
+const searchHistories = ref([])
 
 let lastScrollPosition = 0
 
@@ -104,11 +107,28 @@ const handleFileChange = (event) => {
   }
 }
 
+const getSearchHistories = async () => {
+  console.log(1234)
+
+  try {
+    const response = await $axios.get('/search-history/list', {
+      params: {
+        pageSize: 10,
+      },
+    })
+    searchHistories.value = response.data.data
+    console.log(response.data.data)
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 watch(notifications, (newValue) => {
   isShowBell.value = newValue.some((item) => item.read_at == null)
 })
 
 onMounted(() => {
+  getSearchHistories()
   getProductCatalogues()
   listenForVoucherNotifications()
   setTimeout(() => {
@@ -155,7 +175,7 @@ onUnmounted(() => {
                       width="50"
                       height="50"
                       contain
-                      src="https://cdn.tgdd.vn/Products/Images/54/315072/s16/tai-nghe-co-day-apple-mtjy3-thumb-13-650x650.png"
+                      :src="notification?.image"
                     ></v-img>
                   </div>
                   <div class="noti-content">
@@ -214,8 +234,8 @@ onUnmounted(() => {
               >
               </a>
               <NuxtLink to="/" class="logo ml-lg-0">
-                <img
-                  src="assets/images/logo.png"
+                <v-img
+                  :src="systemConfigs?.logo"
                   alt="logo"
                   width="144"
                   height="45"
@@ -308,42 +328,14 @@ onUnmounted(() => {
               </div>
 
               <div class="search-history">
-                <NuxtLink to="#" class="search-history-link"
-                  >iphone 12</NuxtLink
+                <NuxtLink
+                  :to="`/category?search=${item?.keyword}`"
+                  class="search-history-link"
+                  v-for="item in searchHistories"
+                  :key="`search-history-${item.id}`"
                 >
-                <NuxtLink to="#" class="search-history-link"
-                  >iphone 12</NuxtLink
-                >
-                <NuxtLink to="#" class="search-history-link"
-                  >iphone 12</NuxtLink
-                >
-                <NuxtLink to="#" class="search-history-link"
-                  >iphone 12</NuxtLink
-                >
-                <NuxtLink to="#" class="search-history-link"
-                  >iphone 12</NuxtLink
-                >
-                <NuxtLink to="#" class="search-history-link"
-                  >iphone 12</NuxtLink
-                >
-                <NuxtLink to="#" class="search-history-link"
-                  >iphone 12</NuxtLink
-                >
-                <NuxtLink to="#" class="search-history-link"
-                  >iphone 12</NuxtLink
-                >
-                <NuxtLink to="#" class="search-history-link"
-                  >iphone 12</NuxtLink
-                >
-                <NuxtLink to="#" class="search-history-link"
-                  >iphone 12</NuxtLink
-                >
-                <NuxtLink to="#" class="search-history-link"
-                  >iphone 12</NuxtLink
-                >
-                <NuxtLink to="#" class="search-history-link"
-                  >iphone 12</NuxtLink
-                >
+                  {{ item?.keyword }}
+                </NuxtLink>
               </div>
             </div>
           </div>

@@ -1,6 +1,5 @@
 <script setup>
 import '~/assets/css/main.min.css'
-import { useLoadingStore } from '#imports'
 
 useSeoMeta({
   title: 'Trang chủ',
@@ -14,19 +13,15 @@ useSeoMeta({
 const widgetCodes = ref([])
 const widgets = ref([])
 const { $axios } = useNuxtApp()
-const loadingStore = useLoadingStore()
 const currentWidgetIndex = ref(0)
 const isLoading = ref(false)
 
 const getAllWidgetCode = async () => {
-  loadingStore.setLoading(true)
   try {
     const response = await $axios.get('/widgets/codes')
     widgetCodes.value = response.data
   } catch (error) {
     console.error('Error fetching widget codes:', error)
-  } finally {
-    loadingStore.setLoading(false)
   }
 }
 
@@ -99,8 +94,10 @@ onUnmounted(() => {
       <!-- End of Category Banner Wrapper -->
     </div>
 
-    <div class="mx-auto d-flex justify-center mb-5 mt-5" v-if="isLoading">
-      <span class="loader"></span>
+    <div class="row py-5" v-if="isLoading">
+      <div class="col-lg-3 mb-5" v-for="i in 8" :key="i">
+        <v-skeleton-loader type="card"></v-skeleton-loader>
+      </div>
     </div>
 
     <!-- <v-lazy

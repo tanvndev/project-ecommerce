@@ -1,3 +1,19 @@
+<script setup>
+const systemConfigStore = useSystemConfigStore()
+const { $axios } = useNuxtApp()
+const systemConfigs = computed(() => systemConfigStore.getSystemConfigs)
+
+const getSystemConfigs = async () => {
+  try {
+    const response = await $axios.get('/system-configs')
+    systemConfigStore.setSystemConfigs(response.data)
+  } catch (error) {}
+}
+
+onMounted(() => {
+  getSystemConfigs()
+})
+</script>
 <template>
   <!-- Start of Footer -->
   <footer class="footer">
@@ -13,10 +29,11 @@
                 <h4
                   class="icon-box-title text-white text-uppercase font-weight-bold"
                 >
-                  Subscribe To Our Newsletter
+                  Đăng ký nhận bản tin của chúng tôi
                 </h4>
                 <p class="text-white">
-                  Get all the latest information on Events, Sales and Offers.
+                  Nhận tất cả thông tin mới nhất về Sự kiện, Khuyến mại và Ưu
+                  đãi.
                 </p>
               </div>
             </div>
@@ -32,10 +49,10 @@
                 class="form-control mr-2 bg-white"
                 name="email"
                 id="email"
-                placeholder="Your E-mail Address"
+                placeholder="Địa chỉ email của bạn"
               />
-              <button class="btn btn-dark btn-rounded" type="submit">
-                Subscribe<i class="w-icon-long-arrow-right"></i>
+              <button class="btn btn-dark btn-rounded" type="button">
+                Đăng ký<i class="w-icon-long-arrow-right"></i>
               </button>
             </form>
           </div>
@@ -47,43 +64,49 @@
         <div class="row">
           <div class="col-lg-4 col-sm-6">
             <div class="widget widget-about">
-              <a href="demo1.html" class="logo-footer">
-                <img
-                  src="assets/images/logo_footer.png"
+              <NuxtLink to="/" class="logo-footer">
+                <v-img
+                  :src="resizeImage(systemConfigs?.logo)"
                   alt="logo-footer"
                   width="144"
                   height="45"
                 />
-              </a>
+              </NuxtLink>
               <div class="widget-body">
-                <p class="widget-about-title">Got Question? Call us 24/7</p>
-                <a href="tel:18005707777" class="widget-about-call"
-                  >1-800-570-7777</a
-                >
+                <p class="widget-about-title">
+                  Bạn có thắc mắc? Hãy gọi cho chúng tôi 24/7
+                </p>
+                <a href="tel:18005707777" class="widget-about-call">{{
+                  systemConfigs?.hotline
+                }}</a>
                 <p class="widget-about-desc">
-                  Register now to get updates on pronot get up icons & coupons
-                  ster now toon.
+                  Đăng ký ngay để nhận thông tin cập nhật.
                 </p>
 
                 <div class="social-icons social-icons-colored">
                   <a
-                    href="#"
+                    :href="systemConfigs?.facebook"
+                    target="_blank"
                     class="social-icon social-facebook w-icon-facebook"
                   ></a>
                   <a
-                    href="#"
+                    :href="systemConfigs?.twitter"
+                    target="_blank"
                     class="social-icon social-twitter w-icon-twitter"
                   ></a>
                   <a
-                    href="#"
+                    :href="systemConfigs?.instagram"
+                    target="_blank"
                     class="social-icon social-instagram w-icon-instagram"
                   ></a>
                   <a
-                    href="#"
+                    :href="systemConfigs?.youtube"
+                    target="_blank"
                     class="social-icon social-youtube w-icon-youtube"
                   ></a>
                   <a
-                    href="#"
+                    :href="systemConfigs?.pinterest"
+                    target="_blank"
                     class="social-icon social-pinterest w-icon-pinterest"
                   ></a>
                 </div>
@@ -92,46 +115,47 @@
           </div>
           <div class="col-lg-3 col-sm-6">
             <div class="widget">
-              <h3 class="widget-title">Company</h3>
+              <h3 class="widget-title">Đường dẫn nhanh</h3>
               <ul class="widget-body">
-                <li><a href="about-us.html">About Us</a></li>
-                <li><a href="#">Team Member</a></li>
-                <li><a href="#">Career</a></li>
-                <li><a href="contact-us.html">Contact Us</a></li>
-                <li><a href="#">Affilate</a></li>
-                <li><a href="#">Order History</a></li>
+                <li><NuxtLink to="/about">Giới thiệu</NuxtLink></li>
+                <li><NuxtLink to="/contact">Liên hệ chúng tôi</NuxtLink></li>
+                <li><NuxtLink to="/user/profile">Tài khoản</NuxtLink></li>
+                <li>
+                  <NuxtLink to="/order-search">Tra cứu đơn hàng</NuxtLink>
+                </li>
               </ul>
             </div>
           </div>
           <div class="col-lg-3 col-sm-6">
             <div class="widget">
-              <h4 class="widget-title">My Account</h4>
+              <h4 class="widget-title">tài khoản của tôi</h4>
               <ul class="widget-body">
-                <li><a href="#">Track My Order</a></li>
-                <li><a href="cart.html">View Cart</a></li>
-                <li><a href="login.html">Sign In</a></li>
-                <li><a href="#">Help</a></li>
-                <li><a href="wishlist.html">My Wishlist</a></li>
-                <li><a href="#">Privacy Policy</a></li>
+                <li>
+                  <NuxtLink to="/order-search">Tra cứu đơn hàng</NuxtLink>
+                </li>
+                <li><NuxtLink to="/cart">View Cart</NuxtLink></li>
+                <li><NuxtLink to="/login">Đăng nhập</NuxtLink></li>
+                <li><NuxtLink to="/post">Bài viết</NuxtLink></li>
+                <li><NuxtLink to="#">Chính sách & bảo mật</NuxtLink></li>
               </ul>
             </div>
           </div>
           <div class="col-lg-3 col-sm-6">
             <div class="widget">
-              <h4 class="widget-title">Customer Service</h4>
+              <h4 class="widget-title">Dịch vụ khách hàng</h4>
               <ul class="widget-body">
-                <li><a href="#">Payment Methods</a></li>
-                <li><a href="#">Money-back guarantee!</a></li>
-                <li><a href="#">Product Returns</a></li>
-                <li><a href="#">Support Center</a></li>
-                <li><a href="#">Shipping</a></li>
-                <li><a href="#">Term and Conditions</a></li>
+                <li><a href="#">Phương thức thanh toán</a></li>
+                <li><a href="#">Đảm bảo hoàn tiền!</a></li>
+                <li><a href="#">Trả lại sản phẩm</a></li>
+                <li><a href="#">Trung tâm hỗ trợ</a></li>
+                <li><a href="#">Vận chuyển</a></li>
+                <li><a href="#">Điều khoản và điều kiện</a></li>
               </ul>
             </div>
           </div>
         </div>
       </div>
-      <div class="footer-middle">
+      <div class="footer-middle d-none">
         <div class="widget widget-category">
           <div class="category-box">
             <h6 class="category-name">Consumer Electric:</h6>
@@ -210,12 +234,12 @@
       <div class="footer-bottom">
         <div class="footer-left">
           <p class="copyright">
-            Copyright © 2021 Wolmart Store. All Rights Reserved.
+            {{ systemConfigs?.copyright }}
           </p>
         </div>
-        <div class="footer-right">
+        <div class="footer-right d-none">
           <span class="payment-label mr-lg-8"
-            >We're using safe payment for</span
+            >Chúng tôi đang sử dụng thanh toán an toàn cho</span
           >
           <figure class="payment">
             <img
