@@ -51,11 +51,21 @@ class OrderService extends BaseService implements OrderServiceInterface
     public function paginate()
     {
         $request = request();
+        $orderStatus = $request->order_status;
+        $paymentStatus = $request->payment_status;
 
         $condition = [
             'search' => addslashes($request->search),
             'searchFields' => ['code'],
         ];
+
+        if ($orderStatus && $orderStatus != '') {
+            $condition['where']['order_status'] = $orderStatus;
+        }
+
+        if ($paymentStatus && $paymentStatus != '') {
+            $condition['where']['payment_status'] = $paymentStatus;
+        }
 
         $pageSize = $request->pageSize;
 
