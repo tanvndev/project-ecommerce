@@ -112,7 +112,7 @@ const handleRemove = async (variantId) => {
 
   setCartToStore(response.data)
   cartStore.setCartCount(response.data?.items?.length || 0)
-  
+
   checkedItems.value = []
   handleSelectCart()
 }
@@ -322,7 +322,7 @@ watch(checkedItems, checkSelectedAll, { deep: true })
                     </span>
 
                     <span
-                      class="total-cart-price mr-4 total-amout-cart text-black"
+                      class="total-cart-price mr-4 total-amout-cart"
                     >
                       {{
                         formatCurrency(totalAmout) == '-'

@@ -79,7 +79,7 @@ const onSwiper = (swiper) => {
       v-if="productCatalogues.length"
     >
       <div class="container pb-2">
-        <h2 class="title justify-content-center pt-1 ls-normal mb-5">
+        <h2 class="title justify-content-center pt-1 ls-normal mb-5 text-uppercase">
           Danh Mục Sản Phẩm
         </h2>
         <div class="category-wrapper">

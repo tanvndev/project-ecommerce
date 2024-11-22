@@ -62,7 +62,12 @@ const addToWishlist = async (variantId) => {
   > -->
   <div class="product-wrapper-1 mt-5 mb-5">
     <div class="title-link-wrapper pb-1 mb-4">
-      <h2 class="title ls-normal mb-0">{{ title }}</h2>
+      <h2
+        class="title ls-normal mb-0 text-uppercase"
+        style="color: #ee4d2d; font-weight: 600"
+      >
+        {{ title }}
+      </h2>
       <NuxtLink
         to="category"
         class="font-size-normal font-weight-bold ls-25 mb-0"
