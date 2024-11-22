@@ -155,11 +155,7 @@
       size="large"
       type="primary"
       @click="paymentStatusModal = true"
-      v-if="
-        order?.order_status_code != ORDER_STATUS[4].value ||
-        (order?.payment_status_code == PAYMENT_STATUS[0].value &&
-          order?.order_status_code != ORDER_STATUS[4].value)
-      "
+      v-if="order?.payment_status_code != PAYMENT_STATUS[1].value"
     >
       Xác nhận thanh toán
     </a-button>
@@ -184,13 +180,13 @@
   <a-divider />
 </template>
 <script setup>
-import { ORDER_STATUS, PAYMENT_STATUS } from '@/static/order';
-import { ref, watch } from 'vue';
-import { formatCurrency } from '@/utils/format';
 import { AleartError } from '@/components/backend';
 import axios from '@/configs/axios';
-import { message } from 'ant-design-vue';
+import { ORDER_STATUS, PAYMENT_STATUS } from '@/static/order';
+import { formatCurrency } from '@/utils/format';
 import { getErrorMsg } from '@/utils/helpers';
+import { message } from 'ant-design-vue';
+import { ref, watch } from 'vue';
 
 const errors = ref({});
 const paymentStatusModal = ref(false);
