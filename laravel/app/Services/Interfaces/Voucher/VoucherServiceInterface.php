@@ -14,5 +14,5 @@ interface VoucherServiceInterface
 
     public function getAllVoucher();
 
-    public function applyVoucher(string $code);
+    public function applyVoucher(string $code, string $id = '');
 }
