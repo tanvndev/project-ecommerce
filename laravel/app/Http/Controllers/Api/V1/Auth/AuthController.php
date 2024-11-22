@@ -253,13 +253,14 @@ class AuthController extends Controller
             Auth::login($existingUser);
         } else {
             $newUser = User::create([
-                'fullname' => $googleUser->name,
-                'email' => $googleUser->email,
-                'google_id' => $googleUser->sub,
-                'password' => Hash::make(uniqid()),
+                'fullname'          => $googleUser->name,
+                'email'             => $googleUser->email,
+                'google_id'         => $googleUser->sub,
+                'password'          => Hash::make(uniqid()),
                 'ip'                => $request->ip(),
                 'user_agent'        => $request->header('User-Agent'),
                 'user_catalogue_id' => User::ROLE_CUSTOMER,
+                'email_verified_at' => now(),
             ]);
             Auth::login($newUser);
         }

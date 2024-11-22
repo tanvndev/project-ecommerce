@@ -24,7 +24,12 @@ class ChatService extends BaseService implements ChatServiceInterface
     public function getChatList()
     {
         try {
-            $users = $this->userRepository->findByWhere(
+            $request = request();
+
+            $pageSize = $request->input('pageSize', 15);
+            $searchTerm = $request->input('search', '');
+
+            $users = $this->userRepository->findChatList(
                 ['user_catalogue_id' => ['!=', User::ROLE_ADMIN]],
                 ['*'],
                 [
@@ -39,7 +44,8 @@ class ChatService extends BaseService implements ChatServiceInterface
                         },
                     ],
                 ],
-                true
+                $searchTerm,
+                $pageSize
             );
 
             foreach ($users as $user) {
@@ -173,7 +179,7 @@ class ChatService extends BaseService implements ChatServiceInterface
         foreach ($images as $image) {
             $uploadResponse = Upload::uploadImage($image);
 
-            if ( ! $uploadResponse['status'] === 'success') {
+            if (! $uploadResponse['status'] === 'success') {
                 return [
                     'status'  => 'error',
                     'message' => $uploadResponse['message'],

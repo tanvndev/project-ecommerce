@@ -11,7 +11,9 @@
             <input
               type="text"
               placeholder="Tìm kiếm..."
+              v-model="searchTearm"
               class="mb-4 w-full rounded border p-2 text-[14px]"
+              @change="handleSearch"
             />
           </div>
           <div class="scrollable">
@@ -52,14 +54,14 @@
             <div class="flex items-center">
               <div class="relative">
                 <img
-                  :src="selectedChatUser.image || 'https://via.placeholder.com/40'"
+                  :src="selectedChatUser?.image || 'https://via.placeholder.com/40'"
                   alt=""
                   class="mr-3 h-[50px] w-[50px] rounded-full"
                 />
                 <div class="status-indicator active"></div>
               </div>
               <div>
-                <div class="header-title">{{ selectedChatUser.fullname }}</div>
+                <div class="header-title">{{ selectedChatUser?.fullname }}</div>
                 <div class="header-meta">Đang hoạt động</div>
               </div>
             </div>
@@ -74,10 +76,10 @@
             <div v-for="message in messages" :key="message.id" class="mb-4">
               <div v-if="message.sender_id == user?.id" class="mt-2 flex justify-end">
                 <div>
-                  <div class="mb-2 ml-2" v-if="message.images && message.images.length">
+                  <div class="mb-2 ml-2" v-if="message?.images && message?.images.length">
                     <div class="flex justify-end">
                       <div
-                        v-for="(image, index) in message.images"
+                        v-for="(image, index) in message?.images"
                         class="image-upload mr-1"
                         :key="index"
                       >
@@ -87,17 +89,17 @@
                   </div>
                   <div>
                     <p class="inline-block rounded-[6px] bg-[#3b71ca] px-[16px] py-3 text-white">
-                      {{ message.message }}
+                      {{ message?.message }}
                     </p>
                   </div>
                 </div>
               </div>
               <div v-else class="mt-2 flex justify-start">
                 <div>
-                  <div class="mb-2 ml-11" v-if="message.images && message.images.length">
+                  <div class="mb-2 ml-11" v-if="message?.images && message?.images.length">
                     <div class="flex justify-end">
                       <div
-                        v-for="(image, index) in message.images"
+                        v-for="(image, index) in message?.images"
                         class="image-upload mr-1"
                         :key="index"
                       >
@@ -112,13 +114,13 @@
                   </div>
                   <div class="flex items-center">
                     <img
-                      :src="selectedChatUser.image || 'https://via.placeholder.com/40'"
+                      :src="selectedChatUser?.image || 'https://via.placeholder.com/40'"
                       alt="User Image"
                       class="mr-3 h-8 w-8 rounded-full"
                     />
 
                     <p class="inline-block rounded-[6px] bg-gray-100 px-[16px] py-3">
-                      {{ message.message }}
+                      {{ message?.message }}
                     </p>
                   </div>
                 </div>
@@ -156,10 +158,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue';
 import { MasterLayout } from '@/components/backend';
 import { useCRUD } from '@/composables';
 import pusher from '@/plugins/pusher';
+import { debounce } from '@/utils/helpers';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
 
 import { timeAgo } from '@/utils/helpers';
@@ -168,6 +171,7 @@ const selectedChatUser = ref(null);
 const messages = ref([]);
 const newMessage = ref('');
 const messagesContainer = ref(null);
+const searchTearm = ref('');
 
 const store = useStore();
 const { getAll, getOne, create, data } = useCRUD();
@@ -175,12 +179,19 @@ const user = computed(() => store.getters['authStore/getUser']);
 
 const fetchChatList = async () => {
   try {
-    await getAll('chats/list');
-    chatLists.value = data.value;
-    selectedChatUser.value = data.value[0];
+    await getAll('chats/list', {
+      search: searchTearm.value
+    });
+    chatLists.value = data.value.data;
+    selectedChatUser.value = data.value.data[0];
   } catch (error) {
     console.error('Error fetching chat list:', error);
   }
+};
+const debounceFetchChatList = debounce(fetchChatList, 300);
+
+const handleSearch = () => {
+  debounceFetchChatList();
 };
 
 const handleSelectChat = async (receiver_id) => {

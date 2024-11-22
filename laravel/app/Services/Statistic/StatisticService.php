@@ -60,11 +60,13 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
             $netRevenue = $totals->total_price - $totals->total_discount - $totals->total_shipping_fee;
 
-            $totalCost = OrderItem::whereHas(
-                'order',
-                fn($q) =>
-                $q->whereBetween('ordered_at', [$start_date, $end_date])
-            )->sum(DB::raw('cost_price * quantity'));
+            $totalCost = 0;
+            OrderItem::join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->whereBetween('orders.ordered_at', [$start_date, $end_date])
+                ->cursor() // Sử dụng cursor thay vì chunk để xử lý từng bản ghi
+                ->each(function ($item) use (&$totalCost) {
+                    $totalCost += $item->cost_price * $item->quantity;
+                });
 
             $totalProfit = $netRevenue - $totalCost;
 
@@ -72,9 +74,9 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
             return [
                 'total_orders' => $totals->total_orders,
-                'net_revenue' => number_format($netRevenue, 2, '.', ''),
-                'total_profit' => number_format($totalProfit, 2, '.', ''),
-                'total_value_of_stock' => number_format($totalValueOfStock, 2, '.', ''),
+                'net_revenue' => $netRevenue,
+                'total_profit' => $totalProfit,
+                'total_value_of_stock' => $totalValueOfStock,
             ];
         });
     }
@@ -167,9 +169,12 @@ class StatisticService extends BaseService implements StatisticServiceInterface
             $allDatesCacheKey = "all_dates_collection_{$start_date}_{$end_date}";
 
             $ordersByDate = Cache::remember($ordersCacheKey, 15, function () use ($start_date, $end_date) {
-                return Order::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
-                    $query->where('order_status', Order::ORDER_STATUS_COMPLETED);
-                    $query->whereBetween('ordered_at', [$start_date, $end_date]);
+                $result = [];
+
+                // Dùng cursor() để duyệt từng bản ghi
+                $orders = Order::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                    $query->where('order_status', Order::ORDER_STATUS_COMPLETED)
+                        ->whereBetween('ordered_at', [$start_date, $end_date]);
                 })
                     ->select(
                         DB::raw('DATE(ordered_at) as order_date'), // Ngay
@@ -177,16 +182,24 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                         DB::raw('SUM(final_price) as net_revenue'), // Doanh thu thuan
                         DB::raw('IF(COUNT(id) > 0,SUM(final_price)/COUNT(id),0) as avg_order_value'), // Gia tri don hang trung binh
                         DB::raw('SUM(shipping_fee) as total_shipping_fee'), // Ship
-                        DB::raw('SUM(discount) as total_discount'), // Discount
+                        DB::raw('SUM(discount) as total_discount') // Discount
                     )
                     ->groupBy('order_date')
                     ->orderBy('order_date', 'asc')
-                    ->get()
-                    ->keyBy('order_date');
+                    ->cursor(); 
+
+                // Xử lý dữ liệu và lưu vào mảng kết quả
+                foreach ($orders as $order) {
+                    $result[$order->order_date] = $order;
+                }
+
+                return $result;
             });
 
             $profitByDate = Cache::remember($profitCacheKey, 15, function () use ($start_date, $end_date) {
-                return OrderItem::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                $result = [];
+
+                $profits = OrderItem::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
                     $query->whereHas('order', function ($q) use ($start_date, $end_date) {
                         $q->where('order_status', Order::ORDER_STATUS_COMPLETED)
                             ->whereBetween('ordered_at', [$start_date, $end_date]);
@@ -198,8 +211,13 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                     )
                     ->join('orders', 'order_items.order_id', '=', 'orders.id')
                     ->groupBy('order_date')
-                    ->get()
-                    ->keyBy('order_date');
+                    ->cursor();
+
+                foreach ($profits as $profit) {
+                    $result[$profit->order_date] = $profit;
+                }
+
+                return $result;
             });
 
             $allDatesCollection = Cache::remember($allDatesCacheKey, 15, function () use ($start_date, $end_date, $ordersByDate, $profitByDate) {
@@ -289,36 +307,36 @@ class StatisticService extends BaseService implements StatisticServiceInterface
     }
 
     public function getSearchHistory()
-{
-    try {
-        $request = request();
-        [$start_date, $end_date] = $this->getDateRangeByRequest($request);
+    {
+        try {
+            $request = request();
+            [$start_date, $end_date] = $this->getDateRangeByRequest($request);
 
-        $pageSize = $request->input('pageSize', 20);
-        $page = $request->input('page', 1);
-        $cacheKey = "top-search-keywords:$start_date:$end_date:$pageSize:$page";
+            $pageSize = $request->input('pageSize', 20);
+            $page = $request->input('page', 1);
+            $cacheKey = "top-search-keywords:$start_date:$end_date:$pageSize:$page";
 
-        $topSearchData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
-            return DB::table('search_histories')
-                ->when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
-                    $query->whereBetween('created_at', [$start_date, $end_date]);
-                })
-                ->select(
-                    'keyword',
-                    DB::raw('SUM(count) as total_count')
-                )
-                ->groupBy('keyword')
-                ->orderByDesc('total_count')
-                ->paginate($pageSize);
-        });
+            $topSearchData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
+                return DB::table('search_histories')
+                    ->when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                        $query->whereBetween('created_at', [$start_date, $end_date]);
+                    })
+                    ->select(
+                        'keyword',
+                        DB::raw('SUM(count) as total_count')
+                    )
+                    ->groupBy('keyword')
+                    ->orderByDesc('total_count')
+                    ->paginate($pageSize);
+            });
 
-        return $topSearchData;
-    } catch (\Exception $e) {
-        getError($e);
-        Log::error($e->getMessage());
-        return response()->json(['error' => 'Có lỗi xảy ra'], 500);
+            return $topSearchData;
+        } catch (\Exception $e) {
+            getError($e);
+            Log::error($e->getMessage());
+            return response()->json(['error' => 'Có lỗi xảy ra'], 500);
+        }
     }
-}
 
 
     protected function getProductSellTop($start_date, $end_date, $request)
@@ -464,7 +482,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                 $item->product_to_order = $productViewToOrder->get($product_variant_id)->product_order ?? 0;
 
                 if ($item->product_to_order != 0) {
-                    $item->avg_product_purchase = number_format(($item->view_count / $item->product_to_order), 2, '.', ',');
+                    $item->avg_product_purchase = ($item->view_count / $item->product_to_order);
                 } else {
                     $item->avg_product_purchase = null;
                 }
