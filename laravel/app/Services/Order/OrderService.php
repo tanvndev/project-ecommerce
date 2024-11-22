@@ -192,6 +192,8 @@ class OrderService extends BaseService implements OrderServiceInterface
 
             $order = $this->createOrder($request);
 
+            $this->sendMailOrderCreated($order);
+
             return $order;
         }, __('messages.order.error.create'));
     }

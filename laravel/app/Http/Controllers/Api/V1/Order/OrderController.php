@@ -16,6 +16,7 @@ use App\Http\Resources\Order\OrderResource;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Services\Interfaces\Order\OrderServiceInterface;
+use App\Services\Interfaces\Voucher\VoucherServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -23,10 +24,14 @@ class OrderController extends Controller
 {
     protected $orderService;
 
+    protected $voucherService;
+
     public function __construct(
         OrderServiceInterface $orderService,
+        VoucherServiceInterface $voucherService,
     ) {
         $this->orderService = $orderService;
+        $this->voucherService = $voucherService;
     }
 
     /**
@@ -60,6 +65,15 @@ class OrderController extends Controller
      */
     public function store(StoreOrderRequest $request): JsonResponse
     {
+
+        if ($request->has('voucher_id')) {
+            $res = $this->voucherService->applyVoucher($request->voucher_id);
+
+            if ($res['status'] == 'error') {
+                return errorResponse($res['messages'], true);
+            }
+        }
+
         $order = $this->orderService->create();
         if (empty($order) || $order['status'] == 'error') {
             return errorResponse(__('messages.order.error.create'), true);

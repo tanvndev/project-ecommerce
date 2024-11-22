@@ -1,6 +1,8 @@
 <script setup>
+const route = useRoute()
+const code = computed(() => route.query.code || '')
 const order = ref(null)
-const search = ref('')
+const search = ref(code.value)
 
 const { $axios } = useNuxtApp()
 

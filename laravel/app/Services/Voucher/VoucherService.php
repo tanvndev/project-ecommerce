@@ -209,16 +209,18 @@ class VoucherService extends BaseService implements VoucherServiceInterface
      *
      * @return array
      */
-    public function applyVoucher(string $code)
+    public function applyVoucher(string $code, string $id = '')
     {
 
-        return $this->executeInTransaction(function () use ($code) {
+        return $this->executeInTransaction(function () use ($code, $id) {
             $userId = auth()->user()->id;
 
             $cartItems = $this->getCartItems($userId);
             $totalPrice = $this->calculateTotalPrice($cartItems);
 
-            $voucher = $this->voucherRepository->findByWhere(['code' => $code]);
+            $voucher = ! empty($id)
+                ? $this->voucherRepository->findById(['id' => $id])
+                : $this->voucherRepository->findByWhere(['code' => $code]);
 
             if ( ! $voucher) {
                 throw new Exception('Voucher not found.');

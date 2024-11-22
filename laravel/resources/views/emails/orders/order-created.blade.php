@@ -188,11 +188,11 @@
                     </tr>
 
                     @foreach ($order->order_items as $item)
-                        <tr>
-                            <td>{{ $item->product_variant_name }}</td>
-                            <td>{{ $item->quantity }}</td>
-                            <td>{{ number_format($item->quantity * $item->price, 0, ',', '.') }}đ</td>
-                        </tr>
+                    <tr>
+                        <td>{{ $item->product_variant_name }}</td>
+                        <td>{{ $item->quantity }}</td>
+                        <td>{{ number_format($item->quantity * $item->price, 0, ',', '.') }}đ</td>
+                    </tr>
                     @endforeach
                     <tr>
                         <td colspan="2"><strong>Tổng phụ:</strong></td>
@@ -232,7 +232,8 @@
         </div>
 
         <div class="footer">
-            <a href="#" class="btn">Đi tới đơn hàng của bạn</a>
+            <a style="color: #ffffff" href="{{env('NUXT_APP_URL')}}/order-search?code={{$order->code}}" class="btn">Đi
+                tới đơn hàng của bạn</a>
             <p>Để được hỗ trợ về đơn hàng của bạn, vui lòng liên hệ với chúng tôi theo địa chỉ DATN59@gmail.com</p>
             <p>Cảm ơn bạn đã chọn chúng tôi!</p>
         </div>
