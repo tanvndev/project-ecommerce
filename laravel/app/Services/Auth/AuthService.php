@@ -4,8 +4,9 @@
 
 namespace App\Services\Auth;
 
-use App\Events\AuthForgotEvent;
-use App\Events\AuthRegisteredEvent;
+use App\Events\Auth\AuthForgotEvent;
+use App\Events\Auth\AuthRegisteredEvent;
+use App\Models\User;
 use App\Repositories\Interfaces\User\UserRepositoryInterface;
 use App\Services\BaseService;
 use App\Services\Interfaces\Auth\AuthServiceInterface;
@@ -39,7 +40,7 @@ class AuthService extends BaseService implements AuthServiceInterface
                 ]
             );
 
-            if ( ! empty($user)) {
+            if (! empty($user)) {
                 if ($user->hasVerifiedEmail()) {
                     return errorResponse(__('messages.auth.register.email_verified'));
                 }
@@ -48,7 +49,7 @@ class AuthService extends BaseService implements AuthServiceInterface
 
             $user = $this->userRepository->create([
                 'fullname'          => $request->fullname,
-                'user_catalogue_id' => 3,
+                'user_catalogue_id' => User::ROLE_CUSTOMER,
                 'email'             => $request->email,
                 'ip'                => $request->ip(),
                 'user_agent'        => $request->header('User-Agent'),

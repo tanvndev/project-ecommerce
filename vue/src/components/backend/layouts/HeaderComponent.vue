@@ -101,7 +101,7 @@
                   </RouterLink>
                 </a-menu-item>
                 <a-menu-item>
-                  <RouterLink :to="{ name: 'user.update', params: { id: user.id } }">
+                  <RouterLink :to=" { name: 'user.update', params: { id: user?.id } }" v-if="user">
                     <i class="far fa-cog mr-2"></i>
                     <span>Chỉnh sửa hồ sơ</span>
                   </RouterLink>

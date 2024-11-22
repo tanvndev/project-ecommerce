@@ -257,7 +257,9 @@ class AuthController extends Controller
                 'email' => $googleUser->email,
                 'google_id' => $googleUser->sub,
                 'password' => Hash::make(uniqid()),
-                'user_catalogue_id' => 2,
+                'ip'                => $request->ip(),
+                'user_agent'        => $request->header('User-Agent'),
+                'user_catalogue_id' => User::ROLE_CUSTOMER,
             ]);
             Auth::login($newUser);
         }
