@@ -207,4 +207,18 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
                 $query->where('id', $productVariantId);
             });
     }
+
+    public function getFlashSale()
+    {
+        $now = now();
+        $condition = [
+            'publish' => 1,
+            'start_date' => ['<=', $now],
+            'end_date' => ['>=', $now],
+        ];
+
+        $data = $this->flashSaleRepository->findByWhere($condition, ['*'], ['product_variants']);
+
+        return $data;
+    }
 }

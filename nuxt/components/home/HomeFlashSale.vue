@@ -4,16 +4,67 @@ import 'swiper/css'
 import { Autoplay, Navigation } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 
-const productCatalogueStore = useProductCatalogueStore()
+const { $axios } = useNuxtApp()
 const modules = [Navigation, Autoplay]
-const productCatalogues = computed(
-  () => productCatalogueStore.getProductCatalogues
-)
+const products = ref([])
 const slider = ref(null)
+const remainingTime = reactive({
+  hours: 0,
+  minutes: 0,
+  seconds: 0,
+})
 
+const formatTime = (time) => String(time).padStart(2, '0')
+
+const countdown = () => {
+  const interval = setInterval(() => {
+    if (remainingTime.seconds > 0) {
+      remainingTime.seconds--
+    } else {
+      if (remainingTime.minutes > 0) {
+        remainingTime.minutes--
+        remainingTime.seconds = 59
+      } else if (remainingTime.hours > 0) {
+        remainingTime.hours--
+        remainingTime.minutes = 59
+        remainingTime.seconds = 59
+      } else {
+        clearInterval(interval)
+      }
+    }
+  }, 1000)
+
+  // Dừng đếm ngược khi thời gian hết
+  onMounted(() => {
+    if (hours.value === 0 && minutes.value === 0 && seconds.value === 0) {
+      clearInterval(interval)
+    }
+  })
+
+  return interval
+}
 const onSwiper = (swiper) => {
   slider.value = swiper
 }
+
+const getFlashSales = async () => {
+  try {
+    const { data } = await $axios.get('/flash-sales/list')
+    products.value = data.product_variants
+    const { h, i, s } = data?.remaining_time
+
+    remainingTime.hours = h
+    remainingTime.minutes = i
+    remainingTime.seconds = s
+
+    setTimeout(async () => {
+      countdown()
+    }, 1000)
+  } catch (error) {
+    console.log(error)
+  }
+}
+onMounted(getFlashSales)
 </script>
 <template>
   <!-- Categories -->
@@ -24,7 +75,7 @@ const onSwiper = (swiper) => {
   >
     <section
       class="category-section top-category pt-10 pb-10"
-      v-if="productCatalogues.length"
+      v-if="products?.length"
     >
       <div class="container pb-2">
         <div class="title-link-wrapper pb-1 mb-4">
@@ -33,9 +84,9 @@ const onSwiper = (swiper) => {
               <img src="/assets/images/flash_sale.png" alt="" />
             </div>
             <div class="time">
-              <span>01</span>
-              <span>20</span>
-              <span>30</span>
+              <span>{{ formatTime(remainingTime.hours) }}</span>
+              <span>{{ formatTime(remainingTime.minutes) }}</span>
+              <span>{{ formatTime(remainingTime.seconds) }}</span>
             </div>
           </div>
           <NuxtLink
@@ -60,7 +111,7 @@ const onSwiper = (swiper) => {
                 pauseOnMouseEnter: true,
               }"
             >
-              <swiper-slide v-for="item in productCatalogues" :key="item?.id">
+              <swiper-slide v-for="item in products" :key="item?.id">
                 <div class="product-col">
                   <div class="product-wrap product text-center">
                     <figure class="product-media">
@@ -109,7 +160,7 @@ const onSwiper = (swiper) => {
                       <div class="text">ĐANG BÁN CHẠY</div>
                       <div
                         class="process-percent"
-                        style="width: 100%; border-radius: 8px 0px 0px 8px"
+                        :style="`width: ${item?.percent_sold}%; border-radius: 8px 0px 0px 8px`"
                       ></div>
                       <div
                         class="process-percent-bg"
@@ -185,6 +236,7 @@ const onSwiper = (swiper) => {
   transform: translateY(-12px);
 }
 .product-process {
+  margin-top: 10px;
   height: 16px;
   position: relative;
   width: 100%;

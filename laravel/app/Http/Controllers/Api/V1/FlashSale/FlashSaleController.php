@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\FlashSale\FlashSaleCollection;
 use App\Http\Requests\FlashSale\FlashSaleStoreRequest;
 use App\Http\Requests\FlashSale\FlashSaleUpdateRequest;
+use App\Http\Resources\FlashSale\Client\ClientFlashSaleResource;
 use App\Http\Resources\FlashSale\FlashSaleResource;
 use App\Services\Interfaces\FlashSale\FlashSaleServiceInterface;
 use App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface;
@@ -74,5 +75,13 @@ class FlashSaleController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function getFlashSale()
+    {
+        $response = $this->flashSaleService->getFlashSale();
+        $data = new ClientFlashSaleResource($response);
+
+        return successResponse('', $data);
     }
 }

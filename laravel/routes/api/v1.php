@@ -70,6 +70,7 @@ Route::middleware(['api'])->group(function () {
     Route::get('posts/{canonical}/detail', [PostController::class, 'getPostByCanonical']);
     Route::get('system-configs', [SystemConfigController::class, 'index']);
     Route::get('search-history/list', [SearchHistoryController::class, 'index']);
+    Route::get('flash-sales/list', [FlashSaleController::class, 'getFlashSale']);
 
 
     // Order
@@ -91,7 +92,6 @@ Route::middleware(['api'])->group(function () {
         Route::get('me', [AuthController::class, 'me'])->middleware('jwt.verify');
         Route::post('send-verification-code', [AuthController::class, 'sendVerificationCode']);
         Route::post('verify-code', [AuthController::class, 'verifyCode'])->middleware('jwt.verify');
-
         Route::get('google', [AuthController::class, 'redirectToGoogle'])->name('google');
         Route::post('google/callback', [AuthController::class, 'handleGoogleCallback'])->name('google.callback');
     });
