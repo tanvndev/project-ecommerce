@@ -6,7 +6,7 @@ useSeoMeta({
   ogTitle: 'Trang chủ',
   description: 'Trang chủ.',
   ogDescription: 'Trang chủ.',
-  ogImage: '/og-image.png'
+  ogImage: '/og-image.png',
 })
 
 const widgetCodes = ref([])
@@ -76,6 +76,9 @@ onUnmounted(() => {
 
   <!-- Home Category -->
   <HomeCategory />
+
+  <!-- Home Flash Sale -->
+  <HomeFlashSale />
 
   <div class="container">
     <div v-for="widget in widgets" :key="widget.id">
