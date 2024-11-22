@@ -7,7 +7,7 @@ const props = defineProps({
 })
 </script>
 <template>
-  <section class="vendor-product-section">
+  <!-- <section class="vendor-product-section">
     <div class="title-link-wrapper mb-4">
       <h4 class="title text-left">More Products From This Vendor</h4>
       <a href="#" class="btn btn-dark btn-link btn-slide-right btn-icon-right"
@@ -477,5 +477,5 @@ const props = defineProps({
         </div>
       </div>
     </div>
-  </section>
+  </section> -->
 </template>
