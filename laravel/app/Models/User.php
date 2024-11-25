@@ -20,6 +20,8 @@ class User extends Authenticatable implements JWTSubject
 
     const ROLE_CUSTOMER = 2;
 
+    const ROLE_STAFF = 3;
+
     /**
      * The attributes that are mass assignable.
      *
