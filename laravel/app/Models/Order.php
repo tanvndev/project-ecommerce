@@ -36,9 +36,23 @@ class Order extends Model
 
     const ORDER_STATUS_RETURNED = 'returned';
 
+    const STATUS_ORDER = [
+        self::ORDER_STATUS_PENDING => 1,
+        self::ORDER_STATUS_PROCESSING => 2,
+        self::ORDER_STATUS_DELIVERING => 3,
+        self::ORDER_STATUS_COMPLETED => 4,
+        self::ORDER_STATUS_CANCELED => 5,
+        self::ORDER_STATUS_RETURNED => 6
+    ];
+
     const PAYMENT_STATUS_PAID = 'paid';
 
     const PAYMENT_STATUS_UNPAID = 'unpaid';
+
+    const PAYMENT_STATUS_ORDER = [
+        self::PAYMENT_STATUS_PAID => 1,
+        self::PAYMENT_STATUS_UNPAID => 2,
+    ];
 
     protected $fillable = [
         'code',
@@ -68,6 +82,16 @@ class Order extends Model
     protected $casts = [
         'additional_details' => 'array',
     ];
+
+    public function isForwardStatus($newStatus)
+    {
+        return self::STATUS_ORDER[$newStatus] > self::STATUS_ORDER[$this->order_status];
+    }
+
+    public function isForwardPaymentStatus($newStatus)
+    {
+        return self::PAYMENT_STATUS_ORDER[$newStatus] > self::PAYMENT_STATUS_ORDER[$this->payment_order_status];
+    }
 
     public function user()
     {
