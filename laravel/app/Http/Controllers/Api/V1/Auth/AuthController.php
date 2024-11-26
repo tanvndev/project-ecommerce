@@ -187,7 +187,7 @@ class AuthController extends Controller
      */
     public function logout(): JsonResponse
     {
-        auth()->logout(true);
+        auth()->logout();
 
         return successResponse('Đăng xuất thành công.', [], true);
     }

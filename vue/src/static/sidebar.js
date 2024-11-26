@@ -35,6 +35,10 @@ const sidebar = [
       {
         name: 'Tạo mới đơn hàng',
         route: 'order.store'
+      },
+      {
+        name: 'Danh sách yêu cầu',
+        route: 'order.change-status-request'
       }
     ]
   },

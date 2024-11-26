@@ -80,6 +80,8 @@ class AppRepositoryProvider extends ServiceProvider
         'App\Repositories\Interfaces\SearchHistory\SearchHistoryRepositoryInterface' => 'App\Repositories\SearchHistory\SearchHistoryRepository',
         // ProhibitedWords
         'App\Repositories\Interfaces\ProhibitedWord\ProhibitedWordRepositoryInterface' => 'App\Repositories\ProhibitedWord\ProhibitedWordRepository',
+        // OrderStatusChangeRequest
+        'App\Repositories\Interfaces\Order\OrderStatusRepositoryInterface' => 'App\Repositories\Order\OrderStatusRepository',
 
     ];
 

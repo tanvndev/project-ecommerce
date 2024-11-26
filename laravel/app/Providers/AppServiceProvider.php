@@ -82,6 +82,8 @@ class AppServiceProvider extends ServiceProvider
         'App\Services\Interfaces\SearchHistory\SearchHistoryServiceInterface' => 'App\Services\SearchHistory\SearchHistoryService',
         // ProhibitedWord
         'App\Services\Interfaces\ProhibitedWord\ProhibitedWordServiceInterface' => 'App\Services\ProhibitedWord\ProhibitedWordService',
+        // OrderStatus
+        'App\Services\Interfaces\Order\OrderStatusServiceInterface' => 'App\Services\Order\OrderStatusService',
     ];
 
     public function register(): void
