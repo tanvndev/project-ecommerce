@@ -137,7 +137,7 @@ class OrderStatusService extends BaseService implements OrderStatusServiceInterf
     {
         return $this->executeInTransaction(function () {
 
-            // if (auth()->user()->user_catalogue_id != 1) return errorResponse('Bạn không có đủ thẩm quyền để thực hiện chức năng này!');
+            if (auth()->user()->user_catalogue_id != 1) return errorResponse('Bạn không có đủ thẩm quyền để thực hiện chức năng này!');
 
             $payload = $this->payload();
 
