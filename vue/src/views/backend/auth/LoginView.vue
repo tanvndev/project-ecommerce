@@ -168,7 +168,7 @@ const onSubmit = handleSubmit(async (values) => {
   }
 
   message.success('Đăng nhập thành công.');
-  if (authState.user?.user_catalogue === 'admin') {
+  if (authState.user?.user_catalogue === 'admin' || authState.user?.user_catalogue === 'staff') {
     return router.push({ name: 'dashboard' });
   }
   window.location.href = NUXT_URL;

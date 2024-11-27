@@ -58,6 +58,45 @@
                   </a-col>
                 </a-row>
               </a-card>
+
+              <a-card class="mt-3">
+                <!-- Nút tạo yêu cầu -->
+                <a-button type="primary" @click="showModal">Tạo yêu cầu</a-button>
+
+                <!-- Popup (Modal) -->
+                <a-modal
+                  :open="isModalVisible"
+                  title="Tạo yêu cầu thay đổi trạng thái"
+                  @ok="handleOk"
+                  @cancel="handleCancel"
+                >
+                  <div class="mb-3">
+                    <a-col span="24">
+                      <label for="reason" class="mb-1 block">Lý do</label>
+
+                      <a-textarea
+                        id="reason"
+                        placeholder="Lý do tạo yêu cầu"
+                        name="reason"
+                        v-model:value="reason"
+                      />
+                    </a-col>
+                  </div>
+
+                  <div class="mb-3">
+                    <a-col span="24">
+                      <label for="requested_status" class="mb-1 block">Trạng thái muốn đổi thành</label>
+                      <a-select
+                        name="requested_status"
+                        v-model:value="requested_status"
+                        class="w-full"
+                        :options="ORDER_STATUS"
+                      />
+                    </a-col>
+                  </div>
+                </a-modal>
+              </a-card>
+
               <a-card
                 class="mt-3"
                 title="Trạng thái"
@@ -124,10 +163,9 @@ import * as yup from 'yup';
 import CutomerInfo from './partials/CutomerInfo.vue';
 import DeliveryStatus from './partials/DeliveryStatus.vue';
 import OrderDetail from './partials/OrderDetail.vue';
+import InputComponent from '@/components/backend/includes/input/InputComponent.vue';
 
-// VARIABLES
-const { getOne, update, messages, data } = useCRUD();
-const code = computed(() => router.currentRoute.value.params.code || null);
+
 
 // STATE
 const state = reactive({
@@ -136,6 +174,63 @@ const state = reactive({
   errors: {},
   weight: 0
 });
+
+// VARIABLES
+const { getOne, update, messages, data, create } = useCRUD();
+
+const code = computed(() => router.currentRoute.value.params.code || null);
+
+const isModalVisible = ref(false);
+const reason = ref('');
+const requested_status = ref('');
+
+const showModal = () => {
+  isModalVisible.value = true;
+};
+
+const handleOk = async () => {
+
+  if (!reason.value.trim()) {
+    message.error('Lý do không được để trống!');
+    return;
+  }
+
+  if (!requested_status.value) {
+    message.error('Trạng thái không được để trống!');
+    return;
+  }
+
+  const payload = {
+    requested_status: requested_status.value,
+    reason: reason.value,
+    order_id: order.value.id
+  };
+
+
+  const response = await create(state.endpoint+'/status-change-request', payload);
+
+  if (!response) {    
+    return (message.error(messages.value));
+  }
+
+  state.errors = {};
+  message.success(messages.value);
+
+  reason.value = '';
+  requested_status.value = '';
+  
+  isModalVisible.value = false;
+};
+
+// Xử lý khi nhấn Cancel
+const handleCancel = () => {
+  console.log('Cancel');
+
+  isModalVisible.value = false;
+};
+
+
+
 const order = ref(null);
 
 const { handleSubmit, setValues } = useForm({
