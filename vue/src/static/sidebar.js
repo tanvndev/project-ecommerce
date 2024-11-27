@@ -3,23 +3,40 @@ const sidebar = [
     id: 'dashboard_sidebar',
     icon: 'fas fa-home-lg-alt',
     name: 'Tổng quan',
-    route: 'dashboard',
-    subMenu: []
-  },
-  {
-    id: 'report_sidebar',
-    icon: 'fas fa-chart-bar',
-    name: 'Báo cáo',
     route: 'report.index',
     subMenu: []
   },
-
   {
     id: 'live_chat_sidebar',
     icon: 'fas fa-comments',
     name: 'Tin nhắn',
     route: 'chat.index',
     subMenu: []
+  },
+
+  {
+    id: 'report_sidebar',
+    icon: 'fas fa-chart-bar',
+    name: 'Thống kê',
+    active: ['report'],
+    subMenu: [
+      {
+        name: 'Tổng quan',
+        route: 'report.index'
+      },
+      {
+        name: 'Phân tích doanh thu',
+        route: 'report.revenue.index'
+      },
+      {
+        name: 'Phân tích sản phẩm',
+        route: 'report.product.index'
+      },
+      {
+        name: 'Phân tích khách hàng',
+        route: 'report.user.index'
+      }
+    ]
   },
 
   {

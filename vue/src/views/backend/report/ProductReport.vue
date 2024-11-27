@@ -2,10 +2,10 @@
   <MasterLayout>
     <template #template>
       <div class="mx-10 mb-5 min-h-screen">
-        <h1 class="py-5 text-[18px] uppercase">Tổng quan báo cáo</h1>
+        <h1 class="py-5 text-[18px] uppercase">Phân tích sản phẩm</h1>
 
         <a-tabs v-model:activeKey="activeTab">
-          <a-tab-pane key="dashboard" tab="Tổng quan"></a-tab-pane>
+          <a-tab-pane key="product" tab="Phân tích sản phẩm"></a-tab-pane>
         </a-tabs>
 
         <!-- Toolbox Filter -->

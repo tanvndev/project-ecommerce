@@ -20,11 +20,6 @@
         <div class="flex justify-between">
           <!-- Toolbox Filter -->
           <ToolboxFilter @onChangeDate="handleOnChangeDate" />
-          <a-select style="width: 150px" size="large" placeholder="Dạng biểu đồ" v-model="chartFor">
-            <a-select-option value="day">Theo ngày</a-select-option>
-            <a-select-option value="month">Theo tháng</a-select-option>
-            <a-select-option value="year">Theo năm</a-select-option>
-          </a-select>
         </div>
         <a-card class="mt-3">
           <h3 class="mb-2 font-bold">{{ getLabel() }}</h3>
@@ -80,7 +75,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();
 const route = useRoute();
-const chartFor = ref('day');
+
 const date = computed(() => route.query.date || 'last_30_days');
 const start_date = computed(() => route.query.start_date || '');
 const end_date = computed(() => route.query.end_date || '');
