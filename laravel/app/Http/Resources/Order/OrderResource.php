@@ -25,7 +25,6 @@ class OrderResource extends JsonResource
             'customer_name'               => $this->customer_name,
             'customer_email'              => $this->customer_email,
             'customer_phone'              => $this->customer_phone,
-            'customer_email'              => $this->customer_email,
             'shipping_address'            => $this->shipping_address,
             'payment_method_name'         => $this->payment_method->name,
             'order_status'                => Order::ORDER_STATUS[$this->order_status],
