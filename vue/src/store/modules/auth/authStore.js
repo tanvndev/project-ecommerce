@@ -18,7 +18,7 @@ const getters = {
   getUser: (state) => state.user,
   getToken: (state) => state.accessToken,
   getMessages: (state) => state.messages,
-  getRole: (state) => state.user?.user_catalogue
+  getRole: (state) => state.user?.catalogue_id
 };
 
 // Actions

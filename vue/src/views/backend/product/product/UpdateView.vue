@@ -4,34 +4,62 @@
       <div class="mx-10 mb-24 min-h-screen">
         <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
         <form @submit.prevent="onSubmit" v-if="data">
-          <a-row :gutter="16">
-            <a-col :span="17">
-              <!-- Thông tin chung -->
-              <a-card class="mt-3" title="Thông tin sản phẩm">
-                <AleartError :errors="state.error" />
-                <a-row :gutter="[16, 16]">
-                  <a-col :span="24">
-                    <InputComponent
-                      label="Tiêu đề sản phẩm"
-                      :required="true"
-                      name="name"
-                      placeholder="Tiêu đề sản phẩm"
-                      :showAI="true"
+          <a-tabs v-model:activeKey="activeKey">
+            <a-tab-pane key="1" tab="Thông tin cơ bản">
+              <a-row :gutter="16">
+                <a-col :span="17">
+                  <!-- Thông tin chung -->
+                  <a-card class="mt-3" title="Thông tin Cơ bản">
+                    <AleartError :errors="state.error" />
+                    <a-row :gutter="[16, 16]">
+                      <a-col :span="24">
+                        <InputComponent
+                          label="Tiêu đề sản phẩm"
+                          :required="true"
+                          name="name"
+                          placeholder="Tiêu đề sản phẩm"
+                          :showAI="true"
+                        />
+                      </a-col>
+                      <a-col :span="24">
+                        <EditorComponent name="description" label="Mô tả sản phẩm" :showAI="true" />
+                      </a-col>
+                    </a-row>
+                  </a-card>
+                </a-col>
+                <!-- Sidebar right -->
+                <a-col :span="7">
+                  <a-card class="mt-3" title="Loại sản phẩm">
+                    <div>
+                      <SelectComponent
+                        name="product_type"
+                        label="Loại sản phẩm"
+                        :required="true"
+                        :options="PRODUCT_TYPE"
+                        :showSearch="false"
+                        tooltip-text="Lưu ý bạn chỉ có thể cập nhập từ sản phẩm ''đơn sản'' sang sản phẩm ''biến thể'' không để cập nhập ngược lại, các phiên bản cũ sẽ bị xóa vĩnh viễn nếu bạn cập nhập từ sản phẩm ''đơn giản'' sang ''biến thể''."
+                        placeholder="Chọn loại sản phẩm"
+                        @on-change="handleProductType"
+                      />
+                    </div>
+                  </a-card>
+                  <a-card class="mt-3" title="Thương hiệu">
+                    <SelectComponent
+                      name="brand_id"
+                      :options="state.brands"
+                      placeholder="Chọn thương hiệu sản phẩm"
                     />
-                  </a-col>
-                  <a-col :span="24">
-                    <EditorComponent name="description" label="Mô tả sản phẩm" :showAI="true" />
-                  </a-col>
-                  <a-col :span="24">
-                    <InputComponent
-                      name="excerpt"
-                      typeInput="textarea"
-                      placeholder="Mô tả ngắn của sản phẩm"
-                      label="Mô tả ngắn của sản phẩm"
-                      :showAI="true"
+                  </a-card>
+
+                  <a-card class="mt-3" title="Nhóm sản phẩm">
+                    <TreeSelectComponent
+                      name="product_catalogue_id"
+                      :treeDefaultExpandAll="true"
+                      :options="state.productCatalogues"
+                      placeholder="Chọn nhóm sản phẩm"
                     />
-                  </a-col>
-                  <a-col span="24" class="-mt-5">
+                  </a-card>
+                  <a-card class="mt-3" title="Lớp giao hàng">
                     <SelectComponent
                       name="shipping_ids"
                       label="Lớp giao hàng"
@@ -39,78 +67,62 @@
                       placeholder="Chọn lớp giao hàng"
                       :options="state.paymentMethods"
                     />
-                  </a-col>
-                </a-row>
-              </a-card>
-            </a-col>
-            <!-- Sidebar right -->
-            <a-col :span="7">
-              <a-card class="mt-3" title="Thương hiệu">
-                <SelectComponent
-                  name="brand_id"
-                  :options="state.brands"
-                  placeholder="Chọn thương hiệu sản phẩm"
-                />
-              </a-card>
+                  </a-card>
 
-              <a-card class="mt-3" title="Nhóm sản phẩm">
-                <TreeSelectComponent
-                  name="product_catalogue_id"
-                  :treeDefaultExpandAll="true"
-                  :options="state.productCatalogues"
-                  placeholder="Chọn nhóm sản phẩm"
-                />
-              </a-card>
-              <a-card class="mt-3" title="Loại sản phẩm">
-                <div>
-                  <SelectComponent
-                    name="product_type"
-                    label="Loại sản phẩm"
-                    :required="true"
-                    :options="PRODUCT_TYPE"
-                    :showSearch="false"
-                    tooltip-text="Lưu ý bạn chỉ có thể cập nhập từ sản phẩm ''đơn sản'' sang sản phẩm ''biến thể'' không để cập nhập ngược lại, các phiên bản cũ sẽ bị xóa vĩnh viễn nếu bạn cập nhập từ sản phẩm ''đơn giản'' sang ''biến thể''."
-                    placeholder="Chọn loại sản phẩm"
-                    @on-change="handleProductType"
+                  <a-card class="mt-3" title="Mô tả ngắn">
+                    <InputComponent
+                      name="excerpt"
+                      typeInput="textarea"
+                      placeholder="Mô tả ngắn của sản phẩm"
+                      label="Mô tả ngắn của sản phẩm"
+                      :showAI="true"
+                    />
+                  </a-card>
+                </a-col>
+              </a-row>
+            </a-tab-pane>
+            <a-tab-pane key="2" tab="Thông tin sản phẩm" force-render>
+              <a-row :gutter="16">
+                <a-col span="24">
+                  <!-- Main data -->
+                  <ProductVariantView
+                    :variants="state.variants"
+                    :attribute-data="state.attributeData"
+                    :product-type="state.productType"
+                    :attribute-enable-old="state.attributeEnableOld"
+                    :attribute-enable-ids="state.attributeEnableIds"
+                    @onReload="fetchOne"
                   />
-                </div>
-              </a-card>
-            </a-col>
+                </a-col>
+              </a-row>
+            </a-tab-pane>
+            <a-tab-pane key="3" tab="Sản phẩm liên kết">
+              <a-row :gutter="16">
+                <!-- Upsell -->
+                <a-col span="24" class="mt-3">
+                  <a-card title="Sản phẩm được liên kết">
+                    <UpsellView :old-value="state.upsellIds" />
+                  </a-card>
+                </a-col>
+              </a-row>
+            </a-tab-pane>
 
-            <a-col span="24" class="mt-3">
-              <!-- Main data -->
-              <ProductVariantView
-                :variants="state.variants"
-                :attribute-data="state.attributeData"
-                :product-type="state.productType"
-                :attribute-enable-old="state.attributeEnableOld"
-                :attribute-enable-ids="state.attributeEnableIds"
-                @onReload="fetchOne"
-              />
-            </a-col>
-
-            <!-- Upsell -->
-
-            <a-col span="24" class="mt-3">
-              <a-card title="Sản phẩm được liên kết">
-                <UpsellView :old-value="state.upsellIds" />
-              </a-card>
-            </a-col>
-
-            <a-col span="9">
-              <!-- ProductAttribute -->
+            <a-tab-pane key="4" tab="Thông sô kĩ thuật">
               <ProductAttributeView
                 :attribute-data="state.attributeData"
                 :attribute-not-enable-old="state.attributeNotEnableOld"
                 :attribute-not-enable-ids="state.attributeNotEnableIds"
               />
-            </a-col>
-
-            <!-- SEO -->
-            <a-col span="15">
-              <SEOComponent />
-            </a-col>
-          </a-row>
+            </a-tab-pane>
+            <a-tab-pane key="5" tab="Tối ưu SEO">
+              <a-row :gutter="16">
+                <!-- SEO -->
+                <a-col span="24">
+                  <SEOComponent />
+                </a-col>
+              </a-row>
+            </a-tab-pane>
+          </a-tabs>
 
           <div class="fixed bottom-0 right-[19px] p-10">
             <a-button html-type="submit" type="primary" size="large">
@@ -154,7 +166,7 @@ import { formatDataToSelect, formatDataToTreeSelect, formatMessages } from '@/ut
 import { message } from 'ant-design-vue';
 import _ from 'lodash';
 import { useForm } from 'vee-validate';
-import { computed, onMounted, reactive, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 import * as yup from 'yup';
 import ProductAttributeView from './partials/ProductAttributeView.vue';
@@ -181,8 +193,9 @@ const state = reactive({
 
 const store = useStore();
 const { getOne, getAll, update, messages, data } = useCRUD();
-
+const activeKey = ref('1');
 const id = computed(() => router.currentRoute.value.params.id || null);
+
 const { handleSubmit, setValues, errors } = useForm({
   validationSchema: yup.object({
     name: yup.string().required('Tiêu đề sản phẩm không được để trống.'),

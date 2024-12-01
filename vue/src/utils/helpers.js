@@ -1,3 +1,4 @@
+import { ROLE_ADMIN, ROLE_STAFF } from '@/static/constants';
 import dayjs from 'dayjs';
 
 const debounce = (func, delay) => {
@@ -272,8 +273,24 @@ const appendBase64ToFormData = (formData, base64String, fileName) => {
   formData.append('image', file);
 };
 
+// Sử dụng hàm này để chuyển Base64 thành File và append vào FormData
+const checkAdmin = (role) => {
+  if (role == ROLE_ADMIN) {
+    return true;
+  }
+  return false;
+};
+const checkStaff = (role) => {
+  if (role == ROLE_STAFF) {
+    return true;
+  }
+  return false;
+};
+
 export {
   appendBase64ToFormData,
+  checkAdmin,
+  checkStaff,
   cleanedData,
   debounce,
   generateRandomString,

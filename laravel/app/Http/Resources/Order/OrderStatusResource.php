@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Order;
 
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -24,6 +25,8 @@ class OrderStatusResource extends JsonResource
             ],
             'current_status'        => $this->current_status,
             'requested_status'      => $this->requested_status,
+            'current_status_text'   => Order::ORDER_STATUS[$this->current_status],
+            'requested_status_text' => Order::ORDER_STATUS[$this->requested_status],
             'reason'                => $this->reason,
             'rejection_reason'      => $this->rejection_reason,
             'status'                => $this->getStatus(),

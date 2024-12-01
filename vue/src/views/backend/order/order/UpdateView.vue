@@ -23,14 +23,12 @@
             </a-col>
 
             <a-col :span="6">
-              <!-- Aside View -->
-              <CutomerInfo :order="order" />
-
               <!-- Start Status -->
               <a-card
                 class="mt-3"
                 title="Trạng thái"
                 v-if="
+                  checkAdmin(role) &&
                   order.order_status_code != ORDER_STATUS[3].value &&
                   order.order_status_code != ORDER_STATUS[4].value
                 "
@@ -59,9 +57,14 @@
                 </a-row>
               </a-card>
 
-              <a-card class="mt-3">
+              <!-- Order request -->
+              <a-card
+                class="mt-3"
+                title="Yêu cầu thay đổi trạng thái"
+                v-if="!checkAdmin(role) && order?.order_status_code != ORDER_STATUS[3].value"
+              >
                 <!-- Nút tạo yêu cầu -->
-                <a-button type="primary" @click="showModal">Tạo yêu cầu</a-button>
+                <a-button size="large" type="primary" @click="showModal">Tạo yêu cầu</a-button>
 
                 <!-- Popup (Modal) -->
                 <a-modal
@@ -69,33 +72,40 @@
                   title="Tạo yêu cầu thay đổi trạng thái"
                   @ok="handleOk"
                   @cancel="handleCancel"
+                  cancelText="Hủy bỏ"
+                  okText="Xác nhận"
                 >
+                  <a-divider class="my-2" />
                   <div class="mb-3">
-                    <a-col span="24">
-                      <label for="reason" class="mb-1 block">Lý do</label>
+                    <label for="reason" class="mb-2 block">Lý do</label>
 
-                      <a-textarea
-                        id="reason"
-                        placeholder="Lý do tạo yêu cầu"
-                        name="reason"
-                        v-model:value="reason"
-                      />
-                    </a-col>
+                    <a-textarea
+                      size="large"
+                      id="reason"
+                      placeholder="Lý do tạo yêu cầu"
+                      name="reason"
+                      v-model:value="reason"
+                      :auto-size="true"
+                    />
                   </div>
 
                   <div class="mb-3">
-                    <a-col span="24">
-                      <label for="requested_status" class="mb-1 block">Trạng thái muốn đổi thành</label>
-                      <a-select
-                        name="requested_status"
-                        v-model:value="requested_status"
-                        class="w-full"
-                        :options="ORDER_STATUS"
-                      />
-                    </a-col>
+                    <label for="requested_status" class="mb-2 block"
+                      >Trạng thái muốn đổi thành</label
+                    >
+                    <a-select
+                      size="large"
+                      name="requested_status"
+                      v-model:value="requested_status"
+                      class="w-full"
+                      :options="ORDER_STATUS_SELECT"
+                    />
                   </div>
                 </a-modal>
               </a-card>
+
+              <!-- Aside View -->
+              <CutomerInfo :order="order" />
 
               <a-card
                 class="mt-3"
@@ -131,7 +141,7 @@
                       <clipPath id="174__a"><path fill="#fff" d="M0 0h24v24h-24z"></path></clipPath>
                     </defs>
                   </svg>
-                  <h3 class="ms-2">Đã xử lý giao hàng</h3>
+                  <h3 class="ms-2">Đã hoàn thành xử lý giao hàng.</h3>
                 </div>
               </a-card>
             </a-col>
@@ -154,18 +164,17 @@ import {
 } from '@/components/backend';
 import { useCRUD } from '@/composables';
 import router from '@/router';
-import { ORDER_STATUS, PAYMENT_STATUS } from '@/static/order';
+import { ORDER_STATUS, ORDER_STATUS_SELECT, PAYMENT_STATUS } from '@/static/order';
 import { formatMessages } from '@/utils/format';
+import { checkAdmin } from '@/utils/helpers';
 import { message } from 'ant-design-vue';
 import { useForm } from 'vee-validate';
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useStore } from 'vuex';
 import * as yup from 'yup';
 import CutomerInfo from './partials/CutomerInfo.vue';
 import DeliveryStatus from './partials/DeliveryStatus.vue';
 import OrderDetail from './partials/OrderDetail.vue';
-import InputComponent from '@/components/backend/includes/input/InputComponent.vue';
-
-
 
 // STATE
 const state = reactive({
@@ -174,6 +183,9 @@ const state = reactive({
   errors: {},
   weight: 0
 });
+
+const store = useStore();
+const role = computed(() => store.getters['authStore/getRole']);
 
 // VARIABLES
 const { getOne, update, messages, data, create } = useCRUD();
@@ -189,7 +201,6 @@ const showModal = () => {
 };
 
 const handleOk = async () => {
-
   if (!reason.value.trim()) {
     message.error('Lý do không được để trống!');
     return;
@@ -206,11 +217,10 @@ const handleOk = async () => {
     order_id: order.value.id
   };
 
+  const response = await create(state.endpoint + '/status-change-request', payload);
 
-  const response = await create(state.endpoint+'/status-change-request', payload);
-
-  if (!response) {    
-    return (message.error(messages.value));
+  if (!response) {
+    return message.error(messages.value);
   }
 
   state.errors = {};
@@ -218,7 +228,7 @@ const handleOk = async () => {
 
   reason.value = '';
   requested_status.value = '';
-  
+
   isModalVisible.value = false;
 };
 
@@ -228,8 +238,6 @@ const handleCancel = () => {
 
   isModalVisible.value = false;
 };
-
-
 
 const order = ref(null);
 

@@ -1,6 +1,10 @@
 const LARAVEL_URL = import.meta.env.VITE_LARAVEL_URL;
 const NUXT_URL = import.meta.env.VITE_NUXT_URL;
 
+const ROLE_ADMIN = 1;
+const ROLE_USER = 2;
+const ROLE_STAFF = 3;
+
 const PUBLISH = [
   {
     value: 0,
@@ -38,8 +42,6 @@ const EFFECT = [
     label: 'Flip'
   }
 ];
-
-
 
 const PAGESIZE = ['10', '20', '30', '50', '100'];
 
@@ -201,20 +203,23 @@ const TEXT_STYLE_AI = [
   }
 ];
 export {
-  PUBLISH,
+  DISCOUNT_CONDITION_APPLY,
+  DISCOUNT_TYPE,
+  EFFECT,
+  INDUSTRY,
+  LARAVEL_URL,
+  NUXT_URL,
   PAGESIZE,
   PRODUCT_TYPE,
-  TAXT_STATUS,
-  WAREHOUSE_CONFIG,
+  PUBLISH,
+  ROLE_ADMIN,
+  ROLE_STAFF,
+  ROLE_USER,
   STOCK_STATUS,
-  LARAVEL_URL,
-  WIDGET_MODEL,
-  WIDGET_TYPE,
-  NUXT_URL,
-  DISCOUNT_TYPE,
-  DISCOUNT_CONDITION_APPLY,
-  INDUSTRY,
+  TAXT_STATUS,
   TEXT_STYLE_AI,
   TONE_AI,
-  EFFECT
+  WAREHOUSE_CONFIG,
+  WIDGET_MODEL,
+  WIDGET_TYPE
 };

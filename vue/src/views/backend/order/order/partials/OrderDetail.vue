@@ -8,11 +8,11 @@
     class="mb-4 items-center border-b pb-4"
   >
     <a-col :span="15">
-      <div class="d-flex items-center">
+      <div class="flex items-center">
         <div class="mr-2">
           <img class="h-[60px] w-[60px] object-contain" :src="item.image" alt="" />
         </div>
-        <div>
+        <div>r
           <RouterLink
             :to="`/product/update/${item.product_id}?variant_id=${item.product_variant_id}`"
             class="mb-1 block text-primary-500"
@@ -40,31 +40,31 @@
     </a-col>
   </a-row>
   <div class="flex flex-col gap-3 text-[15px]" v-if="order">
-    <div class="d-flex items-center justify-end">
+    <div class="flex items-center justify-end">
       <span class="font-bold">Tạm tính</span>
       <span class="w-[300px] text-right">
         {{ formatCurrency(order?.total_price) }}
       </span>
     </div>
-    <div class="d-flex items-center justify-end" v-if="order?.discount">
+    <div class="flex items-center justify-end" v-if="order?.discount">
       <span class="font-bold">Giảm giá</span>
       <span class="w-[300px] text-right">
         {{ formatCurrency(order?.discount) }}
       </span>
     </div>
-    <div class="d-flex items-center justify-end">
+    <div class="flex items-center justify-end">
       <span class="font-bold">Phí vận chuyển</span>
       <span class="w-[300px] text-right">
         {{ formatCurrency(order?.shipping_fee) }}
       </span>
     </div>
-    <div class="d-flex items-center justify-end">
+    <div class="flex items-center justify-end">
       <span class="font-bold">Phương thức thanh toán</span>
       <span class="w-[300px] text-right">{{
         order?.additional_details?.payment_method?.name
       }}</span>
     </div>
-    <div class="d-flex items-center justify-end">
+    <div class="flex items-center justify-end">
       <span class="font-bold">Trạng thái thanh toán</span>
       <div class="w-[300px] text-right">
         <a-tag :color="order?.payment_status_color" class="-mr-1">
@@ -72,7 +72,7 @@
         </a-tag>
       </div>
     </div>
-    <div class="d-flex items-center justify-end">
+    <div class="flex items-center justify-end">
       <span class="font-bold">Tổng cuối</span>
       <span class="w-[300px] text-right">
         {{ formatCurrency(order?.final_price) }}
@@ -124,11 +124,29 @@
       Xác nhận đơn hàng
     </a-button>
 
+    <a-button
+      size="large"
+      type="primary"
+      @click="orderStatusModal = true"
+      v-if="order?.order_status_code == ORDER_STATUS[1].value"
+    >
+      Xác nhận đang giao
+    </a-button>
+
+    <a-button
+      size="large"
+      type="primary"
+      @click="orderStatusModal = true"
+      v-if="order?.order_status_code == ORDER_STATUS[2].value"
+    >
+      Xác nhận hoàn thành
+    </a-button>
+
     <!-- Order status modal -->
     <a-modal v-model:open="orderStatusModal">
       <div class="mt-6 flex flex-col items-center">
         <i class="far fa-info-circle text-[70px] text-primary-500"></i>
-        <h4 class="mt-2 text-[16px]">Xác nhận đơn hàng</h4>
+        <h4 class="mt-2 text-[16px]">Cập nhập trạng thái đơn hàng</h4>
       </div>
       <p class="mb-4">
         Bạn đang thực hiện thao tác xác nhận đơn hàng này. Lưu ý kiểm tra kĩ khi thực hiện thao tác.
@@ -136,7 +154,11 @@
 
       <template #footer>
         <a-button @click="orderStatusModal = false" class="mr-1">Hủy bỏ</a-button>
-        <a-button @click="handleUpdateStatus('order_status')" type="primary">Xác nhận</a-button>
+        <a-button
+          @click="handleUpdateStatus('order_status', order?.order_status_code_next)"
+          type="primary"
+          >Xác nhận</a-button
+        >
       </template>
     </a-modal>
   </div>
@@ -173,7 +195,11 @@
 
       <template #footer>
         <a-button @click="paymentStatusModal = false" class="mr-1">Hủy bỏ</a-button>
-        <a-button @click="handleUpdateStatus('payment_status')" type="primary">Xác nhận</a-button>
+        <a-button
+          @click="handleUpdateStatus('payment_status', PAYMENT_STATUS[1].value)"
+          type="primary"
+          >Xác nhận</a-button
+        >
       </template>
     </a-modal>
   </div>
@@ -186,7 +212,7 @@ import { ORDER_STATUS, PAYMENT_STATUS } from '@/static/order';
 import { formatCurrency } from '@/utils/format';
 import { getErrorMsg } from '@/utils/helpers';
 import { message } from 'ant-design-vue';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const errors = ref({});
 const paymentStatusModal = ref(false);
@@ -197,6 +223,11 @@ const props = defineProps({
 });
 const note = ref(props.order?.note);
 const emits = defineEmits(['update:status']);
+
+const orderStatusValue = computed(() => {
+  let value = 1;
+  return value;
+});
 
 const handleUpdateNote = async () => {
   try {
@@ -216,13 +247,13 @@ const handleUpdateNote = async () => {
   }
 };
 
-const handleUpdateStatus = async (field) => {
+const handleUpdateStatus = async (field, value) => {
   try {
     orderStatusModal.value = false;
     paymentStatusModal.value = false;
 
     const payload = {
-      [field]: field === 'order_status' ? ORDER_STATUS[1].value : PAYMENT_STATUS[1].value
+      [field]: value
     };
 
     const response = await axios.put(`/orders/${props.order.id}?method=PUT`, payload);

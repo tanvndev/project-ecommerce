@@ -8,6 +8,24 @@ const reportRoutes = [
     beforeEnter: [isLoggedIn]
   },
   {
+    path: '/report/product/index',
+    name: 'report.product.index',
+    component: () => import('@/views/backend/report/ProductReport.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
+    path: '/report/revenue/index',
+    name: 'report.revenue.index',
+    component: () => import('@/views/backend/report/RevenueReport.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
+    path: '/report/user/index',
+    name: 'report.user.index',
+    component: () => import('@/views/backend/report/UserReport.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
     path: '/report/sales',
     name: 'report.sales',
     component: () => import('@/views/backend/report/SalesView.vue'),

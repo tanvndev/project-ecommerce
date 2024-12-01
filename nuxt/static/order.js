@@ -23,10 +23,10 @@ const ORDER_STATUS_TABS = [
     title: 'Đã huỷ',
     value: 'canceled',
   },
-  {
-    title: 'Trả hàng',
-    value: 'returned',
-  },
+  //   {
+  //     title: 'Trả hàng',
+  //     value: 'returned',
+  //   },
 ]
 
 const ORDER_STATUS = [
@@ -50,10 +50,10 @@ const ORDER_STATUS = [
     label: 'Đã hủy',
     value: 'canceled',
   },
-  {
-    label: 'Trả hàng',
-    value: 'returned',
-  },
+  //   {
+  //     label: 'Trả hàng',
+  //     value: 'returned',
+  //   },
 ]
 
 const PAYMENT_STATUS = [
@@ -67,4 +67,4 @@ const PAYMENT_STATUS = [
   },
 ]
 
-export { ORDER_STATUS_TABS, ORDER_STATUS, PAYMENT_STATUS }
+export { ORDER_STATUS, ORDER_STATUS_TABS, PAYMENT_STATUS }

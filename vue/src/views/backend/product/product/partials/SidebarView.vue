@@ -12,7 +12,7 @@
       />
     </a-card>
 
-    <a-card class="mt-3" title="Danh mục sản phẩm">
+    <a-card class="mt-3" title="Nhóm sản phẩm">
       <TreeSelectComponent
         name="product_catalogue_id"
         :treeDefaultExpandAll="false"
@@ -20,13 +20,12 @@
         placeholder="Chọn danh mục sản phẩm"
       />
     </a-card>
-
   </a-col>
 </template>
 <script setup>
-import { SelectComponent, InputFinderComponent, TreeSelectComponent } from '@/components/backend';
+import { InputFinderComponent, SelectComponent, TreeSelectComponent } from '@/components/backend';
 import { useCRUD } from '@/composables';
-import { formatDataToTreeSelect, formatDataToSelect } from '@/utils/format';
+import { formatDataToSelect, formatDataToTreeSelect } from '@/utils/format';
 import { onMounted, reactive } from 'vue';
 
 const { getAll, data } = useCRUD();

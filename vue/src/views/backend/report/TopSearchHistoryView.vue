@@ -7,7 +7,7 @@
               <a-button class="mr-3" @click="router.push({ name: 'report.index' })">
                 <i class="fas fa-arrow-left text-gray-500"></i>
               </a-button>
-              <h2 class="text-[18px] uppercase leading-none">Lương tìm kiếm theo thời gian</h2>
+              <h2 class="text-[18px] uppercase leading-none">Lượng tìm kiếm theo thời gian</h2>
             </div>
             <div>
               <a-button class="mr-3" type="text">
@@ -16,18 +16,12 @@
               </a-button>
             </div>
           </div>
-  
+
           <div class="flex justify-between">
             <!-- Toolbox Filter -->
             <ToolboxFilter @onChangeDate="handleOnChangeDate" />
-  
-            <a-select style="width: 150px" size="large" placeholder="Dạng biểu đồ" v-model="chartFor">
-              <a-select-option value="day">Theo ngày</a-select-option>
-              <a-select-option value="month">Theo tháng</a-select-option>
-              <a-select-option value="year">Theo năm</a-select-option>
-            </a-select>
           </div>
-  
+
           <a-table
             class="mt-4"
             :dataSource="dataSource"
@@ -49,10 +43,9 @@
   import _ from 'lodash';
   import { computed, ref, watch } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
-  
+
   const router = useRouter();
   const route = useRoute();
-  const chartFor = ref('day');
   const date = computed(() => route.query.date || 'last_30_days');
   const start_date = computed(() => route.query.start_date || '');
   const end_date = computed(() => route.query.end_date || '');
@@ -70,9 +63,9 @@
     },
   ];
   const { pagination, onChangePagination, handleTableChange } = usePagination();
-  
+
   const dataSource = ref([]);
-  
+
   const fetchData = async () => {
     isLoading.value = true;
     try {
@@ -85,9 +78,9 @@
           pageSize: pagination.pageSize
         }
       });
-  
+
       const newData = _.map(data?.data, (value) => value);
-  
+
       dataSource.value = newData;
       pagination.current = data?.current_page;
       pagination.total = data?.total;
@@ -98,13 +91,12 @@
       isLoading.value = false;
     }
   };
-  
+
   const debounceGetData = debounce(fetchData, 500);
-  
+
   watch(onChangePagination, () => debounceGetData());
-  
+
   const handleOnChangeDate = async ({ allDay }) => {
     debounceGetData();
   };
   </script>
-  
