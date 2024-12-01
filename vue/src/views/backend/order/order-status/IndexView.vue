@@ -40,18 +40,18 @@
             </template>
 
             <template v-if="column.dataIndex === 'status'">
-              <span :style="{ color: record.status.color }">
+              <a-tag :color="record.status.color">
                 {{ record.status.text }}
-              </span>
+              </a-tag>
             </template>
 
             <template v-if="column.dataIndex === 'action'">
               <a-button
                 type="primary"
-                :disabled="record.status.text !== 'Chờ xét duyệt'"
-                @click="record.status.text === 'Chờ xét duyệt' ? showModal(record) : null"
+                :disabled="record.status.color !== 'warning'"
+                @click="record.status.color === 'warning' ? showModal(record) : null"
               >
-                Thay đổi
+                {{ record.status.color == 'warning' ? 'Thay đổi' : 'Đã xử lý' }}
               </a-button>
             </template>
           </template>
@@ -79,7 +79,7 @@
           :cancel-button-props="{ danger: true }"
         >
           <div class="mb-7">
-            <a-textarea v-model:value="rejectionReason" placeholder="Nhập lý do từ chối" />
+            <a-textarea v-model:value="rejectionReason" placeholder="Nhập lý do" />
           </div>
         </a-modal>
 
@@ -93,15 +93,14 @@
 import {
   BreadcrumbComponent,
   MasterLayout,
-  ToolboxComponent,
-  InputComponent
+  ToolboxComponent
 } from '@/components/backend';
 import { useCRUD, usePagination } from '@/composables';
 import { debounce } from '@/utils/helpers';
-import { onMounted, reactive, watch, ref } from 'vue';
-import { useRoute } from 'vue-router';
-import { columns, innerColumns } from './columns';
 import { message } from 'ant-design-vue';
+import { onMounted, reactive, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { columns } from './columns';
 
 const isModalVisible = ref(false);
 const rejectionReason = ref('');
@@ -112,15 +111,16 @@ const showModal = (record) => {
   isModalVisible.value = true;
 };
 
-
-
 const handleCancel = async () => {
   if (!rejectionReason.value.trim()) {
     message.error('Phải có lý do từ chối!');
     return;
   }
 
-  const response = await create('/status-change-requests/reject', { id: currentRecordId.value, rejection_reason: rejectionReason.value });
+  const response = await create('/status-change-requests/reject', {
+    id: currentRecordId.value,
+    rejection_reason: rejectionReason.value
+  });
 
   if (!response) {
     return message.error(messages.value);
@@ -145,7 +145,7 @@ const handleSubmit = async () => {
 
 // STATE
 const state = reactive({
-  pageTitle: 'Danh sách yêu cầu',
+  pageTitle: 'Danh sách yêu cầu thay đổi trạng thái đơn hàng',
   modelName: 'OrderStatusChangeRequest',
   endpoint: 'orders',
   isShowToolbox: false,

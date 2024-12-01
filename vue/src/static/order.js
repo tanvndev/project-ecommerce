@@ -18,11 +18,11 @@ const ORDER_STATUS = [
   {
     label: 'Đã hủy',
     value: 'canceled'
-  },
-  {
-    label: 'Trả hàng',
-    value: 'returned'
   }
+  //   {
+  //     label: 'Trả hàng',
+  //     value: 'returned'
+  //   }
 ];
 
 const PAYMENT_STATUS = [
@@ -60,11 +60,11 @@ const ORDER_STATUS_SELECT = [
   {
     label: 'Đã hủy',
     value: 'canceled'
-  },
-  {
-    label: 'Trả hàng',
-    value: 'returned'
   }
+  //   {
+  //     label: 'Trả hàng',
+  //     value: 'returned'
+  //   }
 ];
 
 const PAYMENT_STATUS_SELECT = [

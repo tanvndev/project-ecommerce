@@ -34,7 +34,7 @@ class OrderStatusController extends Controller
     /**
      * Store a newly created brand in storage.
      */
-    public function store(StoreOrderStatusRequest $request)
+    public function store(StoreOrderStatusRequest $request): JsonResponse
     {
         $response = $this->orderStatusService->create();
 

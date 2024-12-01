@@ -13,13 +13,13 @@ const columns = [
   },
   {
     title: 'Trạng thái đơn hàng',
-    dataIndex: 'current_status',
-    key: 'current_status'
+    dataIndex: 'current_status_text',
+    key: 'current_status_text'
   },
   {
     title: 'Đổi thành',
-    dataIndex: 'requested_status',
-    key: 'requested_status',
+    dataIndex: 'requested_status_text',
+    key: 'requested_status_text',
   },
   {
     title: 'Lý do',

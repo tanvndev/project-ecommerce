@@ -239,6 +239,7 @@ class OrderService extends BaseService implements OrderServiceInterface
      *
      * @param  \Illuminate\Support\Collection  $cartItems
      */
+
     private function decreaseStockProductVariants($cartItems): void
     {
         foreach ($cartItems as $cartItem) {

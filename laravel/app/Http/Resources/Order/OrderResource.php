@@ -29,6 +29,7 @@ class OrderResource extends JsonResource
             'payment_method_name'         => $this->payment_method->name,
             'order_status'                => Order::ORDER_STATUS[$this->order_status],
             'order_status_code'           => $this->order_status,
+            'order_status_code_next'      => $this->getOrderStatusValueNext($this->order_status),
             'order_status_color'          => $this->getOrderStatusColor(),
             'payment_status'              => Order::PAYMENT_STATUS[$this->payment_status],
             'payment_status_code'         => $this->payment_status,
@@ -95,5 +96,16 @@ class OrderResource extends JsonResource
             default:
                 return 'red';
         }
+    }
+
+    private function getOrderStatusValueNext($orderStatus)
+    {
+        $statusMap = [
+            Order::ORDER_STATUS_PENDING => Order::ORDER_STATUS_PROCESSING,
+            Order::ORDER_STATUS_PROCESSING => Order::ORDER_STATUS_DELIVERING,
+            Order::ORDER_STATUS_DELIVERING => Order::ORDER_STATUS_COMPLETED,
+        ];
+
+        return $statusMap[$orderStatus] ?? $orderStatus;
     }
 }

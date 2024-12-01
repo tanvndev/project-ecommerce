@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 const router = useRouter();
 const route = useRoute();
 const removeSave = () => {
-  const routeHide = ['evaluate.index'];
+  const routeHide = ['evaluate.index', 'order.change-status-request'];
   if (routeHide.includes(route.name)) {
     return false;
   }
