@@ -38,9 +38,21 @@ const reportRoutes = [
     beforeEnter: [isLoggedIn]
   },
   {
+    path: '/report/top-popular-product',
+    name: 'report.top.popular.product',
+    component: () => import('@/views/backend/report/TopPopularProductView.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
     path: '/report/top-search-history',
     name: 'report.top.search.history',
     component: () => import('@/views/backend/report/TopSearchHistoryView.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
+    path: '/report/top-loyal-customer',
+    name: 'report.top.loyal.customer',
+    component: () => import('@/views/backend/report/TopLoyalCustomerView.vue'),
     beforeEnter: [isLoggedIn]
   }
 ];

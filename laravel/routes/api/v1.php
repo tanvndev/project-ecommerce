@@ -267,6 +267,7 @@ Route::middleware(['api'])->group(function () {
             Route::get('products', 'getProductReport')->name('getProductReport');
 
             Route::get('popular-products', 'popularProducts')->name('popularProducts');
+            
             // Thống kê khách hàng trung thành
             Route::get('loyal-customers', 'loyalCustomers')->name('loyalCustomers');
 

@@ -526,6 +526,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
     public function popularProducts()
     {
+
         $request = request();
 
         $start_date = '';
@@ -552,7 +553,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                 )
                 ->groupBy('cart_items.product_variant_id')
                 ->orderBy('frequency_of_appearance', 'DESC')
-                ->get();
+                ->paginate(20);
         });
 
         return $popularProducts;
@@ -590,7 +591,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                 ->groupBy('users.id')
                 ->havingRaw('COUNT(orders.id) > ?', [5]) // Khách hàng có 5 đơn hàng trở lên là khách hàng trung thành
                 ->orderBy('total_spent', 'DESC')
-                ->get();
+                ->paginate(request('pageSize', 20));
         });
 
         return $loyalCustomers;
