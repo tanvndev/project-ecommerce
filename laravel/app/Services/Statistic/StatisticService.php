@@ -88,7 +88,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         $start_date = '';
         $end_date = '';
 
-        if ( ! empty($request->date)) {
+        if (! empty($request->date)) {
             switch ($request->date) {
                 case 'today':
                     $start_date = now()->startOfDay()->format('Y-m-d H:i:s');
@@ -148,7 +148,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                     break;
                 case 'custom':
 
-                    if ( ! $request->start_date || ! $request->end_date) {
+                    if (! $request->start_date || ! $request->end_date) {
                         break;
                     }
 
@@ -393,41 +393,45 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
     protected function getProductReviewTop($start_date, $end_date, $request)
     {
-        $pageSize = $request->input('pageSize', 20);
-        $page = $request->input('page', 1);
-        $cacheKey = "top-reviewing-products:{$start_date}:{$end_date}:{$pageSize}:{$page}";
+        try {
+            $pageSize = $request->input('pageSize', 20);
+            $page = $request->input('page', 1);
+            $cacheKey = "top-reviewing-products:{$start_date}:{$end_date}:{$pageSize}:{$page}";
 
-        $topReviewingData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
-            return ProductReview::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
-                $query
-                    ->whereHas('order', function ($q) {
-                        $q->where('order_status', Order::ORDER_STATUS_COMPLETED);
-                    })
-                    ->whereBetween('created_at', [$start_date, $end_date])
-                    ->where('publish', 1);
-            })
-                ->with(['product' => function ($query) {
-                    $query->select('id', 'name');
-                }])
-                ->select(
-                    'product_reviews.product_id',
-                    DB::raw('COUNT(product_reviews.id) AS review_count'),
-                    DB::raw('AVG(product_reviews.rating) AS avg_rating')
-                )
-                ->groupBy('product_reviews.product_id')
-                ->orderBy('avg_rating', 'DESC')
-                ->paginate($pageSize);
-        });
+            $topReviewingData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($start_date, $end_date, $pageSize) {
+                return ProductReview::when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
+                    $query
+                        ->whereHas('order', function ($q) {
+                            $q->where('order_status', Order::ORDER_STATUS_COMPLETED);
+                        })
+                        ->whereBetween('created_at', [$start_date, $end_date]) // Chỉ định bảng
+                        ->where('publish', 1);
+                })
+                    ->with(['product' => function ($query) {
+                        $query->select('id', 'name');
+                    }])
+                    ->select(
+                        'product_reviews.product_id',
+                        DB::raw('COUNT(product_reviews.id) AS review_count'),
+                        DB::raw('ROUND(AVG(product_reviews.rating), 1) AS avg_rating')
+                    )
+                    ->groupBy('product_reviews.product_id')
+                    ->orderBy('avg_rating', 'DESC')
+                    ->paginate($pageSize);
+            });
 
-        $topReviewingData->map(function ($item) {
-            $item->product_name = $item->product->name;
-            $item->avg_rating_percent = starsToPercent($item->avg_rating);
-            unset($item->product);
+            $topReviewingData->map(function ($item) {
+                $item->product_name = $item->product->name;
+                $item->avg_rating_percent = starsToPercent($item->avg_rating);
+                unset($item->product);
 
-            return $item;
-        });
+                return $item;
+            });
 
-        return $topReviewingData;
+            return $topReviewingData;
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+        }
     }
 
     /** Top sản phẩm được yêu thích nhiều nhất */
@@ -534,7 +538,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
         $dateRange = $this->getDateRangeByRequest($request);
 
-        if ( ! empty($dateRange[0]) && ! empty($dateRange[1])) {
+        if (! empty($dateRange[0]) && ! empty($dateRange[1])) {
             $start_date = $dateRange[0];
             $end_date = $dateRange[1];
         }
@@ -568,7 +572,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
         $dateRange = $this->getDateRangeByRequest($request);
 
-        if ( ! empty($dateRange[0]) && ! empty($dateRange[1])) {
+        if (! empty($dateRange[0]) && ! empty($dateRange[1])) {
             $start_date = $dateRange[0];
             $end_date = $dateRange[1];
         }

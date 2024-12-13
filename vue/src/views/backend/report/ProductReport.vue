@@ -19,6 +19,10 @@
         
         <PopularProduct :date="date" :startDate="start_date" :endDate="end_date" />
 
+        <TopProductReview :date="date" :startDate="start_date" :endDate="end_date" />
+
+        <TopProductWishlist :date="date" :startDate="start_date" :endDate="end_date" />
+
         </a-row>
       </div>
     </template>
@@ -31,7 +35,11 @@ import TopProductSell from './partials/dashboard/TopProductSell.vue';
 
 import PopularProduct from './partials/dashboard/PopularProduct.vue';
 
+import TopProductReview from './partials/dashboard/TopProductReview.vue';
+
 import AvgTotalPriceOrder from './partials/dashboard/AvgTotalPriceOrder.vue';
+
+import TopProductWishlist from './partials/dashboard/TopProductWishlist.vue';
 
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';

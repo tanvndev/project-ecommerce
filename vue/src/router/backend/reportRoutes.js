@@ -44,6 +44,18 @@ const reportRoutes = [
     beforeEnter: [isLoggedIn]
   },
   {
+    path: '/report/top-product-review',
+    name: 'report.top.product.review',
+    component: () => import('@/views/backend/report/TopProductReviewView.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
+    path: '/report/top-product-withlist',
+    name: 'report.top.product.withlist',
+    component: () => import('@/views/backend/report/TopProductWishlistView.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
     path: '/report/top-search-history',
     name: 'report.top.search.history',
     component: () => import('@/views/backend/report/TopSearchHistoryView.vue'),
