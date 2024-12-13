@@ -267,11 +267,13 @@ Route::middleware(['api'])->group(function () {
             Route::get('products', 'getProductReport')->name('getProductReport');
 
             Route::get('popular-products', 'popularProducts')->name('popularProducts');
-            
+
             // Thống kê khách hàng trung thành
             Route::get('loyal-customers', 'loyalCustomers')->name('loyalCustomers');
 
             Route::get('search-history', 'searchHistory')->name('searchHistory');
+
+            Route::get('low-and-out-of-stock-variants', 'lowAndOutOfStockVariants')->name('lowAndOutOfStockVariants');
 
             // Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
         });

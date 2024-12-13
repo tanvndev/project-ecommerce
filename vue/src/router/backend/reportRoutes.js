@@ -50,6 +50,12 @@ const reportRoutes = [
     beforeEnter: [isLoggedIn]
   },
   {
+    path: '/report/low-and-out-of-stock',
+    name: 'report.low.and.out.of.stock',
+    component: () => import('@/views/backend/report/LowAndOutOfStockVariantsView.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
     path: '/report/top-product-withlist',
     name: 'report.top.product.withlist',
     component: () => import('@/views/backend/report/TopProductWishlistView.vue'),

@@ -600,4 +600,36 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
         return $loyalCustomers;
     }
+
+    function getLowAndOutOfStockVariants()
+    {
+        return DB::table('product_variants')
+            ->leftJoin('order_items', 'product_variants.id', '=', 'order_items.product_variant_id')
+            ->select(
+                'product_variants.id',
+                'product_variants.name',
+                'product_variants.image',
+                'product_variants.stock',
+                'product_variants.low_stock_amount',
+                'product_variants.sku',
+                DB::raw('COALESCE(SUM(order_items.quantity), 0) as total_sold'),
+                DB::raw("
+                    CASE
+                        WHEN product_variants.stock <= 0 THEN 'Hết hàng'
+                        WHEN product_variants.stock <= product_variants.low_stock_amount THEN 'Ít hàng'
+                        ELSE 'Còn hàng'
+                    END as status
+                ")
+            )
+            ->groupBy('product_variants.id')
+            ->havingRaw('product_variants.stock <= product_variants.low_stock_amount')
+            ->orderByRaw("
+                CASE
+                    WHEN product_variants.stock <= 0 THEN 1
+                    WHEN product_variants.stock <= product_variants.low_stock_amount THEN 2
+                    ELSE 3
+                END
+            ")
+            ->paginate(10);
+    }
 }

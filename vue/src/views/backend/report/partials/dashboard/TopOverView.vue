@@ -65,7 +65,7 @@
               <span class="border-b border-dashed">Giá trị tồn kho </span>
               <TooltipComponent title="Giá trị tồn kho = Giá vốn * Tồn kho" />
             </div>
-            <RouterLink to="#" class="report-block-link">
+            <RouterLink :to="{name: 'report.low.and.out.of.stock'}" class="report-block-link">
               <i class="far fa-arrow-circle-right"></i>
             </RouterLink>
           </div>
