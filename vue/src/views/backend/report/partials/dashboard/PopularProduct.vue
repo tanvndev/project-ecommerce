@@ -1,42 +1,38 @@
 <template>
-  <a-col :span="8">
+  <a-col class="top-product" :span="12">
     <a-card class="p-0">
-      <div>
+      <div class="">
         <div class="flex items-center justify-between">
           <div class="mb-3">
-            <span class="border-b border-dashed">Top từ khóa tìm kiếm</span>
-            <TooltipComponent title="Top từ khóa có lượng tìm kiếm nhiều nhất" />
+            <span class="border-b border-dashed">Top sản phẩm phổ biến</span>
+            <TooltipComponent title="Top sản phẩm được thêm vào giỏ hàng" />
           </div>
-          <RouterLink :to="{ name: 'report.top.search.history' }" class="report-block-link">
+          <RouterLink :to="{ name: 'report.top.popular.product' }" class="report-block-link">
             <i class="far fa-arrow-circle-right"></i>
           </RouterLink>
         </div>
       </div>
 
-      <!-- Display keyword and search count only -->
-      <div v-if="dataKeywords.length > 0">
+      <div v-if="dataPopularProduct?.length">
         <div
           class="flex items-center justify-between border-b py-[14.5px] last:border-none"
-          v-for="(item, index) in dataKeywords"
+          v-for="(item, index) in dataPopularProduct"
           :key="index"
         >
-          <p class=" truncate">{{ item.keyword }}</p>
-
-          <div class="font-semibold text-gray-600">{{ item.total_count }} lần</div>
+          <div>
+            <p class="w-[450px] truncate">{{ item.name }}</p>
+          </div>
+          <div class="flex items-center">
+            <div>
+              <span class="text-gray-400"> {{ item.frequency_of_appearance }} sản phẩm </span>
+            </div>
+            <div class="ml-24">
+              <i class="fas fa-minus text-gray-400"></i>
+            </div>
+          </div>
         </div>
       </div>
-
-      <!-- <div v-if="dataKeywords.length > 0">
-        <div
-          class="flex items-center justify-between border-b py-[14.5px] last:border-none"
-          v-for="(item, index) in dataKeywords"
-          :key="index"
-        >
-          <p class="w-[450px] truncate">{{ item.keyword }}</p>
-
-          <div class="font-semibold text-gray-600">{{ item.search_count }} lần</div>
-        </div>
-      </div> -->
+      
       <a-skeleton active v-else />
     </a-card>
   </a-col>
@@ -45,9 +41,9 @@
 <script setup>
 import { TooltipComponent } from '@/components/backend';
 import axios from '@/configs/axios';
+import { formatCurrency } from '@/utils/format';
 import { debounce } from '@/utils/helpers';
 import { ref, watch } from 'vue';
-
 
 const props = defineProps({
   date: {
@@ -64,11 +60,11 @@ const props = defineProps({
   }
 });
 
-const dataKeywords = ref([]);
+const dataPopularProduct = ref([]);
 
 const getData = async () => {
   try {
-    const response = await axios.get('/statistics/search-history', {
+    const response = await axios.get('/statistics/popular-products', {
       params: {
         date: props.date,
         start_date: props.startDate,
@@ -76,7 +72,8 @@ const getData = async () => {
         pageSize: 5
       }
     });
-    dataKeywords.value = response.data?.data;
+
+    dataPopularProduct.value = response.data?.data;
   } catch (error) {
     console.log(error);
   }

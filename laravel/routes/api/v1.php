@@ -265,6 +265,11 @@ Route::middleware(['api'])->group(function () {
                 // Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
             });
     });
+            Route::get('low-and-out-of-stock-variants', 'lowAndOutOfStockVariants')->name('lowAndOutOfStockVariants');
+
+            // Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
+        });
+});
 
     // CART ROUTE
     Route::controller(CartController::class)->name('cart.')->group(function () {
