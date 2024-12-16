@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use App\Enums\ResponseEnum;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
@@ -48,6 +49,13 @@ class Handler extends ExceptionHandler
     public function render($request, Throwable $exception)
     {
         if ($request->is('api/*')) {
+
+            if ($exception instanceof AuthorizationException) {
+                return response()->json([
+                    'error' => 'This action is unauthorized',
+                ], 403);
+            }
+
             if ($exception instanceof ModelNotFoundException) {
                 return response()->json(['error' => 'Resource not found'], ResponseEnum::NOT_FOUND);
             }

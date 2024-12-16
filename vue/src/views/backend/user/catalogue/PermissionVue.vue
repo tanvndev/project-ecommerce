@@ -1,7 +1,7 @@
 <template>
   <MasterLayout>
     <template #template>
-      <div class="mx-10 mb-5 min-h-screen">
+      <div class="mx-10 mb-24 min-h-screen">
         <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
         <a-card class="mt-3">
           <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
@@ -50,7 +50,7 @@
             </table>
           </div>
           <div class="fixed bottom-[40px] right-[40px]">
-            <a-button @click="onSubmit" :loading="loading" type="primary">
+            <a-button @click="onSubmit" :loading="loading" type="primary" size="large">
               <i class="fas fa-save mr-2"></i>
               <span>Lưu thông tin</span>
             </a-button>

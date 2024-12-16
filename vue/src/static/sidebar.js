@@ -62,19 +62,27 @@ const sidebar = [
   {
     id: 'user_sidebar',
     icon: 'fas fa-users-medical',
-    name: 'Thành viên',
+    name: 'Người dùng',
     active: ['user'],
     subMenu: [
       {
-        name: 'Danh sách thành viên',
+        name: 'Danh sách người dùng',
         route: 'user.index'
       },
       {
-        name: 'Nhóm thành viên',
+        name: 'Danh sách nhân viên',
+        route: 'user.staff.index'
+      },
+      {
+        name: 'Danh sách quản trị',
+        route: 'user.admin.index'
+      },
+      {
+        name: 'Nhóm người dùng',
         route: 'user.catalogue.index'
       },
       {
-        name: 'Quyền thành viên',
+        name: 'Quyền người dùng',
         route: 'permission.index'
       }
     ]

@@ -134,6 +134,8 @@ Route::middleware(['api'])->group(function () {
             Route::apiResource('users/catalogues', UserCatalogueController::class);
         });
         Route::put('users/update/profile', [UserController::class, 'updateProfile'])->name('users.update.profile');
+        Route::get('users/staff/index', [UserController::class, 'listStaff'])->name('users.staff.index');
+        Route::get('users/admin/index', [UserController::class, 'listAdmin'])->name('users.admin.index');
         Route::apiResource('users', UserController::class);
 
         // PERMISSION ROUTE
@@ -144,12 +146,12 @@ Route::middleware(['api'])->group(function () {
         Route::prefix('/')->name('products.')->group(function () {
             Route::apiResource('products/catalogues', ProductCatalogueController::class);
         });
-        Route::get('products/report', [ProductController::class, 'getProductReport']);
+        Route::get('products/report', [ProductController::class, 'getProductReport'])->name('products.report');
 
-        Route::get('products/variants', [ProductController::class, 'getProductVariants']);
-        Route::put('products/variants/update', [ProductController::class, 'updateVariant']);
-        Route::delete('products/variants/delete/{id}', [ProductController::class, 'deleteVariant']);
-        Route::put('products/attributes/update/{productId}', [ProductController::class, 'updateAttribute']);
+        Route::get('products/variants', [ProductController::class, 'getProductVariants'])->name('products.variants');
+        Route::put('products/variants/update', [ProductController::class, 'updateVariant'])->name('products.variants.update');
+        Route::delete('products/variants/delete/{id}', [ProductController::class, 'deleteVariant'])->name('products.variants.delete');
+        Route::put('products/attributes/update/{productId}', [ProductController::class, 'updateAttribute'])->name('products.attributes.update');
         Route::apiResource('products', ProductController::class);
 
         // ATTRIBUTE ROUTE
@@ -174,7 +176,7 @@ Route::middleware(['api'])->group(function () {
         Route::apiResource('flash-sales', FlashSaleController::class);
 
         // SYSTEM CONFIG ROUTE
-        Route::put('system-configs', [SystemConfigController::class, 'update']);
+        Route::put('system-configs', [SystemConfigController::class, 'update'])->name('system-configs.update');
 
         // WIDGET ROUTE
         Route::apiResource('widgets', WidgetController::class);
@@ -201,7 +203,7 @@ Route::middleware(['api'])->group(function () {
         Route::get('wishlists/send-mail', [WishListController::class, 'sendWishListMail']);
 
         // CREATE ORDER WITH ADMIN
-        Route::post('orders/create', [OrderController::class, 'createOrder']);
+        Route::post('orders/create', [OrderController::class, 'createOrder'])->name('orders.create');
 
         // ORDER ROUTE
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
@@ -223,7 +225,51 @@ Route::middleware(['api'])->group(function () {
         Route::get('/chats/list', [ChatController::class, 'getChatList']);
         Route::get('/chats/user/list', [ChatController::class, 'getChatListUser']);
         Route::get('/chats/message/{id}', [ChatController::class, 'getMessage']);
+
+        // PROHIBITED WORDS ROUTE
+        route::controller(ProhibitedWordsController::class)->name('prohibited-words.')->group(function () {
+            Route::get('prohibited-words', 'index')->name('index');
+            Route::post('prohibited-words', 'store')->name('store');
+            Route::get('prohibited-words/{id}', 'show')->name('show');
+            Route::put('prohibited-words/{id}', 'update')->name('update');
+            Route::delete('prohibited-words/{id}', 'destroy')->name('destroy');
+        });
+
+        // ORDERS STATUS ROUTE
+        Route::get('orders-status', [OrderStatusController::class, 'index'])->name('orders.status-index');
+        Route::post('orders/status-change-request', [OrderStatusController::class, 'store'])->name('orders.status-change-request');
+        Route::post('status-change-requests/approve', [OrderStatusController::class, 'update'])->name('orders.status-change-request-approve');
+        Route::post('status-change-requests/reject', [OrderStatusController::class, 'cancel'])->name('orders.status-change-request-reject');
+
+
+        // Statistics
+        Route::controller(StatisticController::class)
+            ->prefix('statistics')
+            ->name('statistics.')
+            ->group(function () {
+                // Thống kê tổng quan
+                Route::get('report-overview', 'reportOverview')->name('reportOverview');
+                // Thống kê doanh thu theo ngày
+                Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
+
+                // Thống kê sản phẩm phổ biến được thêm vào giỏ hàng
+
+                Route::get('products', 'getProductReport')->name('getProductReport');
+
+                Route::get('popular-products', 'popularProducts')->name('popularProducts');
+                // Thống kê khách hàng trung thành
+                Route::get('loyal-customers', 'loyalCustomers')->name('loyalCustomers');
+
+                Route::get('search-history', 'searchHistory')->name('searchHistory');
+
+                // Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
+            });
     });
+            Route::get('low-and-out-of-stock-variants', 'lowAndOutOfStockVariants')->name('lowAndOutOfStockVariants');
+
+            // Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
+        });
+});
 
     // CART ROUTE
     Route::controller(CartController::class)->name('cart.')->group(function () {
@@ -235,46 +281,4 @@ Route::middleware(['api'])->group(function () {
         Route::delete('carts/delete-cart-selected', 'deleteCartSelected')->name('deleteCartSelected');
         Route::get('carts/add-paid-products', 'addPaidProductsToCart')->name('addPaidProducts');
     });
-
-    // PROHIBITED WORDS ROUTE
-    route::controller(ProhibitedWordsController::class)->name('prohibited-words.')->group(function () {
-        Route::get('prohibited-words', 'index')->name('index');
-        Route::post('prohibited-words', 'store')->name('store');
-        Route::get('prohibited-words/{id}', 'show')->name('show');
-        Route::put('prohibited-words/{id}', 'update')->name('update');
-        Route::delete('prohibited-words/{id}', 'destroy')->name('destroy');
-    });
-
-    // ORDERS STATUS ROUTE
-    Route::get('orders-status', [OrderStatusController::class, 'index']);
-    Route::post('orders/status-change-request', [OrderStatusController::class, 'store']);
-    Route::post('status-change-requests/approve', [OrderStatusController::class, 'update']);
-    Route::post('status-change-requests/reject', [OrderStatusController::class, 'cancel']);
-
-
-    // Statistics
-    Route::controller(StatisticController::class)
-        ->prefix('statistics')
-        ->name('statistics.')
-        ->group(function () {
-            // Thống kê tổng quan
-            Route::get('report-overview', 'reportOverview')->name('reportOverview');
-            // Thống kê doanh thu theo ngày
-            Route::get('revenue-by-date', 'revenueByDate')->name('revenueByDate');
-
-            // Thống kê sản phẩm phổ biến được thêm vào giỏ hàng
-
-            Route::get('products', 'getProductReport')->name('getProductReport');
-
-            Route::get('popular-products', 'popularProducts')->name('popularProducts');
-
-            // Thống kê khách hàng trung thành
-            Route::get('loyal-customers', 'loyalCustomers')->name('loyalCustomers');
-
-            Route::get('search-history', 'searchHistory')->name('searchHistory');
-
-            Route::get('low-and-out-of-stock-variants', 'lowAndOutOfStockVariants')->name('lowAndOutOfStockVariants');
-
-            // Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
-        });
 });

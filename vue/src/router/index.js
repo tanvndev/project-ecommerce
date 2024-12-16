@@ -30,7 +30,17 @@ const routes = [
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: () => import('@/components/backend/layouts/NotFound.vue')
+    component: () => import('@/views/error/NotFound.vue')
+  },
+  {
+    path: '/forbidden',
+    name: 'forbidden',
+    component: () => import('@/views/error/ForbiddenView.vue')
+  },
+  {
+    path: '/too-many-request',
+    name: 'too-many-request',
+    component: () => import('@/views/error/TooManyRequest.vue')
   },
   {
     path: '/dashboard',

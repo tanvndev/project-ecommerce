@@ -37,6 +37,7 @@ class SystemConfigController extends Controller
      */
     public function update(): JsonResponse
     {
+        $this->authorizePermission('system-configs.update');
         $response = $this->systemConfigService->update();
 
         return handleResponse($response, ResponseEnum::CREATED);

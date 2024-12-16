@@ -8,6 +8,18 @@ const userRoutes = [
     beforeEnter: [isLoggedIn]
   },
   {
+    path: '/user/staff/index',
+    name: 'user.staff.index',
+    component: () => import('@/views/backend/user/user/StaffIndex.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
+    path: '/user/admin/index',
+    name: 'user.admin.index',
+    component: () => import('@/views/backend/user/user/AdminIndex.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
     path: '/user/store',
     name: 'user.store',
     component: () => import('@/views/backend/user/user/StoreView.vue'),

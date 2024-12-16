@@ -31,7 +31,7 @@ class PermissionController extends Controller
      */
     public function index(): JsonResponse
     {
-        // $this->authorize('modules', 'permissions.index');
+        $this->authorizePermission('permissions.index');
 
         $paginator = $this->permissionService->paginate();
         $data = new PermissionCollection($paginator);
@@ -44,7 +44,7 @@ class PermissionController extends Controller
      */
     public function store(StorePermissionRequest $request): JsonResponse
     {
-        // $this->authorize('modules', 'permissions.store');
+        $this->authorizePermission('permissions.store');
 
         $response = $this->permissionService->create();
 
@@ -56,7 +56,7 @@ class PermissionController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        // $this->authorize('modules', 'permissions.show');
+        $this->authorizePermission('permissions.show');
 
         $response = new PermissionResource($this->permissionRepository->findById($id));
 
@@ -68,7 +68,7 @@ class PermissionController extends Controller
      */
     public function update(UpdatePermissionRequest $request, string $id): JsonResponse
     {
-        // $this->authorize('modules', 'permissions.update');
+        $this->authorizePermission('permissions.update');
 
         $response = $this->permissionService->update($id);
 
@@ -80,7 +80,7 @@ class PermissionController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
-        // $this->authorize('modules', 'permissions.destroy');
+        $this->authorizePermission('permissions.destroy');
 
         $response = $this->permissionService->destroy($id);
 

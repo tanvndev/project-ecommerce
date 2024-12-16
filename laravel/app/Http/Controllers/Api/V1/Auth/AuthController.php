@@ -61,7 +61,7 @@ class AuthController extends Controller
     {
         $response = $this->verifyRecaptcha($request->input('g-recaptcha-response'));
 
-        if ( ! $response) {
+        if (! $response) {
             return errorResponse('Xác minh captcha không thành công', true);
         }
 
@@ -69,11 +69,11 @@ class AuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if ( ! $user) {
+        if (! $user) {
             return errorResponse('Email hoặc mật khẩu không chính xác.', true);
         }
 
-        if ( ! $user->hasVerifiedEmail()) {
+        if (! $user->hasVerifiedEmail()) {
             return errorResponse('Vui lòng xác nhận email của bạn trước khi đăng nhập.', true);
         }
 
@@ -88,7 +88,7 @@ class AuthController extends Controller
     {
         $response = $this->verifyRecaptcha($request->input('g-recaptcha-response'));
 
-        if ( ! $response) {
+        if (! $response) {
             return errorResponse('Xác minh captcha không thành công', true);
         }
 
@@ -102,7 +102,7 @@ class AuthController extends Controller
             return errorResponse($response['messages'], true);
         }
 
-        if ( ! $user->hasVerifiedEmail()) {
+        if (! $user->hasVerifiedEmail()) {
             return errorResponse('Vui lòng xác nhận email của bạn trước khi đăng nhập.', true);
         }
 
@@ -142,6 +142,14 @@ class AuthController extends Controller
      */
     public function me(): JsonResponse
     {
+        if ($this->currentUser->publish == 2) {
+            return response()->json(null, ResponseEnum::FORBIDDEN);
+        }
+
+        if ($this->currentUser->email_verified_at == null) {
+            return response()->json(null, ResponseEnum::FORBIDDEN);
+        }
+
         $user =
             $this->currentUser->user_catalogue->id == User::ROLE_CUSTOMER
             ?
@@ -204,11 +212,11 @@ class AuthController extends Controller
         }
 
         $phone = $request->input('phone');
-        if ( ! $phone) {
+        if (! $phone) {
             return errorResponse('Vui lòng nhập số điện thoại.', true);
         }
         $user = User::where('phone', $phone)->first();
-        if ( ! $user) {
+        if (! $user) {
             return errorResponse('Số điện thoại không tồn tại trong hệ thống.', true);
         }
 

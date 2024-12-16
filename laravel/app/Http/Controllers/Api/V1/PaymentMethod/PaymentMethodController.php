@@ -32,6 +32,7 @@ class PaymentMethodController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorizePermission('payment-methods-index');
         $paginator = $this->paymentMethodService->paginate();
         $data = new PaymentMethodCollection($paginator);
 
@@ -43,6 +44,7 @@ class PaymentMethodController extends Controller
      */
     public function store(StorePaymentMethodRequest $request): JsonResponse
     {
+        $this->authorizePermission('payment-methods.index');
         $response = $this->paymentMethodService->create();
 
         return handleResponse($response, ResponseEnum::CREATED);
@@ -53,6 +55,7 @@ class PaymentMethodController extends Controller
      */
     public function show(string $id): JsonResponse
     {
+        $this->authorizePermission('payment-methods.show');
         $paymentMethod = new PaymentMethodResource($this->paymentMethodRepository->findById($id));
 
         return successResponse('', $paymentMethod, true);
@@ -63,6 +66,7 @@ class PaymentMethodController extends Controller
      */
     public function update(UpdatePaymentMethodRequest $request, string $id): JsonResponse
     {
+        $this->authorizePermission('payment-methods.update');
         $response = $this->paymentMethodService->update($id);
 
         return handleResponse($response);

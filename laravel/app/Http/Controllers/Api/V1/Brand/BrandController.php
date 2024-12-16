@@ -31,6 +31,7 @@ class BrandController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorizePermission('brands.index');
         $paginator = $this->brandService->paginate();
         $data = new BrandCollection($paginator);
 
@@ -42,6 +43,7 @@ class BrandController extends Controller
      */
     public function store(StoreBrandRequest $request): JsonResponse
     {
+        $this->authorizePermission('brands.store');
         $response = $this->brandService->create();
 
         return handleResponse($response, ResponseEnum::CREATED);
@@ -52,6 +54,7 @@ class BrandController extends Controller
      */
     public function show(string $id): JsonResponse
     {
+        $this->authorizePermission('brands.show');
         $brand = new BrandResource($this->brandRepository->findById($id));
 
         return successResponse('', $brand, true);
@@ -62,6 +65,7 @@ class BrandController extends Controller
      */
     public function update(UpdateBrandRequest $request, string $id): JsonResponse
     {
+        $this->authorizePermission('brands.update');
         $response = $this->brandService->update($id);
 
         return handleResponse($response);
@@ -72,6 +76,7 @@ class BrandController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
+        $this->authorizePermission('brands.destroy');
         $response = $this->brandService->destroy($id);
 
         return handleResponse($response);

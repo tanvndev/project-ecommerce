@@ -31,6 +31,7 @@ class AttributeController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorizePermission('attributes.index');
         $paginator = $this->attributeService->paginate();
         $data = new AttributeCollection($paginator);
 
@@ -42,6 +43,7 @@ class AttributeController extends Controller
      */
     public function store(StoreAttributeRequest $request): JsonResponse
     {
+        $this->authorizePermission('attributes.store');
         $response = $this->attributeService->create();
 
         return handleResponse($response, ResponseEnum::CREATED);
@@ -52,6 +54,7 @@ class AttributeController extends Controller
      */
     public function show(string $id): JsonResponse
     {
+        $this->authorizePermission('attributes.show');
         $response = new AttributeResource($this->attributeRepository->findById($id));
 
         return successResponse('', $response, true);
@@ -62,6 +65,7 @@ class AttributeController extends Controller
      */
     public function update(UpdateAttributeRequest $request, string $id): JsonResponse
     {
+        $this->authorizePermission('attributes.update');
         $response = $this->attributeService->update($id);
 
         return handleResponse($response);
@@ -72,6 +76,7 @@ class AttributeController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
+        $this->authorizePermission('attributes.destroy');
         $response = $this->attributeService->destroy($id);
 
         return handleResponse($response);

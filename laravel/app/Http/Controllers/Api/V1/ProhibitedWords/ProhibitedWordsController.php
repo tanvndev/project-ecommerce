@@ -21,6 +21,7 @@ class ProhibitedWordsController extends Controller
 
     public function index(): JsonResponse
     {
+        $this->authorizePermission('prohibited-words.index');
         $response = $this->prohibitedWordService->paginate();
 
         $data = new ProhibitedWordCollection($response);
@@ -30,6 +31,7 @@ class ProhibitedWordsController extends Controller
 
     public function store(StoreProhibitedWordRequest $request): JsonResponse
     {
+        $this->authorizePermission('prohibited-words.store');
 
         $response = $this->prohibitedWordService->create();
 
@@ -38,6 +40,7 @@ class ProhibitedWordsController extends Controller
 
     public function show(string $id): JsonResponse
     {
+        $this->authorizePermission('prohibited-words.show');
         $brand = new ProhibitedWordResource($this->prohibitedWordRepository->findById($id));
 
         return successResponse('', $brand, true);
@@ -45,6 +48,7 @@ class ProhibitedWordsController extends Controller
 
     public function update(UpdateProhibitedWordRequest $request, string $id): JsonResponse
     {
+        $this->authorizePermission('prohibited-words.update');
 
         $response = $this->prohibitedWordService->update($id);
 

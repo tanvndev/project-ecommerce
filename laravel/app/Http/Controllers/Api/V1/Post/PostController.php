@@ -30,6 +30,7 @@ class PostController extends Controller
 
     public function index(): JsonResponse
     {
+        $this->authorizePermission('posts.index');
         $paginator = $this->postService->paginate();
         $data = new PostCollection($paginator);
 
@@ -38,6 +39,7 @@ class PostController extends Controller
 
     public function store(StorePostRequest $request): JsonResponse
     {
+        $this->authorizePermission('posts.store');
         $response = $this->postService->create();
 
         return handleResponse($response, ResponseEnum::CREATED);
@@ -45,6 +47,7 @@ class PostController extends Controller
 
     public function show(string $id): JsonResponse
     {
+        $this->authorizePermission('posts.show');
         $post = new PostResource($this->postRepository->findById($id));
 
         return successResponse('', $post, true);
@@ -52,6 +55,7 @@ class PostController extends Controller
 
     public function update(UpdatePostRequest $request, string $id): JsonResponse
     {
+        $this->authorizePermission('posts.update');
         $response = $this->postService->update($id);
 
         return handleResponse($response);
@@ -59,6 +63,7 @@ class PostController extends Controller
 
     public function destroy(string $id): JsonResponse
     {
+        $this->authorizePermission('posts.destroy');
         $response = $this->postService->destroy($id);
 
         return handleResponse($response);
