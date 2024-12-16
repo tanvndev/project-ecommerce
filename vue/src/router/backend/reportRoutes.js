@@ -38,9 +38,39 @@ const reportRoutes = [
     beforeEnter: [isLoggedIn]
   },
   {
+    path: '/report/top-popular-product',
+    name: 'report.top.popular.product',
+    component: () => import('@/views/backend/report/TopPopularProductView.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
+    path: '/report/top-product-review',
+    name: 'report.top.product.review',
+    component: () => import('@/views/backend/report/TopProductReviewView.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
+    path: '/report/low-and-out-of-stock',
+    name: 'report.low.and.out.of.stock',
+    component: () => import('@/views/backend/report/LowAndOutOfStockVariantsView.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
+    path: '/report/top-product-withlist',
+    name: 'report.top.product.withlist',
+    component: () => import('@/views/backend/report/TopProductWishlistView.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
     path: '/report/top-search-history',
     name: 'report.top.search.history',
     component: () => import('@/views/backend/report/TopSearchHistoryView.vue'),
+    beforeEnter: [isLoggedIn]
+  },
+  {
+    path: '/report/top-loyal-customer',
+    name: 'report.top.loyal.customer',
+    component: () => import('@/views/backend/report/TopLoyalCustomerView.vue'),
     beforeEnter: [isLoggedIn]
   }
 ];

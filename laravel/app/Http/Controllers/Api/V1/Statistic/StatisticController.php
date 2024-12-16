@@ -67,4 +67,11 @@ class StatisticController extends Controller
 
         return successResponse('', $paginator, true);
     }
+
+    public function lowAndOutOfStockVariants()
+    {
+        $paginator = $this->statisticService->getLowAndOutOfStockVariants();
+
+        return successResponse('', $paginator, true);
+    }
 }
