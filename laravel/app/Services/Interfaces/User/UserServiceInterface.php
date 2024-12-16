@@ -4,7 +4,7 @@ namespace App\Services\Interfaces\User;
 
 interface UserServiceInterface
 {
-    public function paginate();
+    public function paginate($userCatalogueId = null);
 
     public function create();
 

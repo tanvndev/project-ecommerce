@@ -39,6 +39,7 @@ class OrderController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorizePermission('orders.index');
         $order = $this->orderService->paginate();
 
         $data = new OrderCollection($order ?? []);
@@ -53,6 +54,7 @@ class OrderController extends Controller
      */
     public function show($orderCode): JsonResponse
     {
+        $this->authorizePermission('orders.show');
         $order = $this->orderService->getOrder($orderCode);
 
         $data = is_null($order) ? null : new OrderResource($order ?? []);
@@ -65,6 +67,7 @@ class OrderController extends Controller
      */
     public function store(StoreOrderRequest $request): JsonResponse
     {
+        $this->authorizePermission('orders.store');
 
         if ($request->has('voucher_id')) {
             $res = $this->voucherService->applyVoucher($request->voucher_id);
@@ -89,6 +92,7 @@ class OrderController extends Controller
      */
     public function update(UpdateOrderRequest $request, string $id): JsonResponse
     {
+        $this->authorizePermission('orders.update');
         $response = $this->orderService->update($id);
 
         return handleResponse($response);
@@ -203,6 +207,7 @@ class OrderController extends Controller
 
     public function createOrder(Request $request): JsonResponse
     {
+        $this->authorizePermission('orders.create');
         $order = $this->orderService->createNewOrder();
 
         // return handleResponse($order, ResponseEnum::CREATED);

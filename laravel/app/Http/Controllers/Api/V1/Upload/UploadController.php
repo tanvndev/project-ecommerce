@@ -23,6 +23,7 @@ class UploadController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorizePermission('uploads.index');
         $response = $this->uploadService->paginate();
 
         return handleResponse($response);
@@ -33,6 +34,7 @@ class UploadController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $this->authorizePermission('uploads.store');
         $response = $this->uploadService->create();
 
         return handleResponse($response, ResponseEnum::CREATED);
@@ -43,6 +45,7 @@ class UploadController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
+        $this->authorizePermission('uploads.destroy');
         $response = $this->uploadService->destroy($id);
 
         return handleResponse($response);

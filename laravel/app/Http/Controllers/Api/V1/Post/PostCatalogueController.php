@@ -31,6 +31,7 @@ class PostCatalogueController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorizePermission('posts.catalogues.index');
         $response = $this->PostCatalogueService->paginate();
 
         return successResponse('', $response, true);
@@ -41,6 +42,7 @@ class PostCatalogueController extends Controller
      */
     public function store(StorePostCatalogueRequest $request): JsonResponse
     {
+        $this->authorizePermission('posts.catalogues.store');
         $response = $this->PostCatalogueService->create();
 
         return handleResponse($response, ResponseEnum::CREATED);
@@ -51,6 +53,7 @@ class PostCatalogueController extends Controller
      */
     public function show(string $id): JsonResponse
     {
+        $this->authorizePermission('posts.catalogues.show');
         $response = new PostCatalogueResource($this->PostCatalogueRepository->findById($id));
 
         return successResponse('', $response, true);
@@ -61,6 +64,7 @@ class PostCatalogueController extends Controller
      */
     public function update(UpdatePostCatalogueRequest $request, string $id): JsonResponse
     {
+        $this->authorizePermission('posts.catalogues.update');
         $response = $this->PostCatalogueService->update($id);
 
         return handleResponse($response);
@@ -71,19 +75,9 @@ class PostCatalogueController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
+        $this->authorizePermission('posts.catalogues.destroy');
         $response = $this->PostCatalogueService->destroy($id);
 
         return handleResponse($response);
-    }
-
-    /**
-     * List all Post catalogues for the client.
-     */
-    public function list(): JsonResponse
-    {
-        $paginator = $this->PostCatalogueService->list();
-        $data = new PostCatalogueCollection($paginator);
-
-        return successResponse('', $data, true);
     }
 }

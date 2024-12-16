@@ -212,30 +212,30 @@
 }
 
 /* When the checkbox is checked, add a blue background */
-.container input:checked ~ .checkmark {
+.container-cbx input:checked ~ .checkmark {
   box-shadow: none;
   background-color: limegreen;
   transform: rotateX(360deg);
 }
 
-.container input:checked ~ .checkmark:hover {
+.container-cbx input:checked ~ .checkmark:hover {
   box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.2);
 }
 
 /* Create the checkmark/indicator (hidden when not checked) */
-.checkmark:after {
+.checkmark::after {
   content: '';
   position: absolute;
   display: none;
 }
 
 /* Show the checkmark when checked */
-.container input:checked ~ .checkmark:after {
+.container-cbx input:checked ~ .checkmark::after {
   display: block;
 }
 
 /* Style the checkmark/indicator */
-.container .checkmark:after {
+.container-cbx .checkmark::after {
   left: 0.96em;
   top: 0.7em;
   width: 0.25em;

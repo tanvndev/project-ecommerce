@@ -32,6 +32,7 @@ class FlashSaleController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorizePermission('flash-sales.index');
         $paginator = $this->flashSaleService->paginate();
         $data = new FlashSaleCollection($paginator);
 
@@ -43,6 +44,7 @@ class FlashSaleController extends Controller
      */
     public function store(FlashSaleStoreRequest $request)
     {
+        $this->authorizePermission('flash-sales.store');
         $data = $this->flashSaleService->store($request->all());
 
         return handleResponse($data, ResponseEnum::CREATED);
@@ -53,6 +55,7 @@ class FlashSaleController extends Controller
      */
     public function show(string $id)
     {
+        $this->authorizePermission('flash-sales.show');
         $response = $this->flashSaleService->findById($id);
 
         $data = new FlashSaleResource($response);
@@ -65,6 +68,7 @@ class FlashSaleController extends Controller
      */
     public function update(FlashSaleUpdateRequest $request, string $id)
     {
+        $this->authorizePermission('flash-sales.update');
         $data = $this->flashSaleService->update($id, $request->all());
 
         return handleResponse($data);

@@ -24,6 +24,7 @@ class OrderStatusController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorizePermission('orders.status-index');
         $paginator = $this->orderStatusService->paginate();
 
         $data = new OrderStatusCollection($paginator);
@@ -36,6 +37,7 @@ class OrderStatusController extends Controller
      */
     public function store(StoreOrderStatusRequest $request): JsonResponse
     {
+        $this->authorizePermission('orders.status-change-request');
         $response = $this->orderStatusService->create();
 
         return handleResponse($response, ResponseEnum::CREATED);
@@ -46,6 +48,7 @@ class OrderStatusController extends Controller
      */
     public function update(Request $request): JsonResponse
     {
+        $this->authorizePermission('orders.status-change-request-approve');
         $response = $this->orderStatusService->update();
 
         return handleResponse($response);
@@ -53,6 +56,7 @@ class OrderStatusController extends Controller
 
     public function cancel(Request $request): JsonResponse
     {
+        $this->authorizePermission('orders.status-change-request-reject');
         $response = $this->orderStatusService->cancel();
 
         return handleResponse($response);

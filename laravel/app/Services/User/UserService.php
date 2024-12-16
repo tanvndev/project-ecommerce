@@ -4,6 +4,7 @@
 
 namespace App\Services\User;
 
+use App\Models\User;
 use App\Repositories\Interfaces\User\UserRepositoryInterface;
 use App\Services\BaseService;
 use App\Services\Interfaces\User\UserServiceInterface;
@@ -21,7 +22,7 @@ class UserService extends BaseService implements UserServiceInterface
         $this->userRepository = $userRepository;
     }
 
-    public function paginate()
+    public function paginate($userCatalogueId = null)
     {
         $request = request();
 
@@ -30,6 +31,12 @@ class UserService extends BaseService implements UserServiceInterface
             'publish'      => $request->publish,
             'searchFields' => ['fullname', 'email', 'phone'],
         ];
+
+        if ($userCatalogueId) {
+            $condition['where'] = [
+                'user_catalogue_id' => $userCatalogueId,
+            ];
+        }
 
         $select = ['id', 'fullname', 'email', 'phone', 'publish', 'user_catalogue_id', 'image'];
         $pageSize = $request->pageSize;
@@ -70,6 +77,8 @@ class UserService extends BaseService implements UserServiceInterface
     {
         return $this->executeInTransaction(function () use ($id) {
 
+            if ($id == User::ROLE_ADMIN)  throw new \Exception('AuthorizationException', 403);
+
             $payload = request()->except('_token', '_method');
             $this->userRepository->update($id, $payload);
 
@@ -80,6 +89,8 @@ class UserService extends BaseService implements UserServiceInterface
     public function destroy($id)
     {
         return $this->executeInTransaction(function () use ($id) {
+            if ($id == User::ROLE_ADMIN)  throw new \Exception('AuthorizationException', 403);
+            
             $this->userRepository->delete($id);
 
             return successResponse(__('messages.delete.success'));
@@ -93,10 +104,10 @@ class UserService extends BaseService implements UserServiceInterface
             $payload = request()->except('_token', '_method');
             $user = Auth::user();
 
-            if ( ! request()->has('fullname') && ! request()->has('birthday')) {
+            if (! request()->has('fullname') && ! request()->has('birthday')) {
                 $verificationCode = Cache::get('verification_code_' . $user->phone);
 
-                if ( ! $verificationCode) {
+                if (! $verificationCode) {
                     return errorResponse(__('messages.auth.invalid_code.error'));
                 }
             }

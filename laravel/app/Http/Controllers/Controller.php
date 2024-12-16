@@ -9,4 +9,9 @@ use Illuminate\Routing\Controller as BaseController;
 class Controller extends BaseController
 {
     use AuthorizesRequests, ValidatesRequests;
+
+    protected function authorizePermission(string $permission): void
+    {
+        $this->authorize('modules', $permission);
+    }
 }

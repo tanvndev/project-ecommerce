@@ -9,6 +9,7 @@ use App\Http\Requests\User\UpdateUserProfileRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\User\UserCollection;
 use App\Http\Resources\User\UserResource;
+use App\Models\User;
 use App\Repositories\Interfaces\User\UserRepositoryInterface;
 use App\Services\Interfaces\User\UserServiceInterface;
 use Illuminate\Http\JsonResponse;
@@ -32,20 +33,41 @@ class UserController extends Controller
      */
     public function index(): JsonResponse
     {
-        // $this->authorize('modules', 'users.index');
+        $this->authorize('modules', 'users.index');
 
-        $paginator = $this->userService->paginate();
+        $paginator = $this->userService->paginate(User::ROLE_CUSTOMER);
         $data = new UserCollection($paginator);
 
         return successResponse('', $data, true);
     }
+
+    public function listStaff(): JsonResponse
+    {
+        $this->authorize('modules', 'users.staff.index');
+
+        $paginator = $this->userService->paginate(User::ROLE_STAFF);
+        $data = new UserCollection($paginator);
+
+        return successResponse('', $data, true);
+    }
+
+    public function listAdmin(): JsonResponse
+    {
+        $this->authorize('modules', 'users.admin.index');
+
+        $paginator = $this->userService->paginate(User::ROLE_ADMIN);
+        $data = new UserCollection($paginator);
+
+        return successResponse('', $data, true);
+    }
+
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(StoreUserRequest $request): JsonResponse
     {
-        // $this->authorize('modules', 'users.store');
+        $this->authorize('modules', 'users.store');
 
         $response = $this->userService->create();
 
@@ -57,7 +79,7 @@ class UserController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        // $this->authorize('modules', 'users.show');
+        $this->authorize('modules', 'users.show');
 
         $response = new UserResource($this->userRepository->findById($id));
 
@@ -69,7 +91,7 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, string $id): JsonResponse
     {
-        // $this->authorize('modules', 'users.update');
+        $this->authorize('modules', 'users.update');
 
         $response = $this->userService->update($id);
 
@@ -81,7 +103,7 @@ class UserController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
-        // $this->authorize('modules', 'users.destroy');
+        $this->authorize('modules', 'users.destroy');
 
         $response = $this->userService->destroy($id);
 

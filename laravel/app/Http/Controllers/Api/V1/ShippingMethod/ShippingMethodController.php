@@ -32,6 +32,7 @@ class ShippingMethodController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorizePermission('shipping-methods.index');
         $paginator = $this->shippingMethodService->paginate();
         $data = new ShippingMethodCollection($paginator);
 
@@ -43,6 +44,7 @@ class ShippingMethodController extends Controller
      */
     public function store(StoreShippingMethodRequest $request): JsonResponse
     {
+        $this->authorizePermission('shipping-methods.store');
         $response = $this->shippingMethodService->create();
 
         return handleResponse($response, ResponseEnum::CREATED);
@@ -53,6 +55,7 @@ class ShippingMethodController extends Controller
      */
     public function show(string $id): JsonResponse
     {
+        $this->authorizePermission('shipping-methods.show');
         $shippingMethod = new ShippingMethodResource($this->shippingMethodRepository->findById($id));
 
         return successResponse('', $shippingMethod, true);
@@ -63,6 +66,7 @@ class ShippingMethodController extends Controller
      */
     public function update(UpdateShippingMethodRequest $request, string $id): JsonResponse
     {
+        $this->authorizePermission('shipping-methods.update');
         $response = $this->shippingMethodService->update($id);
 
         return handleResponse($response);

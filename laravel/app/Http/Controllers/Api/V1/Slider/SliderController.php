@@ -31,6 +31,7 @@ class SliderController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorizePermission('sliders.index');
         $paginator = $this->sliderService->paginate();
         $data = new SliderCollection($paginator);
 
@@ -42,6 +43,7 @@ class SliderController extends Controller
      */
     public function store(StoreSliderRequest $request): JsonResponse
     {
+        $this->authorizePermission('sliders.store');
         // return response()->json($request->all());
         $response = $this->sliderService->create();
 
@@ -53,6 +55,7 @@ class SliderController extends Controller
      */
     public function show(string $id): JsonResponse
     {
+        $this->authorizePermission('sliders.show');
         $slider = new SliderResource($this->sliderRepository->findById($id));
 
         return successResponse('', $slider, true);
@@ -63,6 +66,7 @@ class SliderController extends Controller
      */
     public function update(UpdateSliderRequest $request, string $id): JsonResponse
     {
+        $this->authorizePermission('sliders.update');
         // return response()->json($request->all());
         $response = $this->sliderService->update($id);
 
@@ -74,6 +78,7 @@ class SliderController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
+        $this->authorizePermission('sliders.destroy');
         $response = $this->sliderService->destroy($id);
 
         return handleResponse($response);

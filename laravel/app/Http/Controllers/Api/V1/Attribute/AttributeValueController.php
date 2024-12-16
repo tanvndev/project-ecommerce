@@ -31,6 +31,7 @@ class AttributeValueController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorizePermission('attributes.values.index');
         $paginator = $this->attributeValueService->paginate();
         $data = new AttributeValueCollection($paginator);
 
@@ -44,6 +45,7 @@ class AttributeValueController extends Controller
      */
     public function store(StoreAttributeValueRequest $request): JsonResponse
     {
+        $this->authorizePermission('attributes.values.store');
         $response = $this->attributeValueService->create();
 
         return handleResponse($response, ResponseEnum::CREATED);
@@ -54,6 +56,7 @@ class AttributeValueController extends Controller
      */
     public function show(string $id): JsonResponse
     {
+        $this->authorizePermission('attributes.values.show');
         $response = new AttributeValueResource($this->attributeValueRepository->findById($id));
 
         return successResponse('', $response, true);
@@ -66,6 +69,7 @@ class AttributeValueController extends Controller
      */
     public function update(UpdateAttributeValueRequest $request, string $id): JsonResponse
     {
+        $this->authorizePermission('attributes.values.update');
         $response = $this->attributeValueService->update($id);
 
         return handleResponse($response);
@@ -76,6 +80,7 @@ class AttributeValueController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
+        $this->authorizePermission('attributes.values.destroy');
         $response = $this->attributeValueService->destroy($id);
 
         return handleResponse($response);

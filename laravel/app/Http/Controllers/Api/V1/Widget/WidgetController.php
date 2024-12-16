@@ -32,6 +32,8 @@ class WidgetController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorizePermission('widgets.index');
+
         $paginator = $this->widgetService->paginate();
         $data = new WidgetCollection($paginator);
 
@@ -43,6 +45,8 @@ class WidgetController extends Controller
      */
     public function store(StoreWidgetRequest $request): JsonResponse
     {
+        $this->authorizePermission('widgets.store');
+
         $response = $this->widgetService->create();
 
         return handleResponse($response, ResponseEnum::CREATED);
@@ -53,6 +57,8 @@ class WidgetController extends Controller
      */
     public function show(string $id): JsonResponse
     {
+        $this->authorizePermission('widgets.show');
+
         $widget = new WidgetResource($this->widgetRepository->findById($id));
 
         return successResponse('', $widget, true);
@@ -63,6 +69,8 @@ class WidgetController extends Controller
      */
     public function update(UpdateWidgetRequest $request, string $id): JsonResponse
     {
+        $this->authorizePermission('widgets.update');
+
         $response = $this->widgetService->update($id);
 
         return handleResponse($response);
@@ -73,6 +81,8 @@ class WidgetController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
+        $this->authorizePermission('widgets.destroy');
+
         $response = $this->widgetService->destroy($id);
 
         return handleResponse($response);

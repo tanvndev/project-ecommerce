@@ -32,6 +32,8 @@ class VoucherController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorizePermission('vouchers.index');
+
         $paginator = $this->voucherService->paginate();
         $data = new VoucherCollection($paginator);
 
@@ -43,6 +45,8 @@ class VoucherController extends Controller
      */
     public function store(StoreVoucherRequest $request): JsonResponse
     {
+        $this->authorizePermission('system-configs.store');
+
         $response = $this->voucherService->create();
 
         return handleResponse($response, ResponseEnum::CREATED);
@@ -53,6 +57,8 @@ class VoucherController extends Controller
      */
     public function show(string $id): JsonResponse
     {
+        $this->authorizePermission('system-configs.show');
+
         $voucher = new VoucherResource($this->voucherRepository->findById($id));
 
         return successResponse('', $voucher, true);
@@ -60,6 +66,8 @@ class VoucherController extends Controller
 
     public function update(UpdateVoucherRequest $request, string $id): JsonResponse
     {
+        $this->authorizePermission('system-configs.update');
+
         $response = $this->voucherService->update($id);
 
         return handleResponse($response);
@@ -70,6 +78,8 @@ class VoucherController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
+        $this->authorizePermission('system-configs.destroy');
+
         $response = $this->voucherService->destroy($id);
 
         return handleResponse($response);

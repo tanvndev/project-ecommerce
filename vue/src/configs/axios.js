@@ -1,5 +1,6 @@
-import axios from 'axios';
+import router from '@/router';
 import store from '@/store';
+import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const instance = axios.create({
@@ -62,6 +63,28 @@ instance.interceptors.response.use(
       // Chờ promise refresh token hoàn tất
       await refreshTokenPromise;
       return instance(originalRequest);
+    }
+
+    // Handle 403 error (Forbidden)
+    if (error.response.status === 403) {
+      // Optional: Redirect to a page, such as login or an error page
+      // window.location.href = '/login';
+
+      // Redirect to 403 page using Vue Router
+      router.push({ name: 'forbidden' });
+
+      return Promise.reject(error); // Reject the promise with the error
+    }
+
+    // Handle 403 error (Forbidden)
+    if (error.response.status === 429) {
+      // Optional: Redirect to a page, such as login or an error page
+      // window.location.href = '/login';
+
+      // Redirect to 403 page using Vue Router
+      router.push({ name: 'too-many-request' });
+
+      return Promise.reject(error); // Reject the promise with the error
     }
     // Stop loading
     // store.dispatch('loadingStore/stopLoading');
