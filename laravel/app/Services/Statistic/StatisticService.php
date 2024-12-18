@@ -530,7 +530,6 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
     public function popularProducts()
     {
-
         $request = request();
 
         $start_date = '';
@@ -580,56 +579,76 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         $loyalCustomersCacheKey = "loyalCustomers_by_date_{$start_date}_{$end_date}";
 
         $loyalCustomers = Cache::remember($loyalCustomersCacheKey, 15, function () use ($start_date, $end_date) {
-            return User::join('orders', 'orders.user_id', '=', 'users.id')
+            $aggregatedOrders = DB::table('orders')
+                ->select(
+                    'user_id',
+                    DB::raw('COUNT(id) AS total_orders'),
+                    DB::raw('SUM(final_price) AS total_spent'),
+                    DB::raw('AVG(final_price) AS average_spent')
+                )
+                ->where('order_status', Order::ORDER_STATUS_COMPLETED)
                 ->when($start_date && $end_date, function ($query) use ($start_date, $end_date) {
-                    $query->where('order_status', Order::ORDER_STATUS_COMPLETED);
                     $query->whereBetween('ordered_at', [$start_date, $end_date]);
                 })
+                ->groupBy('user_id')
+                ->havingRaw('COUNT(id) > 5');
+
+            return User::joinSub($aggregatedOrders, 'orders_agg', function ($join) {
+                $join->on('users.id', '=', 'orders_agg.user_id');
+            })
                 ->select(
-                    DB::raw('users.id AS customer_id'), // id khach hang
-                    DB::raw('users.fullname AS customer_name'), // Ten khach hang
-                    DB::raw('COUNT(orders.id) AS total_orders'), // So don hang
-                    DB::raw('SUM(orders.final_price) AS total_spent'),  // Tong chi tieu cua khach hang
-                    DB::raw('AVG(orders.final_price) AS average_spent') // Chi tieu trung binh
+                    'users.id AS customer_id',
+                    'users.fullname AS customer_name',
+                    'orders_agg.total_orders',
+                    'orders_agg.total_spent',
+                    'orders_agg.average_spent'
                 )
-                ->groupBy('users.id')
-                ->havingRaw('COUNT(orders.id) > ?', [5]) // Khách hàng có 5 đơn hàng trở lên là khách hàng trung thành
-                ->orderBy('total_spent', 'DESC')
+                ->orderBy('orders_agg.total_spent', 'DESC')
                 ->paginate(request('pageSize', 20));
         });
 
         return $loyalCustomers;
     }
 
-    function getLowAndOutOfStockVariants()
+    public function getLowAndOutOfStockVariants()
     {
-        return DB::table('product_variants')
-            ->leftJoin('order_items', 'product_variants.id', '=', 'order_items.product_variant_id')
-            ->select(
-                'product_variants.id',
-                'product_variants.name',
-                'product_variants.image',
-                'product_variants.stock',
-                'product_variants.low_stock_amount',
-                'product_variants.sku',
-                DB::raw('COALESCE(SUM(order_items.quantity), 0) as total_sold'),
-                DB::raw("
+        return Cache::remember('product_variants_status', now()->addMinutes(15), function () {
+            $orderItemsCTE = DB::table('order_items')
+                ->select('product_variant_id', DB::raw('SUM(quantity) as total_sold'))
+                ->groupBy('product_variant_id');
+
+            return DB::table('product_variants')
+                ->leftJoinSub($orderItemsCTE, 'order_items_agg', function ($join) {
+                    $join->on('product_variants.id', '=', 'order_items_agg.product_variant_id');
+                })
+                ->select(
+                    'product_variants.id',
+                    'product_variants.name',
+                    'product_variants.image',
+                    'product_variants.stock',
+                    'product_variants.low_stock_amount',
+                    'product_variants.sku',
+                    DB::raw('COALESCE(order_items_agg.total_sold, 0) as total_sold'),
+                    DB::raw("
+                        CASE
+                            WHEN product_variants.stock <= 0 THEN 'Hết hàng'
+                            WHEN product_variants.stock <= product_variants.low_stock_amount THEN 'Ít hàng'
+                            ELSE 'Còn hàng'
+                        END as status
+                    ")
+                )
+                ->where(function ($query) {
+                    $query->where('product_variants.stock', '>', 0)
+                        ->orWhere('product_variants.stock', '<=', 'product_variants.low_stock_amount');
+                })
+                ->orderByRaw("
                     CASE
-                        WHEN product_variants.stock <= 0 THEN 'Hết hàng'
-                        WHEN product_variants.stock <= product_variants.low_stock_amount THEN 'Ít hàng'
-                        ELSE 'Còn hàng'
-                    END as status
+                        WHEN product_variants.stock <= 0 THEN 1
+                        WHEN product_variants.stock <= product_variants.low_stock_amount THEN 2
+                        ELSE 3
+                    END
                 ")
-            )
-            ->groupBy('product_variants.id')
-            ->havingRaw('product_variants.stock <= product_variants.low_stock_amount')
-            ->orderByRaw("
-                CASE
-                    WHEN product_variants.stock <= 0 THEN 1
-                    WHEN product_variants.stock <= product_variants.low_stock_amount THEN 2
-                    ELSE 3
-                END
-            ")
-            ->paginate(10);
+                ->paginate(10);
+        });
     }
 }

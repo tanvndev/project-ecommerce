@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\ProductVariant;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -14,17 +16,21 @@ class WishlistsTableSeeder extends Seeder
      */
     public function run(): void
     {
-        for ($i = 0; $i < 1000; $i++) {
-            $randomDate = Carbon::createFromTimestamp(rand(
-                Carbon::create(2023, 1, 1)->timestamp,
-                Carbon::create(2024, 12, 31)->timestamp
-            ));
+
+        $productVariantIds = ProductVariant::pluck('id')->toArray();
+        $userIds = User::pluck('id')->toArray();
+
+        for ($i = 0; $i < 1000001; $i++) {
+            $startDate = Carbon::createFromFormat('Y-m-d', '2023-01-01');
+            $endDate = Carbon::createFromFormat('Y-m-d', '2024-12-31');
+
+            $randomDate = $startDate->copy()->addDays(rand(0, $endDate->diffInDays($startDate)));
 
             DB::table('wishlists')->insert([
-                'user_id' => rand(22, 200),
-                'product_variant_id' => rand(215, 400),
+                'user_id'            => $userIds[array_rand($userIds)],
+                'product_variant_id' => $productVariantIds[array_rand($productVariantIds)],
                 'created_at' => $randomDate,
-                'updated_at' => now(),
+                'updated_at' => $randomDate,
             ]);
         }
     }

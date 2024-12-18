@@ -270,9 +270,16 @@ class VoucherService extends BaseService implements VoucherServiceInterface
      */
     private function handleConditionVoucher(Voucher $voucher, Collection $cartItems, float $totalPrice): bool
     {
+        // dd($voucher);
+        // dd($cartItems);
+        // dd($totalPrice);
         $now = Carbon::now();
         $startAt = Carbon::parse($voucher->start_at);
         $endAt = Carbon::parse($voucher->end_at);
+
+        if ($totalPrice < $voucher->value) {
+            return false;
+        }
 
         if ($endAt->lt($now) || $startAt->gt($now)) {
             return false;
