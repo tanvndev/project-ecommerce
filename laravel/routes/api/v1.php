@@ -269,7 +269,6 @@ Route::middleware(['api'])->group(function () {
 
             // Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
         });
-});
 
     // CART ROUTE
     Route::controller(CartController::class)->name('cart.')->group(function () {
@@ -281,4 +280,3 @@ Route::middleware(['api'])->group(function () {
         Route::delete('carts/delete-cart-selected', 'deleteCartSelected')->name('deleteCartSelected');
         Route::get('carts/add-paid-products', 'addPaidProductsToCart')->name('addPaidProducts');
     });
-});
