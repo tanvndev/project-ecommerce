@@ -196,7 +196,7 @@ class VoucherService extends BaseService implements VoucherServiceInterface
 
         $cart = $this->cartRepository->findByWhere(['user_id' => $userId], ['*'], $relation);
 
-        if ( ! $cart) {
+        if (! $cart) {
             throw new Exception('Cart not found.');
         }
 
@@ -211,24 +211,22 @@ class VoucherService extends BaseService implements VoucherServiceInterface
      */
     public function applyVoucher(string $code, string $id = '')
     {
-
         return $this->executeInTransaction(function () use ($code, $id) {
             $userId = auth()->user()->id;
-
             $cartItems = $this->getCartItems($userId);
             $totalPrice = $this->calculateTotalPrice($cartItems);
 
             $voucher = ! empty($id)
-                ? $this->voucherRepository->findById(['id' => $id])
+                ? $this->voucherRepository->findById($id)
                 : $this->voucherRepository->findByWhere(['code' => $code]);
 
-            if ( ! $voucher) {
+            if (! $voucher) {
                 throw new Exception('Voucher not found.');
             }
 
             $condition = $this->handleConditionVoucher($voucher, $cartItems, $totalPrice);
 
-            if ( ! $condition) {
+            if (! $condition) {
                 return errorResponse(__('messages.voucher.error.apply'));
             }
 
@@ -268,7 +266,7 @@ class VoucherService extends BaseService implements VoucherServiceInterface
      * - Min quantity of voucher is less than or equal to quantity of items in cart
      * - Apply to all items in cart
      */
-    private function handleConditionVoucher(Voucher $voucher, Collection $cartItems, float $totalPrice): bool
+    private function handleConditionVoucher($voucher, $cartItems, $totalPrice): bool
     {
         // dd($voucher);
         // dd($cartItems);
@@ -277,9 +275,9 @@ class VoucherService extends BaseService implements VoucherServiceInterface
         $startAt = Carbon::parse($voucher->start_at);
         $endAt = Carbon::parse($voucher->end_at);
 
-        if ($totalPrice < $voucher->value) {
-            return false;
-        }
+        // if ($totalPrice < $voucher->value) {
+        //     return false;
+        // }
 
         if ($endAt->lt($now) || $startAt->gt($now)) {
             return false;
@@ -289,7 +287,7 @@ class VoucherService extends BaseService implements VoucherServiceInterface
             return false;
         }
 
-        if ( ! $voucher->canBeUsedByUser(auth()->user()->id)) {
+        if (! $voucher->canBeUsedByUser(auth()->user()->id)) {
             return false;
         }
 
@@ -363,7 +361,7 @@ class VoucherService extends BaseService implements VoucherServiceInterface
      */
     private function isSalePriceValid($productVariant): bool
     {
-        if ( ! $productVariant->sale_price || ! $productVariant->price) {
+        if (! $productVariant->sale_price || ! $productVariant->price) {
             return false;
         }
 

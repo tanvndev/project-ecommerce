@@ -300,7 +300,7 @@ class ProductService extends BaseService implements ProductServiceInterface
             },
         ];
 
-        $select = ['id', 'name', 'product_id', 'price', 'cost_price', 'sale_price', 'image', 'attribute_value_combine'];
+        $select = ['id', 'name', 'product_id', 'price', 'cost_price', 'sale_price', 'image', 'attribute_value_combine', 'stock'];
 
         $data = ($ids = request('ids'))
             ? $this->productVariantRepository->findByWhereIn(explode(',', $ids), 'id', $select, ['attribute_values'])

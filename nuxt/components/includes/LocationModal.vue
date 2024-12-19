@@ -185,7 +185,12 @@ onMounted(async () => {
 })
 </script>
 <template>
-  <v-dialog v-model="isOpen" max-width="500" persistent @click:outside="isOpen = false">
+  <v-dialog
+    v-model="isOpen"
+    max-width="500"
+    persistent
+    @click:outside="isOpen = false"
+  >
     <v-card
       class="py-6 px-4 relative"
       elevation="12"
@@ -202,7 +207,7 @@ onMounted(async () => {
           <div class="col-lg-12">
             <IncludesInputComponent name="phone" label="Số điện thoại *" />
           </div>
-          <div class="col-lg-12 mb-5">
+          <div class="col-lg-12 mb-5 d-none">
             <v-btn
               rounded="xl"
               prepend-icon="mdi-map-marker"

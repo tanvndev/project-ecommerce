@@ -139,7 +139,7 @@ const applyVoucher = async () => {
     if (response.status == 'success') {
       toast(response.messages)
       setFieldValue('voucher_id', response.data.voucher_id)
-      orderStore.setDiscount(response.data.discount)
+      orderStore.setDiscount(response?.data?.discount)
     }
   } catch (error) {
     toast(error?.response?.data?.messages || 'Thao tác thất bại', 'error')

@@ -9,7 +9,11 @@ const totalAmount = computed(() => cartStore.getTotalAmount)
 const shippingFee = computed(() => orderStore.getShippingFee)
 const discount = computed(() => orderStore.getDiscount)
 const finalTotal = computed(() => {
-  return +totalAmount.value + +shippingFee.value - +discount.value
+  const total = +totalAmount.value + +shippingFee.value - +discount.value
+  if (total < 0) {
+    return 0
+  }
+  return total
 })
 </script>
 
@@ -49,7 +53,7 @@ const finalTotal = computed(() => {
               <div class="checkout-summary-label">Mã giảm giá</div>
               <div class="checkout-summary-value">
                 <span class="checkout-summary-noline-value"
-                  >- {{ formatCurrency(discount) }}</span
+                  >- {{ formatCurrency(discount ?? 0) }}</span
                 >
               </div>
             </div>

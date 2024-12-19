@@ -17,6 +17,7 @@ use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
 use App\Repositories\Interfaces\ShippingMethod\ShippingMethodRepositoryInterface;
 use App\Repositories\Interfaces\Voucher\VoucherRepositoryInterface;
 use App\Services\BaseService;
+use App\Services\Interfaces\Cart\CartServiceInterface;
 use App\Services\Interfaces\Order\OrderServiceInterface;
 use Exception;
 use Illuminate\Http\Request;
@@ -32,7 +33,8 @@ class OrderService extends BaseService implements OrderServiceInterface
         protected PaymentMethodRepositoryInterface $paymentMethodRepository,
         protected ShippingMethodRepositoryInterface $shippingMethodRepository,
         protected VoucherRepositoryInterface $voucherRepository,
-        protected FlashSaleRepositoryInterface $flashSaleRepository
+        protected FlashSaleRepositoryInterface $flashSaleRepository,
+        protected CartServiceInterface $cartService
     ) {}
 
     /**
@@ -106,7 +108,7 @@ class OrderService extends BaseService implements OrderServiceInterface
 
             $order = $this->orderRepository->findById($id);
 
-            if ( ! $this->checkUpdateStatus($request, $order)) {
+            if (! $this->checkUpdateStatus($request, $order)) {
                 return errorResponse(__('messages.order.error.invalid'));
             }
 
@@ -191,6 +193,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             $request = request();
 
             $order = $this->createOrder($request);
+            $this->cartService->deleteCartSelected();
 
             $this->sendMailOrderCreated($order);
 
@@ -222,6 +225,10 @@ class OrderService extends BaseService implements OrderServiceInterface
 
         $payload['shipping_fee'] = $this->calculateShippingFee($shippingMethod);
         $payload['final_price'] = $this->calculateFinalPrice($payload);
+
+        if ($payload['final_price'] < 0) {
+            $payload['final_price'] = 0;
+        }
 
         $order = $this->orderRepository->create($payload);
         $this->createOrderItems($order, $cartItems);
@@ -255,7 +262,7 @@ class OrderService extends BaseService implements OrderServiceInterface
                 true
             );
 
-            if ( ! $productVariant) {
+            if (! $productVariant) {
                 throw new Exception('Product variant not found.');
             }
 
@@ -301,7 +308,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             'publish' => 1,
         ]);
 
-        if ( ! $paymentMethod) {
+        if (! $paymentMethod) {
             throw new Exception('Payment method not found.');
         }
 
@@ -322,7 +329,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             'publish' => 1,
         ]);
 
-        if ( ! $shippingMethod) {
+        if (! $shippingMethod) {
             throw new Exception('Shipping method not found.');
         }
 
@@ -358,7 +365,7 @@ class OrderService extends BaseService implements OrderServiceInterface
 
         $cart = $this->cartRepository->findByWhere($conditions, ['*'], $relation);
 
-        if ( ! $cart) {
+        if (! $cart) {
             throw new Exception('Cart not found.');
         }
 
@@ -400,7 +407,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             'publish' => 1,
         ], ['*'], [], false, [], [], [], [], true);
 
-        if ( ! $voucher) {
+        if (! $voucher) {
             throw new Exception('Voucher not found.');
         }
 
@@ -460,7 +467,7 @@ class OrderService extends BaseService implements OrderServiceInterface
         foreach ($cartItems as $item) {
             $productVariantId = $item->product_variant_id;
 
-            if ( ! isset($flashSaleProductVariants[$productVariantId])) {
+            if (! isset($flashSaleProductVariants[$productVariantId])) {
                 continue;
             }
 
@@ -592,7 +599,7 @@ class OrderService extends BaseService implements OrderServiceInterface
      */
     private function isSalePriceValid($productVariant): bool
     {
-        if ( ! $productVariant->sale_price || ! $productVariant->price) {
+        if (! $productVariant->sale_price || ! $productVariant->price) {
             return false;
         }
 
@@ -702,7 +709,7 @@ class OrderService extends BaseService implements OrderServiceInterface
      */
     public function getOrderByUser()
     {
-        if ( ! auth()->check()) {
+        if (! auth()->check()) {
             return [];
         }
 
@@ -746,7 +753,7 @@ class OrderService extends BaseService implements OrderServiceInterface
     {
         return $this->executeInTransaction(function () use ($id) {
 
-            if ( ! auth()->check()) {
+            if (! auth()->check()) {
                 return errorResponse(__('messages.order.error.status'));
             }
 
@@ -783,7 +790,7 @@ class OrderService extends BaseService implements OrderServiceInterface
     {
         return $this->executeInTransaction(function () use ($id) {
 
-            if ( ! auth()->check()) {
+            if (! auth()->check()) {
                 return errorResponse(__('messages.order.error.status'));
             }
 
@@ -881,14 +888,14 @@ class OrderService extends BaseService implements OrderServiceInterface
                     return $id >= 47 && $id <= 69;
                 });
 
-                if ( ! empty($filteredIds)) {
+                if (! empty($filteredIds)) {
                     $randomProductId = $filteredIds[array_rand($filteredIds)];
                 } else {
                     // Nếu không có sản phẩm nào trong khoảng, bốc random từ toàn bộ danh sách
                     $randomProductId = $arrayOfIds[array_rand($arrayOfIds)];
                 }
 
-                if ( ! in_array($randomProductId, $itemset)) {
+                if (! in_array($randomProductId, $itemset)) {
                     $itemset[] = $randomProductId;
                 }
             }

@@ -11,6 +11,7 @@ const modules = [Navigation, Autoplay]
 const cartStore = useCartStore()
 const productStore = useProductStore()
 const loadingStore = useLoadingStore()
+const wishlistStore = useWishlistStore()
 const { $axios } = useNuxtApp()
 const route = useRoute()
 const router = useRouter()
@@ -54,6 +55,18 @@ const getProduct = async () => {
   } finally {
     loadingStore.setLoading(false)
   }
+}
+
+const addToWishlist = async (variantId) => {
+  if (!variantId) {
+    return toast('Có lỗi vui lòng thử lại.', 'error')
+  }
+
+  const payload = {
+    product_variant_id: variantId,
+  }
+
+  await wishlistStore.addToWishlist(payload)
 }
 
 const updateVariantAndAttributes = () => {
