@@ -1,6 +1,6 @@
 <template>
   <!-- Loading status -->
-  <LoadingIndicator v-if="isLoading" />
+  <!-- <LoadingIndicator v-if="isLoading" /> -->
   <div class="flex h-screen">
     <!-- Sidebar -->
     <SidebarComponent />

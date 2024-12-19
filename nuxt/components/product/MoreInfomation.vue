@@ -236,7 +236,7 @@ onMounted(() => {
                         <div class="ratings-full">
                           <span
                             class="ratings"
-                            :style="`width: ${review.percent_rating}%`"
+                            :style="`width: ${ review.percent_rate}%`"
                           ></span>
                           <span class="tooltiptext tooltip-top">{{
                             review.rating

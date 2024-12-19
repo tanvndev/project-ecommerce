@@ -211,11 +211,11 @@ import { useCRUD } from '@/composables';
 import router from '@/router';
 import { PUBLISH } from '@/static/constants';
 import { formatCurrency, formatMessages } from '@/utils/format';
-import { debounce } from '@/utils/helpers';
+import { debounce, handleBeforeUnload } from '@/utils/helpers';
 import { message } from 'ant-design-vue';
 import dayjs from 'dayjs';
 import { useForm } from 'vee-validate';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { validationSchema } from './validationSchema';
 
 const products = ref([]);
@@ -374,12 +374,17 @@ watch(searchTerm, () => {
 
 // Khi component được mount
 onMounted(() => {
+    window.addEventListener('beforeunload', handleBeforeUnload);
   if (id.value && id.value > 0) {
     state.pageTitle = 'Cập nhập nhóm sản phẩm.';
     fetchOne();
   }
 
   debounceFechProducts();
+});
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 </script>
 

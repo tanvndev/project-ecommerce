@@ -287,6 +287,13 @@ const checkStaff = (role) => {
   return false;
 };
 
+const handleBeforeUnload = (event) => {
+  const message = 'Bạn chắc chắn muốn rời khỏi trang này? Tất cả dữ liệu chưa lưu sẽ bị mất.';
+
+  event.returnValue = message;
+  return message;
+};
+
 export {
   appendBase64ToFormData,
   checkAdmin,
@@ -304,5 +311,6 @@ export {
   isJSONString,
   numberWithCommas,
   resizeImage,
-  timeAgo
+  timeAgo,
+  handleBeforeUnload
 };

@@ -92,7 +92,7 @@ class UserCatalogueController extends Controller
      */
     public function updatePermissions(string $id): JsonResponse
     {
-        $this->authorize('modules', 'users.catalogues.updatePermissions');
+        // $this->authorize('modules', 'users.catalogues.updatePermissions');
 
         $response = $this->userCatalogueService->updatePermissions();
 

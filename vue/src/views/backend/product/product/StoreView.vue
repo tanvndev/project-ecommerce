@@ -72,25 +72,26 @@
 
 <script setup>
 import {
-  MasterLayout,
-  BreadcrumbComponent,
   AleartError,
-  InputComponent,
+  BreadcrumbComponent,
   EditorComponent,
+  InputComponent,
   InputFinderComponent,
+  MasterLayout,
   SEOComponent
 } from '@/components/backend';
+import { useCRUD } from '@/composables';
+import router from '@/router';
+import { formatMessages } from '@/utils/format';
+import { handleBeforeUnload } from '@/utils/helpers';
+import { message } from 'ant-design-vue';
 import _ from 'lodash';
+import { useForm } from 'vee-validate';
+import { computed, onMounted, onUnmounted, reactive, watch, watchEffect } from 'vue';
+import { useStore } from 'vuex';
 import MainView from './partials/MainView.vue';
 import SidebarView from './partials/SidebarView.vue';
-import { computed, onMounted, reactive, watch, watchEffect } from 'vue';
-import { useForm } from 'vee-validate';
-import { useStore } from 'vuex';
-import { formatMessages } from '@/utils/format';
-import router from '@/router';
-import { useCRUD } from '@/composables';
 import { validationSchema } from './validationSchema';
-import { message } from 'ant-design-vue';
 
 // STATE
 const state = reactive({
@@ -140,6 +141,11 @@ watchEffect(() => {
   }
 });
 onMounted(() => {
+  window.addEventListener('beforeunload', handleBeforeUnload);
   store.commit('productStore/removeAll');
+});
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 </script>

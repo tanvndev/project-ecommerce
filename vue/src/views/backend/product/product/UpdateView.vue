@@ -166,12 +166,13 @@ import { formatDataToSelect, formatDataToTreeSelect, formatMessages } from '@/ut
 import { message } from 'ant-design-vue';
 import _ from 'lodash';
 import { useForm } from 'vee-validate';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 import * as yup from 'yup';
 import ProductAttributeView from './partials/ProductAttributeView.vue';
 import ProductVariantView from './partials/ProductVariantView.vue';
 import UpsellView from './partials/UpsellView.vue';
+import { handleBeforeUnload } from '@/utils/helpers';
 
 // STATE
 const state = reactive({
@@ -319,7 +320,10 @@ const getAllShippingMethods = async () => {
   state.paymentMethods = formatDataToSelect(data.value);
 };
 
+
 onMounted(async () => {
+  window.addEventListener('beforeunload', handleBeforeUnload);
+
   getProductCatalogues();
   getBrands();
   getAttributes();
@@ -327,5 +331,9 @@ onMounted(async () => {
   if (id.value) {
     fetchOne();
   }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 </script>
