@@ -40,18 +40,29 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
             ->customGroupBy($groupBy ?? null)
             ->customOrderBy($orderBy ?? null);
 
-        if ( ! empty($withWhereHas)) {
+        if (! empty($withWhereHas)) {
             // Apply constraints to eager-loaded relationships
             foreach ($withWhereHas as $relation => $callback) {
                 $query->whereHas($relation, $callback);
             }
         }
 
-        if ( ! empty($condition['archive'] ?? null) && $condition['archive'] == true) {
+        if (! empty($condition['archive'] ?? null) && $condition['archive'] == true) {
             $query->onlyTrashed();
         }
 
         //Phương thức withQueryString() trong Laravel được sử dụng để giữ nguyên các tham số truy vấn
         return $query->paginate($perPage)->withQueryString();
+    }
+
+    public function findProductLock($id)
+    {
+        $product = Product::query()
+            ->whereIn('id', $id)
+            ->whereHas('variants', function ($query) {
+                $query->where('is_used', true);
+            })->first();
+
+        return (!empty($product) || $product != null) ? true : false;
     }
 }

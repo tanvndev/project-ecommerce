@@ -67,7 +67,7 @@ class OrderController extends Controller
      */
     public function store(StoreOrderRequest $request): JsonResponse
     {
-        $this->authorizePermission('orders.store');
+        // $this->authorizePermission('orders.store');
 
         if ($request->has('voucher_id')) {
             $res = $this->voucherService->applyVoucher($request->voucher_id);

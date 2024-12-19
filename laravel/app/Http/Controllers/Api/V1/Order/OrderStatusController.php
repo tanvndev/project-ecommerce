@@ -24,7 +24,7 @@ class OrderStatusController extends Controller
      */
     public function index(): JsonResponse
     {
-        $this->authorizePermission('orders.status-index');
+        $this->authorizePermission('orders.status.index');
         $paginator = $this->orderStatusService->paginate();
 
         $data = new OrderStatusCollection($paginator);

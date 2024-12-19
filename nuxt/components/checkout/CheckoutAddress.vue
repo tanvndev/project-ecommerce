@@ -183,7 +183,7 @@ onMounted(async () => {
             label="Địa chỉ email *"
           />
         </div>
-        <div class="col-xs-12 mb-5">
+        <div class="col-xs-12 mb-5 d-none">
           <v-btn
             rounded="xl"
             prepend-icon="mdi-map-marker"

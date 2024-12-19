@@ -30,6 +30,7 @@ class AuthServiceProvider extends ServiceProvider
             $permission = $user->user_catalogue->permissions;
 
             return (bool) ($permission->contains('canonical', $permissionName));
+            return true;
         });
     }
 }

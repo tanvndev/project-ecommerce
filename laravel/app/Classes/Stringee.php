@@ -10,11 +10,11 @@ class Stringee
 {
     private static $url = 'https://api.stringee.com/v1/call2/callout';
 
-    private static $fromPhone = '842871015881';
+    private static $fromPhone = '842471098512';
 
     public static function sendVerificationCode($request, $user, string $key = 'verification_code_')
     {
-        if ( ! $user->phone) {
+        if (! $user->phone) {
             return errorResponse('Số điện thoại không chính xác.');
         }
 
@@ -63,7 +63,7 @@ class Stringee
     {
         $verificationCode = Cache::get($key . $user->phone);
 
-        if ( ! $verificationCode) {
+        if (! $verificationCode) {
             Cache::forget($key . $user->phone);
 
             return errorResponse(__('messages.auth.invalid_code.error'));

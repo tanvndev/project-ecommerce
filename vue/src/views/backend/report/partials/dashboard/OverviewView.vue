@@ -11,7 +11,7 @@
     <!-- AvgTotalPriceOrder -->
     <AvgTotalPriceOrder :date="date" :startDate="start_date" :endDate="end_date" />
     <!-- TopSearchHistory -->
-    <TopSearchHistory :date="date" :startDate="start_date" :endDate="end_date" />
+    <!-- <TopSearchHistory :date="date" :startDate="start_date" :endDate="end_date" /> -->
   </a-row>
 </template>
 <script setup>

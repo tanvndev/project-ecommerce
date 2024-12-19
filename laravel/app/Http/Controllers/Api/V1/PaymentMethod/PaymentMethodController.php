@@ -32,7 +32,7 @@ class PaymentMethodController extends Controller
      */
     public function index(): JsonResponse
     {
-        $this->authorizePermission('payment-methods-index');
+        $this->authorizePermission('payment-methods.index');
         $paginator = $this->paymentMethodService->paginate();
         $data = new PaymentMethodCollection($paginator);
 
@@ -44,7 +44,7 @@ class PaymentMethodController extends Controller
      */
     public function store(StorePaymentMethodRequest $request): JsonResponse
     {
-        $this->authorizePermission('payment-methods.index');
+        $this->authorizePermission('payment-methods.store');
         $response = $this->paymentMethodService->create();
 
         return handleResponse($response, ResponseEnum::CREATED);

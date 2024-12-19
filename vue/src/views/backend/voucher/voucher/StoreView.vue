@@ -1,27 +1,27 @@
 <script setup>
 import {
-  MasterLayout,
-  BreadcrumbComponent,
   AleartError,
+  BreadcrumbComponent,
   InputComponent,
+  InputDateComponent,
   InputFinderComponent,
-  RadioComponent,
   InputNumberComponent,
-  InputDateComponent
+  MasterLayout,
+  RadioComponent
 } from '@/components/backend';
-import { computed, onMounted, reactive } from 'vue';
-import { useForm } from 'vee-validate';
-import { formatMessages } from '@/utils/format';
-import * as yup from 'yup';
-import router from '@/router';
 import { useCRUD } from '@/composables';
-import { DISCOUNT_TYPE, DISCOUNT_CONDITION_APPLY } from '@/static/constants';
+import router from '@/router';
+import { DISCOUNT_CONDITION_APPLY, DISCOUNT_TYPE } from '@/static/constants';
+import { formatMessages } from '@/utils/format';
+import { handleBeforeUnload, handleDateChangeToAnt } from '@/utils/helpers';
+import { message } from 'ant-design-vue';
+import { useForm } from 'vee-validate';
+import { computed, onMounted, onUnmounted, reactive } from 'vue';
+import * as yup from 'yup';
 // VARIABLES
 
 const { getOne, create, update, messages, data } = useCRUD();
 const id = computed(() => router.currentRoute.value.params.id || null);
-import { handleDateChangeToAnt } from '@/utils/helpers';
-import { message } from 'ant-design-vue';
 
 // STATE
 const state = reactive({
@@ -109,10 +109,15 @@ const fetchOne = async () => {
 };
 
 onMounted(() => {
+  window.addEventListener('beforeunload', handleBeforeUnload);
   if (id.value && id.value > 0) {
     state.pageTitle = 'Cập nhập mã giảm giá.';
     fetchOne();
   }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 </script>
 

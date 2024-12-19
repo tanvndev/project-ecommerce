@@ -83,8 +83,9 @@ import { useCRUD } from '@/composables';
 import router from '@/router';
 import { WIDGET_TYPE } from '@/static/constants';
 import { formatMessages } from '@/utils/format';
+import { handleBeforeUnload } from '@/utils/helpers';
 import { useForm } from 'vee-validate';
-import { computed, onMounted, reactive } from 'vue';
+import { computed, onMounted, onUnmounted, reactive } from 'vue';
 import { useStore } from 'vuex';
 import * as yup from 'yup';
 import AdvertisementView from './partials/AdvertisementView.vue';
@@ -169,9 +170,14 @@ const setOldValueForAdvertisementBanner = () => {
 };
 
 onMounted(() => {
+  window.addEventListener('beforeunload', handleBeforeUnload);
   if (id.value && id.value > 0) {
     state.pageTitle = 'Cập nhập widget.';
     fetchOne();
   }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 </script>

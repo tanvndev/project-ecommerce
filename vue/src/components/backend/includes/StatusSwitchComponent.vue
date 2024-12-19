@@ -31,6 +31,6 @@ const handleChangeStatus = async (event) => {
   const response = await BaseService.changeStatus(payload);
   const type = response.success ? 'success' : 'error';
 
-  message[type](response.messages);
+  message[type](response.messages || 'Có lỗi từ máy chủ vui lòng liên hệ với quản trị viên.');
 };
 </script>

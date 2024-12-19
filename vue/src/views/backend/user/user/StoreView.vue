@@ -5,7 +5,7 @@
         <BreadcrumbComponent :titlePage="state.pageTitle" @on-save="onSubmit" />
         <form @submit.prevent="onSubmit">
           <a-row :gutter="16">
-            <a-col :span="12">
+            <a-col :span="24">
               <a-card class="mt-3" title="Thông tin chung">
                 <AleartError :errors="state.error" />
                 <a-row :gutter="[16, 16]">
@@ -64,7 +64,7 @@
                 </a-row>
               </a-card>
             </a-col>
-            <a-col :span="12">
+            <a-col :span="12" class="hidden">
               <a-card class="mt-3" title="Địa chỉ">
                 <AleartError :errors="state.error" />
                 <a-row :gutter="[16, 15]">
@@ -201,7 +201,7 @@ const fetchOne = async () => {
   setValues({
     fullname: data.value?.fullname,
     email: data.value?.email,
-    user_catalogue_id: data.value?.user_catalogue_id,
+    user_catalogue_id: data.value?.catalogue_id,
     phone: data.value?.phone,
     address: data.value?.address,
     province_id: data.value?.province_id,

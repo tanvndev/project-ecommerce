@@ -34,7 +34,7 @@
             <i class="fal fa-expand text-[22px] text-gray-500 hover:text-gray-600" v-else></i>
           </button>
         </li>
-        <li class="relative inline-block text-left">
+        <li class="relative inline-block text-left hidden">
           <a-dropdown>
             <button class="relative rounded-md align-middle focus:outline-none">
               <i class="fal fa-bell text-[22px] text-gray-500"></i>
