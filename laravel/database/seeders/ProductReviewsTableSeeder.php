@@ -3,14 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\Product;
-use App\Models\ProductReview;
-use App\Models\ProductVariant;
 use App\Models\User;
 use Carbon\Carbon;
+use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Faker\Factory as Faker;
+use Throwable;
 
 class ProductReviewsTableSeeder extends Seeder
 {
@@ -45,7 +43,7 @@ class ProductReviewsTableSeeder extends Seeder
             'Tôi rất ấn tượng với hiệu suất của MacBook Pro M1. Máy chạy cực kỳ nhanh, các ứng dụng mở lên tức thì và việc chỉnh sửa video, hình ảnh trở nên dễ dàng hơn bao giờ hết. Đây là một trong những sản phẩm tốt nhất tôi từng sở hữu.',
             'Đây là lần đầu tiên tôi mua sản phẩm của Apple và tôi hoàn toàn bị chinh phục. Máy có cấu hình mạnh, thiết kế đẹp, và hệ điều hành iOS cực kỳ mượt mà. Chắc chắn tôi sẽ tiếp tục trung thành với Apple.',
             'iPhone của tôi có camera cực kỳ xuất sắc, giúp tôi ghi lại những khoảnh khắc tuyệt vời trong cuộc sống. Cảm giác sử dụng rất mượt mà và không có hiện tượng giật lag. Tôi rất vui khi chọn sản phẩm này.',
-            'Sản phẩm tuyệt vời với thiết kế tinh tế, độ bền cao và đặc biệt là tính năng bảo mật. Tôi luôn cảm thấy an toàn khi sử dụng các sản phẩm của Apple. Không thể hài lòng hơn với sự đầu tư này.'
+            'Sản phẩm tuyệt vời với thiết kế tinh tế, độ bền cao và đặc biệt là tính năng bảo mật. Tôi luôn cảm thấy an toàn khi sử dụng các sản phẩm của Apple. Không thể hài lòng hơn với sự đầu tư này.',
         ];
 
         try {
@@ -58,20 +56,20 @@ class ProductReviewsTableSeeder extends Seeder
                 try {
                     DB::table('product_reviews')->insert([
                         'product_id' => $productIds[array_rand($productIds)],
-                        'user_id' => $userIds[array_rand($userIds)],
-                        'order_id' => $orderIds[array_rand($orderIds)],
-                        'rating' => rand(1, 5),
-                        'parent_id' => null,
-                        'comment' => $comment,
-                        'images' => "[\"http://127.0.0.1:8000/images/2024/10/imac-24-inch-2023-4-5k-m3-red-2-650x650jpg_671b8a5763661.webp\",\"http://127.0.0.1:8000/images/2024/10/imac-24-inch-2023-4-5k-m3-red-3-650x650jpg_671b8a574c5af.webp\",\"http://127.0.0.1:8000/images/2024/10/imac-24-inch-2023-4-5k-m3-red-4-650x650jpg_671b8a5731c39.webp\",\"http://127.0.0.1:8000/images/2024/10/imac-24-inch-2023-4-5k-m3-red-5-650x650jpg_671b8a5715f18.webp\",\"http://127.0.0.1:8000/images/2024/10/imac-m3-pink-thumb-650x650png_671b8a57774ab.webp\"]",
-                        'publish' => rand(1, 2),
+                        'user_id'    => $userIds[array_rand($userIds)],
+                        'order_id'   => $orderIds[array_rand($orderIds)],
+                        'rating'     => rand(1, 5),
+                        'parent_id'  => null,
+                        'comment'    => $comment,
+                        'images'     => '["http://127.0.0.1:8000/images/2024/10/imac-24-inch-2023-4-5k-m3-red-2-650x650jpg_671b8a5763661.webp","http://127.0.0.1:8000/images/2024/10/imac-24-inch-2023-4-5k-m3-red-3-650x650jpg_671b8a574c5af.webp","http://127.0.0.1:8000/images/2024/10/imac-24-inch-2023-4-5k-m3-red-4-650x650jpg_671b8a5731c39.webp","http://127.0.0.1:8000/images/2024/10/imac-24-inch-2023-4-5k-m3-red-5-650x650jpg_671b8a5715f18.webp","http://127.0.0.1:8000/images/2024/10/imac-m3-pink-thumb-650x650png_671b8a57774ab.webp"]',
+                        'publish'    => rand(1, 2),
                         'created_at' => $randomDate,
                         'updated_at' => $randomDate,
                     ]);
-                } catch (\Throwable $th) {
+                } catch (Throwable $th) {
                 }
             }
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
         }
     }
 }

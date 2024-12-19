@@ -6,7 +6,6 @@ use App\Enums\ResponseEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Post\StorePostCatalogueRequest;
 use App\Http\Requests\Post\UpdatePostCatalogueRequest;
-use App\Http\Resources\Post\PostCatalogueCollection;
 use App\Http\Resources\Post\PostCatalogueResource;
 use App\Repositories\Interfaces\Post\PostCatalogueRepositoryInterface;
 use App\Services\Interfaces\Post\PostCatalogueServiceInterface;

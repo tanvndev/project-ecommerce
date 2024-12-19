@@ -4,14 +4,14 @@
 
 namespace App\Repositories\Order;
 
-use App\Repositories\BaseRepository;
 use App\Models\OrderStatusChangeRequest;
+use App\Repositories\BaseRepository;
 use App\Repositories\Interfaces\Order\OrderStatusRepositoryInterface;
-
 
 class OrderStatusRepository extends BaseRepository implements OrderStatusRepositoryInterface
 {
     public $model;
+
     public function __construct(
         OrderStatusChangeRequest $model
     ) {

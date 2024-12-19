@@ -15,20 +15,20 @@ class ProductCatalogueResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'          => $this->id,
-            'key'         => $this->id,
-            'canonical'   => $this->canonical,
-            'name'        => $this->name,
-            'description' => $this->description,
-            'publish'     => $this->publish,
-            'is_featured' => $this->is_featured,
-            'order'       => $this->order,
-            'parent_id'   => $this->parent_id,
-            'image'       => $this->image,
+            'id'               => $this->id,
+            'key'              => $this->id,
+            'canonical'        => $this->canonical,
+            'name'             => $this->name,
+            'description'      => $this->description,
+            'publish'          => $this->publish,
+            'is_featured'      => $this->is_featured,
+            'order'            => $this->order,
+            'parent_id'        => $this->parent_id,
+            'image'            => $this->image,
             'meta_description' => $this->meta_description,
-            'meta_title' => $this->meta_title,
-            'canonical' => $this->cacanonical,
-            'childrens'   => ProductCatalogueResource::collection($this->childrens),
+            'meta_title'       => $this->meta_title,
+            'canonical'        => $this->cacanonical,
+            'childrens'        => ProductCatalogueResource::collection($this->childrens),
         ];
     }
 }

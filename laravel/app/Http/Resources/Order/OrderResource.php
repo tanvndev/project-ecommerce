@@ -101,7 +101,7 @@ class OrderResource extends JsonResource
     private function getOrderStatusValueNext($orderStatus)
     {
         $statusMap = [
-            Order::ORDER_STATUS_PENDING => Order::ORDER_STATUS_PROCESSING,
+            Order::ORDER_STATUS_PENDING    => Order::ORDER_STATUS_PROCESSING,
             Order::ORDER_STATUS_PROCESSING => Order::ORDER_STATUS_DELIVERING,
             Order::ORDER_STATUS_DELIVERING => Order::ORDER_STATUS_COMPLETED,
         ];

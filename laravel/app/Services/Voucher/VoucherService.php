@@ -12,7 +12,6 @@ use App\Services\BaseService;
 use App\Services\Interfaces\Voucher\VoucherServiceInterface;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Database\Eloquent\Collection;
 
 class VoucherService extends BaseService implements VoucherServiceInterface
 {
@@ -196,7 +195,7 @@ class VoucherService extends BaseService implements VoucherServiceInterface
 
         $cart = $this->cartRepository->findByWhere(['user_id' => $userId], ['*'], $relation);
 
-        if (! $cart) {
+        if ( ! $cart) {
             throw new Exception('Cart not found.');
         }
 
@@ -212,7 +211,7 @@ class VoucherService extends BaseService implements VoucherServiceInterface
     public function applyVoucher(string $code, string $id = '')
     {
         return $this->executeInTransaction(function () use ($code, $id) {
-            if (! auth()->check()) {
+            if ( ! auth()->check()) {
                 throw new Exception('You must be logged in to apply voucher');
             }
             $userId = auth()->user()->id;
@@ -224,13 +223,13 @@ class VoucherService extends BaseService implements VoucherServiceInterface
                 ? $this->voucherRepository->findById($id)
                 : $this->voucherRepository->findByWhere(['code' => $code]);
 
-            if (! $voucher) {
+            if ( ! $voucher) {
                 throw new Exception('Voucher not found.');
             }
 
             $condition = $this->handleConditionVoucher($voucher, $cartItems, $totalPrice);
 
-            if (! $condition) {
+            if ( ! $condition) {
                 return errorResponse(__('messages.voucher.error.apply'));
             }
 
@@ -291,7 +290,7 @@ class VoucherService extends BaseService implements VoucherServiceInterface
             return false;
         }
 
-        if (! $voucher->canBeUsedByUser(auth()->user()->id)) {
+        if ( ! $voucher->canBeUsedByUser(auth()->user()->id)) {
             return false;
         }
 
@@ -365,7 +364,7 @@ class VoucherService extends BaseService implements VoucherServiceInterface
      */
     private function isSalePriceValid($productVariant): bool
     {
-        if (! $productVariant->sale_price || ! $productVariant->price) {
+        if ( ! $productVariant->sale_price || ! $productVariant->price) {
             return false;
         }
 

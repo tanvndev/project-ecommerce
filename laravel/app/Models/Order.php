@@ -37,12 +37,12 @@ class Order extends Model
     const ORDER_STATUS_RETURNED = 'returned';
 
     const STATUS_ORDER = [
-        self::ORDER_STATUS_PENDING => 1,
+        self::ORDER_STATUS_PENDING    => 1,
         self::ORDER_STATUS_PROCESSING => 2,
         self::ORDER_STATUS_DELIVERING => 3,
-        self::ORDER_STATUS_COMPLETED => 4,
-        self::ORDER_STATUS_CANCELED => 5,
-        self::ORDER_STATUS_RETURNED => 6
+        self::ORDER_STATUS_COMPLETED  => 4,
+        self::ORDER_STATUS_CANCELED   => 5,
+        self::ORDER_STATUS_RETURNED   => 6,
     ];
 
     const PAYMENT_STATUS_PAID = 'paid';
@@ -50,7 +50,7 @@ class Order extends Model
     const PAYMENT_STATUS_UNPAID = 'unpaid';
 
     const PAYMENT_STATUS_ORDER = [
-        self::PAYMENT_STATUS_PAID => 1,
+        self::PAYMENT_STATUS_PAID   => 1,
         self::PAYMENT_STATUS_UNPAID => 2,
     ];
 
