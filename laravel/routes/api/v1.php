@@ -263,22 +263,21 @@ Route::middleware(['api'])->group(function () {
                 Route::get('search-history', 'searchHistory')->name('searchHistory');
 
                 // Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
+                Route::get('low-and-out-of-stock-variants', 'lowAndOutOfStockVariants')->name('lowAndOutOfStockVariants');
             });
     });
-            Route::get('low-and-out-of-stock-variants', 'lowAndOutOfStockVariants')->name('lowAndOutOfStockVariants');
 
-            // Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
-        });
+    // Route::get('seasonal-sales', 'seasonalSale')->name('seasonalSale');
 });
 
-    // CART ROUTE
-    Route::controller(CartController::class)->name('cart.')->group(function () {
-        Route::get('carts', 'index')->name('index');
-        Route::post('carts', 'createOrUpdate')->name('store-or-update');
-        Route::delete('carts/clean', 'forceDestroy')->name('force-destroy');
-        Route::delete('carts/{id}', 'destroy')->name('destroy');
-        Route::put('carts/handle-selected', 'handleSelected')->name('handle-selected');
-        Route::delete('carts/delete-cart-selected', 'deleteCartSelected')->name('deleteCartSelected');
-        Route::get('carts/add-paid-products', 'addPaidProductsToCart')->name('addPaidProducts');
-    });
+
+// CART ROUTE
+Route::controller(CartController::class)->name('cart.')->group(function () {
+    Route::get('carts', 'index')->name('index');
+    Route::post('carts', 'createOrUpdate')->name('store-or-update');
+    Route::delete('carts/clean', 'forceDestroy')->name('force-destroy');
+    Route::delete('carts/{id}', 'destroy')->name('destroy');
+    Route::put('carts/handle-selected', 'handleSelected')->name('handle-selected');
+    Route::delete('carts/delete-cart-selected', 'deleteCartSelected')->name('deleteCartSelected');
+    Route::get('carts/add-paid-products', 'addPaidProductsToCart')->name('addPaidProducts');
 });
