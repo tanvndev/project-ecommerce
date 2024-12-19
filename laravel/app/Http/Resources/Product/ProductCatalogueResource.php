@@ -25,6 +25,9 @@ class ProductCatalogueResource extends JsonResource
             'order'       => $this->order,
             'parent_id'   => $this->parent_id,
             'image'       => $this->image,
+            'meta_description' => $this->meta_description,
+            'meta_title' => $this->meta_title,
+            'canonical' => $this->cacanonical,
             'childrens'   => ProductCatalogueResource::collection($this->childrens),
         ];
     }

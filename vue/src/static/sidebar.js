@@ -157,11 +157,11 @@ const sidebar = [
       {
         name: 'Danh sách bài viết',
         route: 'post.index'
-      },
-      {
-        name: 'Nhóm bài viết',
-        route: 'post.catalogue.index'
       }
+      //   {
+      //     name: 'Nhóm bài viết',
+      //     route: 'post.catalogue.index'
+      //   }
     ]
   }
 ];

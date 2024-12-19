@@ -160,14 +160,14 @@
               </a-card>
 
               <!-- Status Section -->
-              <a-card title="Trạng thái">
+              <!-- <a-card title="Trạng thái">
                 <SelectComponent
                   name="publish"
                   :options="PUBLISH"
                   :required="true"
                   :placeholder="`Chọn trạng thái`"
                 />
-              </a-card>
+              </a-card> -->
 
               <!-- Start Date Section -->
               <a-card title="Ngày bắt đầu">

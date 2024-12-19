@@ -45,7 +45,7 @@ class VoucherController extends Controller
      */
     public function store(StoreVoucherRequest $request): JsonResponse
     {
-        $this->authorizePermission('system-configs.store');
+        $this->authorizePermission('vouchers.store');
 
         $response = $this->voucherService->create();
 
@@ -57,7 +57,7 @@ class VoucherController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $this->authorizePermission('system-configs.show');
+        $this->authorizePermission('vouchers.show');
 
         $voucher = new VoucherResource($this->voucherRepository->findById($id));
 
@@ -66,7 +66,7 @@ class VoucherController extends Controller
 
     public function update(UpdateVoucherRequest $request, string $id): JsonResponse
     {
-        $this->authorizePermission('system-configs.update');
+        $this->authorizePermission('vouchers.update');
 
         $response = $this->voucherService->update($id);
 
@@ -78,7 +78,7 @@ class VoucherController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
-        $this->authorizePermission('system-configs.destroy');
+        $this->authorizePermission('vouchers.destroy');
 
         $response = $this->voucherService->destroy($id);
 
