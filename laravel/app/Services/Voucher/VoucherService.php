@@ -212,7 +212,11 @@ class VoucherService extends BaseService implements VoucherServiceInterface
     public function applyVoucher(string $code, string $id = '')
     {
         return $this->executeInTransaction(function () use ($code, $id) {
+            if (! auth()->check()) {
+                throw new Exception('You must be logged in to apply voucher');
+            }
             $userId = auth()->user()->id;
+
             $cartItems = $this->getCartItems($userId);
             $totalPrice = $this->calculateTotalPrice($cartItems);
 

@@ -70,8 +70,7 @@ class OrderController extends Controller
         // $this->authorizePermission('orders.store');
 
         if ($request->has('voucher_id')) {
-            $res = $this->voucherService->applyVoucher($request->voucher_id);
-
+            $res = $this->voucherService->applyVoucher('', $request->voucher_id);
             if ($res['status'] == 'error') {
                 return errorResponse($res['messages'], true);
             }
