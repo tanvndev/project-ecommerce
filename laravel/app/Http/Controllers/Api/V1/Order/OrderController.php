@@ -221,17 +221,16 @@ class OrderController extends Controller
         return handleResponse($response, ResponseEnum::CREATED);
     }
 
-    public function print(string $code): JsonResponse
+    public function print(string $code): \Illuminate\View\View
     {
         $dataOrder = $this->orderService->printAndDownloadOrderByCode($code);
-
-        return successResponse('', $dataOrder, true);
+        return view('print.print_order', compact('dataOrder'));
     }
 
-    public function download(string $code): JsonResponse
+    public function download(string $code): \Illuminate\View\View
     {
         $dataOrder = $this->orderService->printAndDownloadOrderByCode($code);
 
-        return successResponse('', $dataOrder, true);
+        return view('print.print_order', compact('dataOrder'));
     }
 }
