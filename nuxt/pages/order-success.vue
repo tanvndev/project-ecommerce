@@ -1,4 +1,12 @@
 <script setup>
+
+useSeoMeta({
+  title: 'Đơn hàng thành công',
+  ogTitle: 'Đơn hàng thành công',
+  description: 'Đơn hàng thành công.',
+  ogDescription: 'Đơn hàng thành công.',
+})
+
 const { $axios } = useNuxtApp()
 const route = useRoute()
 

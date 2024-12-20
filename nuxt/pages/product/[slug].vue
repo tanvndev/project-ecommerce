@@ -22,6 +22,7 @@ const attributeEnables = ref([])
 const attributeNotEnables = ref([])
 const attributeSelected = ref([])
 const product = computed(() => productStore.getProduct)
+
 const variant = ref({})
 const prices = ref({})
 const images = ref([])
@@ -165,8 +166,19 @@ watch(
       productStore.setProductReviews([])
     }
   },
-  { immediate: true }
+  { immediate: true, deep: true }
 )
+
+watch(product, (newProduct) => {
+  useSeoMeta({
+    title: newProduct?.meta_title,
+    ogTitle: newProduct?.meta_title,
+    description: newProduct?.meta_description,
+    ogDescription: newProduct?.meta_description,
+    url: newProduct?.canonical,
+    ogUrl: newProduct?.canonical,
+  })
+})
 
 onMounted(() => {
   getProduct()

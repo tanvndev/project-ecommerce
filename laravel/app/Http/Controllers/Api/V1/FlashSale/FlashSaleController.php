@@ -87,21 +87,5 @@ class FlashSaleController extends Controller
         return successResponse('', $data);
     }
 
-    public function deleteMultiple()
-    {
-        return $this->executeInTransaction(function () {
-            $request = request();
-
-            $flashSale = $this->flashSaleRepository->findByWhereIn($request->modelIds);
-            dd($flashSale);
-
-            $forceDelete = ($request->has('forceDelete') && $request->forceDelete == '1')
-                ? 'forceDeleteByWhereIn'
-                : 'deleteByWhereIn';
-
-            $this->flashSaleService->{$forceDelete}('id', $request->modelIds);
-
-            return successResponse(__('messages.action.success'));
-        }, __('messages.action.error'));
-    }
+    
 }

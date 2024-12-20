@@ -1,4 +1,12 @@
 <script setup>
+
+useSeoMeta({
+  title: 'Đơn hàng chi tiết',
+  ogTitle: 'Đơn hàng chi tiết',
+  description: 'Đơn hàng chi tiết.',
+  ogDescription: 'Đơn hàng chi tiết.',
+})
+
 import { useOrderStore } from '#imports'
 
 const orderStore = useOrderStore()

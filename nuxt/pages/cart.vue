@@ -1,12 +1,12 @@
 <script setup>
-import {
-  debounce,
-  formatCurrency,
-  resizeImage,
-  toast,
-  useAuthStore,
-  useCartStore,
-} from '#imports'
+
+useSeoMeta({
+  title: 'Giỏ hàng',
+  ogTitle: 'Giỏ hàng',
+  description: 'Giỏ hàng.',
+  ogDescription: 'Giỏ hàng.',
+})
+
 import Cookies from 'js-cookie'
 import { onMounted, watch } from 'vue'
 import QuantityComponent from '~/components/includes/QuantityComponent.vue'

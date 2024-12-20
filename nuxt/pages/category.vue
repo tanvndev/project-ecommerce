@@ -1,4 +1,13 @@
 <script setup>
+
+useSeoMeta({
+  title: 'Danh mục sản phẩm',
+  ogTitle: 'Danh mục sản phẩm',
+  description: 'Danh mục sản phẩm.',
+  ogDescription: 'Danh mục sản phẩm.',
+})
+
+
 import _ from 'lodash'
 import 'swiper/css'
 import { Autoplay, Navigation } from 'swiper/modules'

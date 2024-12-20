@@ -19,6 +19,18 @@ const getPost = async () => {
   }
 }
 
+watch(
+  post,
+  (newVal) => {
+    useSeoMeta({
+      title: newVal?.meta_title,
+      ogTitle: newVal?.meta_title,
+      description: newVal?.meta_description,
+      ogDescription: newVal?.meta_description,
+    })
+  },
+  { immediate: true, deep: true }
+)
 onMounted(() => {
   getPost()
 })

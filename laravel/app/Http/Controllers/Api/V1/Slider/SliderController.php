@@ -96,4 +96,14 @@ class SliderController extends Controller
 
         return successResponse('', $data, true);
     }
+    /**
+     * Get all sliders for clients.
+     */
+    public function getSliderByCode($code): JsonResponse
+    {
+        $response = $this->sliderRepository->findByWhere(['code' => $code]);
+        $data = new SliderResource($response);
+
+        return successResponse('', $data, true);
+    }
 }

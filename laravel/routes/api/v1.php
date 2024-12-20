@@ -62,6 +62,7 @@ Route::middleware(['api'])->group(function () {
     Route::get('products/recommendation', [ProductController::class, 'getRecommendedProduct']);
     Route::get('vouchers/all', [VoucherController::class, 'getAllVoucher']);
     Route::get('sliders/all', [SliderController::class, 'getAllSlider']);
+    Route::get('sliders/{code}/get', [SliderController::class, 'getSliderByCode']);
     Route::get('payment-methods/all', [PaymentMethodController::class, 'getAllPaymentMethod']);
     Route::get('shipping-methods/products/{productVariantIds}', [ShippingMethodController::class, 'getShippingMethodByProductVariant']);
     Route::post('vouchers/{code}/apply', [VoucherController::class, 'applyVoucher']);

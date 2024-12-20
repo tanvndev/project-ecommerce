@@ -1,4 +1,10 @@
 <script setup>
+useSeoMeta({
+  title: 'Mã giảm giá',
+  ogTitle: 'Mã giảm giá',
+  description: 'Mã giảm giá.',
+  ogDescription: 'Mã giảm giá.',
+})
 import { useLoadingStore } from '#imports'
 import { formatCurrency, toast } from '#imports'
 

@@ -1,4 +1,12 @@
 <script setup>
+
+useSeoMeta({
+  title: 'Thanh toán',
+  ogTitle: 'Thanh toán',
+  description: 'Thanh toán.',
+  ogDescription: 'Thanh toán.',
+})
+
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useForm } from 'vee-validate'
 import Cookies from 'js-cookie'
