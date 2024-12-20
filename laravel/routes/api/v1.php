@@ -209,6 +209,8 @@ Route::middleware(['api'])->group(function () {
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{code}', [OrderController::class, 'show'])->name('orders.show');
         Route::put('orders/{id}', [OrderController::class, 'update'])->name('orders.update');
+        Route::get('orders/print/{code}', [OrderController::class, 'print'])->name('orders.print');
+        Route::get('orders/download/{code}', [OrderController::class, 'download'])->name('orders.download');
 
         // PRODUCT REVIEW ROUTE
         Route::controller(ProductReviewController::class)->name('product-reviews.')->group(function () {

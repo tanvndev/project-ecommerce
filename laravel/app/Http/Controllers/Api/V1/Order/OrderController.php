@@ -14,6 +14,7 @@ use App\Http\Resources\Order\Client\ClientOrderResource;
 use App\Http\Resources\Order\OrderCollection;
 use App\Http\Resources\Order\OrderResource;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\PaymentMethod;
 use App\Services\Interfaces\Order\OrderServiceInterface;
 use App\Services\Interfaces\Voucher\VoucherServiceInterface;
@@ -107,7 +108,7 @@ class OrderController extends Controller
     {
         $order = $this->orderService->getOrderUserByCode($orderCode);
 
-        if ( ! $order) {
+        if (! $order) {
             $response = [
                 'status'   => 'error',
                 'messages' => __('messages.order.error.create'),
@@ -218,5 +219,19 @@ class OrderController extends Controller
         $response = $this->handlePaymentMethod($order);
 
         return handleResponse($response, ResponseEnum::CREATED);
+    }
+
+    public function print(string $code): JsonResponse
+    {
+        $dataOrder = $this->orderService->printAndDownloadOrderByCode($code);
+
+        return successResponse('', $dataOrder, true);
+    }
+
+    public function download(string $code): JsonResponse
+    {
+        $dataOrder = $this->orderService->printAndDownloadOrderByCode($code);
+
+        return successResponse('', $dataOrder, true);
     }
 }

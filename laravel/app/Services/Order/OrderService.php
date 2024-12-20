@@ -106,7 +106,7 @@ class OrderService extends BaseService implements OrderServiceInterface
 
             $order = $this->orderRepository->findById($id);
 
-            if ( ! $this->checkUpdateStatus($request, $order)) {
+            if (! $this->checkUpdateStatus($request, $order)) {
                 return errorResponse(__('messages.order.error.invalid'));
             }
 
@@ -255,7 +255,7 @@ class OrderService extends BaseService implements OrderServiceInterface
                 true
             );
 
-            if ( ! $productVariant) {
+            if (! $productVariant) {
                 throw new Exception('Product variant not found.');
             }
 
@@ -301,7 +301,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             'publish' => 1,
         ]);
 
-        if ( ! $paymentMethod) {
+        if (! $paymentMethod) {
             throw new Exception('Payment method not found.');
         }
 
@@ -322,7 +322,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             'publish' => 1,
         ]);
 
-        if ( ! $shippingMethod) {
+        if (! $shippingMethod) {
             throw new Exception('Shipping method not found.');
         }
 
@@ -358,7 +358,7 @@ class OrderService extends BaseService implements OrderServiceInterface
 
         $cart = $this->cartRepository->findByWhere($conditions, ['*'], $relation);
 
-        if ( ! $cart) {
+        if (! $cart) {
             throw new Exception('Cart not found.');
         }
 
@@ -400,7 +400,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             'publish' => 1,
         ], ['*'], [], false, [], [], [], [], true);
 
-        if ( ! $voucher) {
+        if (! $voucher) {
             throw new Exception('Voucher not found.');
         }
 
@@ -460,7 +460,7 @@ class OrderService extends BaseService implements OrderServiceInterface
         foreach ($cartItems as $item) {
             $productVariantId = $item->product_variant_id;
 
-            if ( ! isset($flashSaleProductVariants[$productVariantId])) {
+            if (! isset($flashSaleProductVariants[$productVariantId])) {
                 continue;
             }
 
@@ -592,7 +592,7 @@ class OrderService extends BaseService implements OrderServiceInterface
      */
     private function isSalePriceValid($productVariant): bool
     {
-        if ( ! $productVariant->sale_price || ! $productVariant->price) {
+        if (! $productVariant->sale_price || ! $productVariant->price) {
             return false;
         }
 
@@ -702,7 +702,7 @@ class OrderService extends BaseService implements OrderServiceInterface
      */
     public function getOrderByUser()
     {
-        if ( ! auth()->check()) {
+        if (! auth()->check()) {
             return [];
         }
 
@@ -746,7 +746,7 @@ class OrderService extends BaseService implements OrderServiceInterface
     {
         return $this->executeInTransaction(function () use ($id) {
 
-            if ( ! auth()->check()) {
+            if (! auth()->check()) {
                 return errorResponse(__('messages.order.error.status'));
             }
 
@@ -783,7 +783,7 @@ class OrderService extends BaseService implements OrderServiceInterface
     {
         return $this->executeInTransaction(function () use ($id) {
 
-            if ( ! auth()->check()) {
+            if (! auth()->check()) {
                 return errorResponse(__('messages.order.error.status'));
             }
 
@@ -881,14 +881,14 @@ class OrderService extends BaseService implements OrderServiceInterface
                     return $id >= 47 && $id <= 69;
                 });
 
-                if ( ! empty($filteredIds)) {
+                if (! empty($filteredIds)) {
                     $randomProductId = $filteredIds[array_rand($filteredIds)];
                 } else {
                     // Nếu không có sản phẩm nào trong khoảng, bốc random từ toàn bộ danh sách
                     $randomProductId = $arrayOfIds[array_rand($arrayOfIds)];
                 }
 
-                if ( ! in_array($randomProductId, $itemset)) {
+                if (! in_array($randomProductId, $itemset)) {
                     $itemset[] = $randomProductId;
                 }
             }
@@ -1017,5 +1017,42 @@ class OrderService extends BaseService implements OrderServiceInterface
         }
 
         return $orderItems;
+    }
+
+    public function printAndDownloadOrderByCode(string $code)
+    {
+        $order = $this->orderRepository->findByWhere(
+            ['code' => $code],
+            ['*'],
+            ['order_items'],
+
+        );
+
+        $orderData = [
+            'order_code'        => $order['code'],
+            'customer_name'     => $order['customer_name'],
+            'customer_email'    => $order['customer_email'],
+            'customer_phone'    => $order['customer_phone'],
+            'shipping_address'  => $order['shipping_address'],
+            'payment_method'    => $order['additional_details']['payment_method']['name'] ?? 'Không xác định',
+            'shipping_method'   => $order['additional_details']['shipping_method']['name'] ?? 'Không xác định',
+            'order_status'      => $order['order_status'],
+            'payment_status'    => $order['payment_status'],
+            'ordered_at'        => $order['ordered_at'],
+            'items' => collect($order['order_items'])->map(function ($item) {
+                return [
+                    'name'      => $item['product_variant_name'],
+                    'quantity'  => $item['quantity'],
+                    'price'     => number_format($item['sale_price'] ?? $item['price'], 0, ',', '.'),
+                    'total'     => number_format($item['quantity'] * ($item['sale_price'] ?? $item['price']), 0, ',', '.'),
+                ];
+            })->toArray(),
+            'total_price'       => number_format($order['total_price'], 0, ',', '.'),
+            'shipping_fee'      => number_format($order['shipping_fee'], 0, ',', '.'),
+            'discount'          => number_format($order['discount'] ?? 0, 0, ',', '.'),
+            'final_price'       => number_format($order['final_price'], 0, ',', '.'),
+
+        ];
+        return $orderData;
     }
 }
