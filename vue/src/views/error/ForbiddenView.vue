@@ -12,6 +12,12 @@
         >
           Quay lại
         </RouterLink>
+        <RouterLink
+          :to="{ name: 'login' }"
+          class="block rounded-lg bg-primary-600 px-4 py-2 font-medium text-white duration-150 hover:bg-primary-500 hover:text-white active:bg-primary-700"
+        >
+          Đăng nhập
+        </RouterLink>
       </div>
     </template>
   </a-result>

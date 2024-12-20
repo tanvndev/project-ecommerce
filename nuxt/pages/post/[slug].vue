@@ -104,7 +104,7 @@ onMounted(() => {
           <!-- End Social Links -->
           <div class="post-author-detail" style="border-radius: 4px">
             <figure class="author-media mr-4">
-              <img src="" :alt="post?.user_name" width="105" height="105" />
+              <v-img rounded="20" :src="post?.user_image" :alt="post?.user_name" width="105" height="105" />
             </figure>
             <div class="author-details">
               <div class="author-name-wrapper flex-wrap mb-2">
@@ -114,10 +114,9 @@ onMounted(() => {
                 </h4>
               </div>
               <p class="mb-0">
-                Vestibulum volutpat, lacus a ultrices sagittis, mi neque
-                euismoder eu pulvinar nunc sapien ornare nisl. Ped earcudaap
-                ibuseu, fermentum et, dapibus sed, urna. Morbi interdum mollis
-                sapien.
+                <i>
+                    Nhiệt tình, tự tin và thân thiện là ba từ tôi muốn mô tả về bản thân. Sự nhiệt tình của tôi đối với công việc của một trình dược viên cho phép tôi duy trì động lực trong công việc và nhận thấy tầm quan trọng những gì tôi đang làm. Sự tự tin giúp tôi nhận ra khả năng của mình. Tôi cũng nghĩ mình là một người cực kỳ thân thiện, vì tôi thích tương tác với khách hàng cũng như đồng nghiệp của mình mỗi ngày.
+                </i>
               </p>
             </div>
           </div>
