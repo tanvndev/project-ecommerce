@@ -135,10 +135,6 @@ const sidebar = [
         route: 'flash-sale.index'
       },
       {
-        name: 'Tạo mới Flash sale',
-        route: 'flash-sale.create'
-      },
-      {
         name: 'Danh sách slider',
         route: 'slider.index'
       },
