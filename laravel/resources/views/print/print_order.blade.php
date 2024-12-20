@@ -12,10 +12,12 @@
             padding: 0;
             background-color: #f9f9f9;
             width: 100%;
+            color: #000;
         }
 
         table {
             font-size: 14px;
+            color: #000;
         }
 
         .invoice {
@@ -50,6 +52,7 @@
         .shop-info h2 {
             margin: 0;
             font-size: 20px;
+            color: #000;
         }
 
         .shop-info p {

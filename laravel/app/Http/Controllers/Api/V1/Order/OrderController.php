@@ -18,6 +18,7 @@ use App\Models\OrderItem;
 use App\Models\PaymentMethod;
 use App\Services\Interfaces\Order\OrderServiceInterface;
 use App\Services\Interfaces\Voucher\VoucherServiceInterface;
+use Barryvdh\Snappy\Facades\SnappyPdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -243,16 +244,25 @@ class OrderController extends Controller
         return handleResponse($response, ResponseEnum::CREATED);
     }
 
-    public function print(string $code): \Illuminate\View\View
+    public function print(string $code)
     {
         $dataOrder = $this->orderService->printAndDownloadOrderByCode($code);
         return view('print.print_order', compact('dataOrder'));
     }
 
-    public function download(string $code): \Illuminate\View\View
+    public function download(string $code)
     {
-        $dataOrder = $this->orderService->printAndDownloadOrderByCode($code);
+        try {
+            $dataOrder = $this->orderService->printAndDownloadOrderByCode($code);
 
-        return view('print.print_order', compact('dataOrder'));
+            $pdf = SnappyPdf::loadView('print.print_order', ['dataOrder' => $dataOrder]);
+
+            return response($pdf->output(), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="invoice.pdf"',
+            ]);
+        } catch (\Exception $e) {
+            dd($e);
+        }
     }
 }

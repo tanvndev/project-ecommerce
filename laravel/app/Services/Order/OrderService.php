@@ -1128,6 +1128,30 @@ class OrderService extends BaseService implements OrderServiceInterface
             'final_price'       => number_format($order['final_price'], 0, ',', '.'),
 
         ];
+
+        // try {
+        //     $directory = dirname($fileName);
+
+        //     if (!file_exists($directory) && $saveFile) {
+        //         mkdir($directory, 0755, true);
+        //     }
+
+        //     $pdf = PDF::loadView($view, compact('data', 'chart', 'table'))
+        //         ->setOption('enable-local-file-access', true)
+        //         ->setOption('enable-javascript', true)
+        //         ->setOption('debug-javascript', true)
+        //         ->setOption('javascript-delay', 1000)
+        //         ->setOption('images', true)
+        //         ->setTemporaryFolder("pdf");
+
+        //     if ($saveFile) {
+        //         $pdf->save($fileName);
+        //     }
+
+        //     return $pdf->download($fileName);
+        // } catch (\Exception $e) {
+        //     Log::error("Error exporting PDF: " . $e->getMessage());
+        // }
         return $orderData;
     }
 }

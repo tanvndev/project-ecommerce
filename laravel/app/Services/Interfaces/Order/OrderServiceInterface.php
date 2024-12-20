@@ -23,7 +23,12 @@ interface OrderServiceInterface
     public function updateStatusOrderToCancelled(string $id);
 
     public function createNewOrder();
-  
+
     public function printAndDownloadOrderByCode(string $code);
 
+    public function superAdminUpdateStatus(string $code);
+
+    public function updatePaymentStatus(string $id);
+
+    public function updateOrderStatus(string $id);
 }

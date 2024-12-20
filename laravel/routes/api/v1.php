@@ -78,9 +78,6 @@ Route::middleware(['api'])->group(function () {
     Route::get('orders/{orderCode}/detail', [OrderController::class, 'getOrder']);
     Route::get('orders/user', [OrderController::class, 'getOrderByUser']);
     Route::get('orders/{orderCode}/payment', [OrderController::class, 'handleOrderPayment']);
-    Route::put('orders/{id}/update/payment', [OrderController::class, 'updatePaymentStatus'])->name('orders.update.payment');
-    Route::put('orders/{id}/update/order', [OrderController::class, 'updateOrderStatus'])->name('orders.update.order');
-    Route::put('orders/{code}/admin/update', [OrderController::class, 'adminUpdateStatus'])->name('orders.admin.update.');
 
     Route::put('orders/{id}/complete', [OrderController::class, 'updateCompletedOrder']);
     Route::put('orders/{id}/cancel', [OrderController::class, 'updateCancelledOrder']);
@@ -214,8 +211,11 @@ Route::middleware(['api'])->group(function () {
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{code}', [OrderController::class, 'show'])->name('orders.show');
         Route::put('orders/{id}', [OrderController::class, 'update'])->name('orders.update');
-        Route::get('orders/print/{code}', [OrderController::class, 'print'])->name('orders.print');
-        Route::get('orders/download/{code}', [OrderController::class, 'download'])->name('orders.download');
+        Route::post('orders/print/{code}', [OrderController::class, 'print'])->name('orders.print');
+        Route::post('orders/download/{code}', [OrderController::class, 'download'])->name('orders.download');
+        Route::put('orders/{id}/update/payment', [OrderController::class, 'updatePaymentStatus'])->name('orders.update.payment');
+        Route::put('orders/{id}/update/order', [OrderController::class, 'updateOrderStatus'])->name('orders.update.order');
+        Route::put('orders/{code}/admin/update', [OrderController::class, 'adminUpdateStatus'])->name('orders.admin.update.');
 
         // PRODUCT REVIEW ROUTE
         Route::controller(ProductReviewController::class)->name('product-reviews.')->group(function () {

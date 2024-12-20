@@ -82,7 +82,7 @@
 
   <a-divider />
   <div class="text-right">
-    <a-button size="large" class="mr-3">
+    <a-button size="large" class="mr-3" @click="printOrder">
       <i class="fas fa-print mr-2"></i>
       In đơn hàng
     </a-button>
@@ -274,6 +274,24 @@ const handleUpdateStatus = async (field, value) => {
   }
 };
 
+const printOrder = async () => {
+  try {
+    const response = await axios.post(`/orders/print/${props.order.code}`, null, {
+      responseType: 'blob' // Quan trọng để xử lý dữ liệu PDF dưới dạng blob
+    });
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `invoice_${props.order.code}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error while printing order:', error);
+  }
+};
 watch(
   () => props.order,
   (newValue) => {
