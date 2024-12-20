@@ -20,6 +20,7 @@ class ClientUserResource extends JsonResource
             'fullname'       => $this->fullname,
             'image'          => $this->image,
             'birthday'       => $this->birthday,
+            'catalogue_code' => $this->user_catalogue->code,
             'hint_email'     => hintEmail($this->email),
             'email'          => $this->email,
             'hint_phone'     => hintPhoneNumber($this->phone),

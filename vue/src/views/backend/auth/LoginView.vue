@@ -1,7 +1,9 @@
 <template>
   <a-row>
     <a-col span="10">
-      <div class="coming-soom-image-container flex h-full w-full items-center justify-center bg-[#0162e84d]">
+      <div
+        class="coming-soom-image-container flex h-full w-full items-center justify-center bg-[#0162e84d]"
+      >
         <img :src="'src/assets/images/loginpng.webp'" alt="" class="imig-fluid" />
       </div>
     </a-col>
@@ -70,7 +72,7 @@
             </button>
           </form>
 
-          <GoogleLogin :callback="callback"/>
+          <GoogleLogin :callback="callback" />
 
           <div class="text-center">
             <RouterLink class="text-blue-600 hover:text-blue-500" :to="{ name: 'forgot' }">
@@ -84,51 +86,44 @@
 </template>
 
 <script setup>
-import { InputComponent, AleartError, RecaptchaComponent } from '@/components/backend';
-import { useForm } from 'vee-validate';
-import * as yup from 'yup';
-import { ref } from 'vue';
-import { RouterLink } from 'vue-router';
+import { AleartError, InputComponent, RecaptchaComponent } from '@/components/backend';
 import router from '@/router';
-import { useStore } from 'vuex';
+import { NUXT_URL } from '@/static/constants';
 import { formatMessages } from '@/utils/format';
 import { message } from 'ant-design-vue';
-import { NUXT_URL } from '@/static/constants';
+import { useForm } from 'vee-validate';
+import { ref } from 'vue';
+import { RouterLink } from 'vue-router';
 import { GoogleLogin } from 'vue3-google-login';
+import { useStore } from 'vuex';
+import * as yup from 'yup';
 
 const store = useStore();
 const errors = ref({});
 
 const callback = async (response) => {
-  console.log(response);
   const idToken = response.credential;
   try {
     await store.dispatch('authStore/googleLogin', {
-      id_token: idToken,
+      id_token: idToken
     });
-    
+
     const authState = store.state.authStore;
 
-    console.log('authState', authState);
-    
     if (!authState.status.loggedIn) {
-    return (errors.value = formatMessages(authState.messages));
-  }
+      return (errors.value = formatMessages(authState.messages));
+    }
 
-  message.success('Đăng nhập thành công.');
-  if (authState.user?.user_catalogue === 'admin') {
-    return router.push({ name: 'dashboard' });
-  }
-  window.location.href = NUXT_URL;
-
-
-
+    message.success('Đăng nhập thành công.');
+    if (authState.user?.user_catalogue === 'admin') {
+      return router.push({ name: 'dashboard' });
+    }
+    window.location.href = NUXT_URL;
   } catch (error) {
     console.error('Đăng nhập bằng Google thất bại:', error);
     message.error(error.message || 'Có lỗi xảy ra, vui lòng thử lại.');
   }
 };
-
 
 // VALIDATION
 const { handleSubmit } = useForm({
@@ -152,7 +147,6 @@ const onSubmit = handleSubmit(async (values) => {
   const recaptchaResponse = grecaptcha.getResponse();
 
   if (!recaptchaResponse) {
-    
     return message.error('Vui lòng xác nhận bạn không phải là robot.');
   }
 
@@ -173,5 +167,4 @@ const onSubmit = handleSubmit(async (values) => {
   }
   window.location.href = NUXT_URL;
 });
-
 </script>
