@@ -14,6 +14,7 @@ use App\Http\Resources\Order\Client\ClientOrderResource;
 use App\Http\Resources\Order\OrderCollection;
 use App\Http\Resources\Order\OrderResource;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\PaymentMethod;
 use App\Services\Interfaces\Order\OrderServiceInterface;
 use App\Services\Interfaces\Voucher\VoucherServiceInterface;
@@ -240,5 +241,18 @@ class OrderController extends Controller
         $response = $this->handlePaymentMethod($order);
 
         return handleResponse($response, ResponseEnum::CREATED);
+    }
+
+    public function print(string $code): \Illuminate\View\View
+    {
+        $dataOrder = $this->orderService->printAndDownloadOrderByCode($code);
+        return view('print.print_order', compact('dataOrder'));
+    }
+
+    public function download(string $code): \Illuminate\View\View
+    {
+        $dataOrder = $this->orderService->printAndDownloadOrderByCode($code);
+
+        return view('print.print_order', compact('dataOrder'));
     }
 }

@@ -1093,4 +1093,41 @@ class OrderService extends BaseService implements OrderServiceInterface
 
         return $orderItems;
     }
+
+    public function printAndDownloadOrderByCode(string $code)
+    {
+        $order = $this->orderRepository->findByWhere(
+            ['code' => $code],
+            ['*'],
+            ['order_items'],
+
+        );
+
+        $orderData = [
+            'order_code'        => $order['code'],
+            'customer_name'     => $order['customer_name'],
+            'customer_email'    => $order['customer_email'],
+            'customer_phone'    => $order['customer_phone'],
+            'shipping_address'  => $order['shipping_address'],
+            'payment_method'    => $order['additional_details']['payment_method']['name'] ?? 'Không xác định',
+            'shipping_method'   => $order['additional_details']['shipping_method']['name'] ?? 'Không xác định',
+            'order_status'      => $order['order_status'],
+            'payment_status'    => $order['payment_status'],
+            'ordered_at'        => $order['ordered_at'],
+            'items' => collect($order['order_items'])->map(function ($item) {
+                return [
+                    'name'      => $item['product_variant_name'],
+                    'quantity'  => $item['quantity'],
+                    'price'     => number_format($item['sale_price'] ?? $item['price'], 0, ',', '.'),
+                    'total'     => number_format($item['quantity'] * ($item['sale_price'] ?? $item['price']), 0, ',', '.'),
+                ];
+            })->toArray(),
+            'total_price'       => number_format($order['total_price'], 0, ',', '.'),
+            'shipping_fee'      => number_format($order['shipping_fee'], 0, ',', '.'),
+            'discount'          => number_format($order['discount'] ?? 0, 0, ',', '.'),
+            'final_price'       => number_format($order['final_price'], 0, ',', '.'),
+
+        ];
+        return $orderData;
+    }
 }
