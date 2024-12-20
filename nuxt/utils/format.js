@@ -114,6 +114,9 @@ const formatBytesToKBMB = (bytes) => {
 const formatCurrency = (amount, currencyCode = 'vn') => {
   amount = parseFloat(amount)
 
+  if (amount === 0) {
+    return '0 ₫'
+  }
   if (!amount) {
     return '-'
   }
@@ -140,11 +143,11 @@ const formatCurrency = (amount, currencyCode = 'vn') => {
 }
 
 export {
-  formatMessages,
-  formatDataToSelect,
-  formatTimestampToDate,
   formatBytesToKBMB,
-  formatDataToTreeSelect,
   formatCurrency,
   formatDataToRadio,
+  formatDataToSelect,
+  formatDataToTreeSelect,
+  formatMessages,
+  formatTimestampToDate,
 }

@@ -113,16 +113,37 @@
         </a-col>
       </a-row>
     </a-card>
+
+    <a-card class="mt-3" title="Tùy chỉnh">
+      <a-row :gutter="[16, 16]">
+        <a-col span="4">
+          <div class="flex flex-col items-center justify-center">
+            <h2 class="-ml-[10px] text-sm">Ảnh nền trang chủ</h2>
+            <InputFinderComponent name="bg_home" />
+          </div>
+        </a-col>
+
+        <a-col span="4">
+          <div class="flex flex-col items-center justify-center">
+            <InputComponent
+              name="snow_effect"
+              label="Hiệu ứng tuyết"
+              placeholder="Hiệu ứng tuyết (on/off)"
+            />
+          </div>
+        </a-col>
+      </a-row>
+    </a-card>
   </form>
 </template>
 
 <script setup>
 import {
-  InputComponent,
+  AleartError,
   EditorComponent,
+  InputComponent,
   InputFinderComponent,
-  SEOComponent,
-  AleartError
+  SEOComponent
 } from '@/components/backend';
 
 import { useCRUD } from '@/composables';

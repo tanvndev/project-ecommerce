@@ -1,12 +1,14 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import Cookies from 'js-cookie'
+import { onMounted, onUnmounted, ref } from 'vue'
 import AppFooter from '~/components/includes/AppFooter.vue'
 import AppHeader from '~/components/includes/AppHeader.vue'
 import Spinner from './components/includes/Spinner.vue'
-import Cookies from 'js-cookie'
 
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
+const systemConfigStore = useSystemConfigStore()
+const systemConfigs = computed(() => systemConfigStore.getSystemConfigs)
 const user = computed(() => authStore.getUser)
 const token = computed(() => authStore.getToken ?? null)
 const route = useRoute()
@@ -99,7 +101,13 @@ onUnmounted(() => {
 </script>
 <template>
   <Spinner />
-  <div class="page-wrapper">
+  <div
+    class="page-wrapper"
+    :style="{
+      background: `url(${systemConfigs?.bg_home})`,
+      'background-size': '100%',
+    }"
+  >
     <!-- <NuxtLoadingBar :duration="1000" /> -->
 
     <h1 class="d-none">Wolmart - Responsive Marketplace HTML Template</h1>

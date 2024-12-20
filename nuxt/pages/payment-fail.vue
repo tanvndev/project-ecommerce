@@ -1,3 +1,11 @@
+<script setup>
+useSeoMeta({
+  title: 'Đơn hàng thất bại',
+  ogTitle: 'Đơn hàng thất bại',
+  description: 'Đơn hàng thất bại.',
+  ogDescription: 'Đơn hàng thất bại.',
+})
+</script>
 <template>
   <v-empty-state icon="$error" class="mt-6">
     <template v-slot:media>

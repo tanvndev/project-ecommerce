@@ -84,6 +84,10 @@ const sidebar = [
       {
         name: 'Quyền người dùng',
         route: 'permission.index'
+      },
+      {
+        name: 'Phân quyền',
+        route: 'user.catalogue.permission'
       }
     ]
   },
@@ -157,11 +161,11 @@ const sidebar = [
       {
         name: 'Danh sách bài viết',
         route: 'post.index'
-      },
-      {
-        name: 'Nhóm bài viết',
-        route: 'post.catalogue.index'
       }
+      //   {
+      //     name: 'Nhóm bài viết',
+      //     route: 'post.catalogue.index'
+      //   }
     ]
   }
 ];

@@ -15,6 +15,7 @@ class sendOrderStatusChangeRequestEmail extends Mailable implements ShouldQueue
      * Create a new message instance.
      */
     public $data;
+
     public function __construct($data)
     {
         $this->data = $data;
@@ -24,7 +25,7 @@ class sendOrderStatusChangeRequestEmail extends Mailable implements ShouldQueue
     {
         $email = env('MAIL_FROM_ADDRESS');
 
-        return $this->from( auth()->user()->email)
+        return $this->from(auth()->user()->email)
             ->to($email)
             ->subject('Gửi email yêu cầu thay đổi trạng thái đơn hàng')
             ->view('emails.orders.order-status-change-request');

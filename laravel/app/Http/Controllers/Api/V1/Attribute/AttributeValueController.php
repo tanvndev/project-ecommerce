@@ -81,6 +81,7 @@ class AttributeValueController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $this->authorizePermission('attributes.values.destroy');
+        return errorResponse('Chức năng đang tạm khóa, vui lòng liên hệ quản trị.');
         $response = $this->attributeValueService->destroy($id);
 
         return handleResponse($response);

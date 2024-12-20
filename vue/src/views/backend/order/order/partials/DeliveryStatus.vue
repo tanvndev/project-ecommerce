@@ -22,8 +22,8 @@
         <span class="text-[16px]"> {{ order?.ordered_at }}</span>
       </a-col>
       <a-col span="8" v-if="order?.payment_method_id == 1">
-        <p class="text-[12px] font-bold text-gray-500">Số tiền phải trả</p>
-        <span class="text-[16px]"> {{ formatCurrency(order?.final_price) }}</span>
+        <p class="text-[12px] font-bold text-gray-500">Người tạo đơn</p>
+        <span class="text-[16px]"> {{ order?.created_by?.fullname ?? '-' }}</span>
       </a-col>
     </a-row>
     <!-- <a-divider /> -->

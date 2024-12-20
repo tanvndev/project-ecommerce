@@ -38,7 +38,7 @@ const handleDelete = async (id) => {
 
   const type = response.success ? 'success' : 'error';
 
-  message[type](response.messages);
+  message[type](response.messages || 'Có lỗi từ máy chủ, vui lòng liên hệ quản trị viên.');
   emits('onDelete', id);
 };
 </script>

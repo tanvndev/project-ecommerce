@@ -11,6 +11,7 @@ const modules = [Navigation, Autoplay]
 const cartStore = useCartStore()
 const productStore = useProductStore()
 const loadingStore = useLoadingStore()
+const wishlistStore = useWishlistStore()
 const { $axios } = useNuxtApp()
 const route = useRoute()
 const router = useRouter()
@@ -21,6 +22,7 @@ const attributeEnables = ref([])
 const attributeNotEnables = ref([])
 const attributeSelected = ref([])
 const product = computed(() => productStore.getProduct)
+
 const variant = ref({})
 const prices = ref({})
 const images = ref([])
@@ -54,6 +56,18 @@ const getProduct = async () => {
   } finally {
     loadingStore.setLoading(false)
   }
+}
+
+const addToWishlist = async (variantId) => {
+  if (!variantId) {
+    return toast('Có lỗi vui lòng thử lại.', 'error')
+  }
+
+  const payload = {
+    product_variant_id: variantId,
+  }
+
+  await wishlistStore.addToWishlist(payload)
 }
 
 const updateVariantAndAttributes = () => {
@@ -152,8 +166,19 @@ watch(
       productStore.setProductReviews([])
     }
   },
-  { immediate: true }
+  { immediate: true, deep: true }
 )
+
+watch(product, (newProduct) => {
+  useSeoMeta({
+    title: newProduct?.meta_title,
+    ogTitle: newProduct?.meta_title,
+    description: newProduct?.meta_description,
+    ogDescription: newProduct?.meta_description,
+    url: newProduct?.canonical,
+    ogUrl: newProduct?.canonical,
+  })
+})
 
 onMounted(() => {
   getProduct()

@@ -8,6 +8,8 @@ use App\Events\Order\OrderCreatedEvent;
 use App\Events\Order\OrderUpdatePaymentEvent;
 use App\Models\Order;
 use App\Models\PaymentMethod;
+use App\Models\ShippingMethod;
+use App\Models\User;
 use App\Models\Voucher;
 use App\Repositories\Interfaces\Cart\CartRepositoryInterface;
 use App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface;
@@ -17,6 +19,7 @@ use App\Repositories\Interfaces\Product\ProductVariantRepositoryInterface;
 use App\Repositories\Interfaces\ShippingMethod\ShippingMethodRepositoryInterface;
 use App\Repositories\Interfaces\Voucher\VoucherRepositoryInterface;
 use App\Services\BaseService;
+use App\Services\Interfaces\Cart\CartServiceInterface;
 use App\Services\Interfaces\Order\OrderServiceInterface;
 use Exception;
 use Illuminate\Http\Request;
@@ -32,7 +35,8 @@ class OrderService extends BaseService implements OrderServiceInterface
         protected PaymentMethodRepositoryInterface $paymentMethodRepository,
         protected ShippingMethodRepositoryInterface $shippingMethodRepository,
         protected VoucherRepositoryInterface $voucherRepository,
-        protected FlashSaleRepositoryInterface $flashSaleRepository
+        protected FlashSaleRepositoryInterface $flashSaleRepository,
+        protected CartServiceInterface $cartService
     ) {}
 
     /**
@@ -116,6 +120,107 @@ class OrderService extends BaseService implements OrderServiceInterface
         }, __('messages.update.error'));
     }
 
+    public function superAdminUpdateStatus(string $code)
+    {
+        return $this->executeInTransaction(function () use ($code) {
+            $request = request();
+
+            if (auth()->id() != User::ROLE_ADMIN)
+                throw new Exception('Chỉ quản trị có thể thay đổi trạng thái.', 403);
+
+            $payload = $this->handlePayloadUpdate($request);
+
+            $order = $this->orderRepository->findByWhere(['code' => $code]);
+
+            if (! $this->checkUpdateStatus($payload, $order)) {
+                return errorResponse(__('messages.order.error.invalid'));
+            }
+
+            $order->update($payload);
+
+            return successResponse(__('messages.update.success'));
+        }, __('messages.update.error'));
+    }
+
+    /**
+     * Check if the order can be updated to the given status.
+     *
+     * If the order status is to be updated to completed, the payment status must be paid and the delivery status must be delivered.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     */
+    public function checkUpdateStatus($payload, $order)
+    {
+        if ($order->order_status == Order::ORDER_STATUS_COMPLETED) {
+            return false;
+        }
+
+        if ($order->order_status == Order::ORDER_STATUS_CANCELED) {
+            return false;
+        }
+
+        if ($order->shipping_method_id == ShippingMethod::COD_ID) {
+            if ($order->order_status != Order::ORDER_STATUS_DELIVERING) {
+                return false;
+            }
+        }
+
+        if ($payload['order_status'] == Order::ORDER_STATUS_COMPLETED) {
+            if ($order->payment_status != Order::PAYMENT_STATUS_PAID) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function updatePaymentStatus(string $id)
+    {
+        return $this->executeInTransaction(function () use ($id) {
+            $request = request();
+
+            $payload = $this->handlePayloadUpdate($request);
+
+            $order = $this->orderRepository->findById($id);
+
+            if (! $order->isForwardPaymentStatus($payload['payment_status']))
+                return errorResponse('Bạn không thể cập nhật trạng thái ngược.');
+
+            if ($order->shipping_method_id == ShippingMethod::COD_ID) {
+                if ($order->order_status != Order::ORDER_STATUS_DELIVERING) {
+                    return errorResponse(__('messages.order.error.invalid'));
+                }
+            }
+
+            $order->update($payload);
+
+            return successResponse(__('messages.update.success'));
+        }, __('messages.update.error'));
+    }
+
+    public function updateOrderStatus(string $id)
+    {
+        return $this->executeInTransaction(function () use ($id) {
+            $request = request();
+
+            $payload = $this->handlePayloadUpdate($request);
+
+            $order = $this->orderRepository->findById($id);
+
+            if (! $order->isForwardStatus($payload['order_status']))
+                return errorResponse('Bạn không thể cập nhật trạng thái ngược.');
+
+            if ($payload['order_status'] == Order::ORDER_STATUS_COMPLETED) {
+                if ($order->payment_status != Order::PAYMENT_STATUS_PAID) {
+                    return errorResponse(__('messages.order.error.invalid'));
+                }
+            }
+
+            $order->update($payload);
+            return successResponse(__('messages.update.success'));
+        }, __('messages.update.error'));
+    }
+
     /**
      * Handle the payload of the update request.
      *
@@ -144,43 +249,6 @@ class OrderService extends BaseService implements OrderServiceInterface
     }
 
     /**
-     * Check if the order can be updated to the given status.
-     *
-     * If the order status is to be updated to completed, the payment status must be paid and the delivery status must be delivered.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     */
-    public function checkUpdateStatus($request, Order $order): bool
-    {
-
-        // NEU DA HOAN THANH THI K CHO THAY DOI TRANG THAI
-        if ($order->order_status == Order::ORDER_STATUS_COMPLETED) {
-            return false;
-        }
-
-        if (
-            $order->order_status == Order::ORDER_STATUS_COMPLETED
-            && $order->payment_status == Order::PAYMENT_STATUS_PAID
-        ) {
-            return false;
-        }
-
-        // Nếu đơn hàng đã bị hủy, không cho thay đổi trạng thái
-        if ($order->order_status === Order::ORDER_STATUS_CANCELED) {
-            return false;
-        }
-
-        // NEU LA THANH TOAN COD THI SE KHONG CHO HOAN THANH KHI CHUA THANH TOAN
-        $isCOD = $order->additional_details['payment_method']['id'] == PaymentMethod::COD_ID;
-
-        return ! (
-            $isCOD
-            && $request->order_status == Order::ORDER_STATUS_COMPLETED
-            && $order->payment_status != Order::PAYMENT_STATUS_PAID
-        );
-    }
-
-    /**
      * Create a new order in the database.
      *
      * @return \App\Models\Order|null
@@ -191,6 +259,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             $request = request();
 
             $order = $this->createOrder($request);
+            $this->cartService->deleteCartSelected();
 
             $this->sendMailOrderCreated($order);
 
@@ -223,6 +292,10 @@ class OrderService extends BaseService implements OrderServiceInterface
         $payload['shipping_fee'] = $this->calculateShippingFee($shippingMethod);
         $payload['final_price'] = $this->calculateFinalPrice($payload);
 
+        if ($payload['final_price'] < 0) {
+            $payload['final_price'] = 0;
+        }
+
         $order = $this->orderRepository->create($payload);
         $this->createOrderItems($order, $cartItems);
 
@@ -239,7 +312,6 @@ class OrderService extends BaseService implements OrderServiceInterface
      *
      * @param  \Illuminate\Support\Collection  $cartItems
      */
-
     private function decreaseStockProductVariants($cartItems): void
     {
         foreach ($cartItems as $cartItem) {
@@ -280,10 +352,12 @@ class OrderService extends BaseService implements OrderServiceInterface
      */
     private function prepareOrderPayload($request, $userId = null): array
     {
+
         return array_merge($request->except('_token'), [
             'user_id'    => $userId ?? null,
             'code'       => generateOrderCode(),
             'ordered_at' => now(),
+            'created_by' => auth()->id() ?? null
         ]);
     }
 
@@ -984,6 +1058,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             'voucher_id' => null,
             'code'       => generateOrderCode() . rand(0, 100),
             'ordered_at' => now(),
+            'created_by' => auth()->id() ?? null
         ]);
     }
 

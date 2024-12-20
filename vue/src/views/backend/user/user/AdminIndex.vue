@@ -30,6 +30,14 @@
             <template v-if="column.dataIndex === 'catalogue_name'">
               <a-tag color="blue">{{ record.catalogue_name }}</a-tag>
             </template>
+<!-- 
+            <template v-if="column.dataIndex === 'fullname'">
+                    <RouterLink
+                      :to="{ name: 'user.update', params: { id: record.id } }"
+                      class="text-blue-500"
+                      >{{ record.fullname }}
+            </RouterLink>
+            </template> -->
 
             <!-- <template v-if="column.dataIndex === 'publish'">
               <StatusSwitchComponent
@@ -71,11 +79,11 @@
 
 <script setup>
 import {
-  ActionComponent,
-  BreadcrumbComponent,
-  MasterLayout,
-  StatusSwitchComponent,
-  ToolboxComponent
+    ActionComponent,
+    BreadcrumbComponent,
+    MasterLayout,
+    StatusSwitchComponent,
+    ToolboxComponent
 } from '@/components/backend';
 import { useCRUD, usePagination } from '@/composables';
 import { debounce } from '@/utils/helpers';

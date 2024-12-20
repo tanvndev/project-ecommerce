@@ -25,18 +25,18 @@ const columns = [
     key: 'total_product',
     width: '10%'
   },
-  {
-    title: 'Trạng thái',
-    dataIndex: 'status',
-    key: 'status',
-    width: '8%'
-  },
-  {
-    title: 'Trạng thái',
-    dataIndex: 'publish',
-    key: 'publish',
-    width: '7%'
-  }
+//   {
+//     title: 'Trạng thái',
+//     dataIndex: 'status',
+//     key: 'status',
+//     width: '8%'
+//   },
+//   {
+//     title: 'Trạng thái',
+//     dataIndex: 'publish',
+//     key: 'publish',
+//     width: '7%'
+//   }
 ];
 
 const innerColumns = [

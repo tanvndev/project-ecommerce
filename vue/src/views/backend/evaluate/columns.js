@@ -17,15 +17,16 @@ const columns = [
     key: 'rating'
   },
   {
-    title: 'Bình luận',
+    title: 'Nội dung',
     dataIndex: 'comment',
     key: 'comment',
-    sorter: (a, b) => a.comment.localeCompare(b.comment)
+    width: '10%'
   },
   {
     title: 'Ảnh',
     dataIndex: 'image',
-    key: 'image'
+    key: 'image',
+
   },
   {
     title: 'Thời gian',

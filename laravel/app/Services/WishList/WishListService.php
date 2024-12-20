@@ -66,7 +66,7 @@ class WishListService extends BaseService implements WishListServiceInterface
                 ]
             );
 
-            if ( ! empty($exists)) {
+            if (! empty($exists)) {
                 return errorResponse(__('messages.wishlist.error.existed'));
             }
 
@@ -108,9 +108,15 @@ class WishListService extends BaseService implements WishListServiceInterface
             },
         ];
 
+        $conditions = [
+            'where' => [
+                'user_id' => auth()->user()->id,
+            ]
+        ];
+
         $wishLists = $this->wishListRepository->pagination(
             ['*'],
-            ['user_id' => auth()->user()->id],
+            $conditions,
             10,
             [],
             [],
@@ -135,7 +141,7 @@ class WishListService extends BaseService implements WishListServiceInterface
                 true
             );
 
-            if ( ! $user->wishList) {
+            if (! $user->wishList) {
                 return errorResponse(__('messages.wishlist.error.wishlist_not_found'));
             }
             foreach ($user->wishList as $item) {
@@ -161,7 +167,7 @@ class WishListService extends BaseService implements WishListServiceInterface
                 true
             )->take(5);
 
-            event(new WishListEvent($user, $data));
+            // event(new WishListEvent($user, $data));
 
             return successResponse(__('messages.wishlist.success.mail'));
         }, __('messages.wishlist.error.mail'));

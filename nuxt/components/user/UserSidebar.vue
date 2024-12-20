@@ -2,6 +2,8 @@
 import SIDEBAR_PROFILE from '~/static/sidebarProfile'
 const route = useRoute()
 const currentRoute = computed(() => route.path)
+const authStore = useAuthStore()
+const user = computed(() => authStore.getUser)
 const handleChangeRoute = (route) => {
   if (route) {
     navigateTo(route)
@@ -12,9 +14,9 @@ const handleChangeRoute = (route) => {
   <v-card class="mx-auto pa-2" max-width="300">
     <v-list>
       <v-list-item
-        prepend-avatar="https://cdn.vuetifyjs.com/images/john.png"
-        subtitle="john@google.com"
-        title="John Leider"
+        :prepend-avatar="user?.image"
+        :subtitle="user?.email"
+        title="user?.fullname"
       >
         <template v-slot:append>
           <v-btn icon="mdi-menu-down" size="small" variant="text"></v-btn>

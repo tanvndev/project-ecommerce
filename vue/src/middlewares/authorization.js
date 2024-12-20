@@ -1,9 +1,9 @@
-import store from '@/store';
-
 const isAdmin = (to, from, next) => {
-  const role = store.getters['authStore/getRole'];
-  if (!role || role !== 'admin') {
-    next({ name: 'login' });
+  const role = sessionStorage.getItem('role');
+
+  const roleNames = ['admin', 'staff'];
+  if (!role || !roleNames.includes(role)) {
+    next({ name: 'forbidden' });
   }
   next();
 };

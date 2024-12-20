@@ -28,11 +28,7 @@
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.dataIndex === 'name'">
-              <RouterLink
-                :to="{ name: 'flash-sale.update', params: { id: record.id } }"
-                class="text-blue-500"
-                >{{ record.name }}</RouterLink
-              >
+                {{ record.name }}
             </template>
 
             <template v-if="column.dataIndex === 'status'">
@@ -42,13 +38,13 @@
               {{ record.product_variants?.length }}
             </template>
 
-            <template v-if="column.dataIndex === 'publish'">
+            <!-- <template v-if="column.dataIndex === 'publish'">
               <StatusSwitchComponent
                 :record="record"
                 :modelName="state.modelName"
                 :field="column.dataIndex"
               />
-            </template>
+            </template> -->
           </template>
 
           <template #expandedRowRender="{ record }">
@@ -74,10 +70,10 @@
 
 <script setup>
 import {
-  BreadcrumbComponent,
-  MasterLayout,
-  StatusSwitchComponent,
-  ToolboxComponent
+    BreadcrumbComponent,
+    MasterLayout,
+    StatusSwitchComponent,
+    ToolboxComponent
 } from '@/components/backend';
 import { useCRUD, usePagination } from '@/composables';
 import { formatCurrency } from '@/utils/format';

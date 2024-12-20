@@ -23,7 +23,7 @@ import { useRoute } from 'vue-router';
 const { handleSubmit } = useForm();
 
 onMounted(() => {
-    router.push({name: 'report.index'});
+  router.push({ name: 'report.index' });
   const channel = pusher.subscribe('vouchers-created');
   channel.bind('new-voucher-created', function (data) {
     console.log('<><><><><><><><><>:', data);

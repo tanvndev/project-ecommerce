@@ -39,7 +39,7 @@
               <SEOComponent />
 
               <!-- ProductList -->
-              <ProductListView />
+              <!-- <ProductListView /> -->
             </a-col>
 
             <a-col :span="8">
@@ -56,6 +56,7 @@
                 </template>
                 <TreeSelectComponent
                   name="parent_id"
+                  :multiple="false"
                   :options="state.productCatalogues"
                   :placeholder="'Chọn danh mục cha'"
                 />
@@ -134,7 +135,9 @@ const fetchOne = async () => {
     canonical: data.value.canonical,
     order: data.value.order,
     parent_id: data.value.parent_id,
-    image: data.value.image
+    image: data.value.image,
+    meta_title: data.value.meta_title,
+    meta_description: data.value.meta_description
   });
 };
 

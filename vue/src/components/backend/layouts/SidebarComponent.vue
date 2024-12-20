@@ -71,7 +71,7 @@ import { RouterLink, useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 const store = useStore();
 const isShowSidebar = computed(() => store.getters['sidebarStore/getIsShow']);
-
+const role = computed(() => sessionStorage.getItem('role'));
 const selectedKeys = ref([]);
 const openKeys = ref([]);
 

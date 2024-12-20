@@ -1,15 +1,19 @@
 <script setup>
-import {
-  ORDER_STATUS_TABS,
-  ORDER_STATUS,
-  PAYMENT_STATUS,
-} from '~/static/order'
-import { COD_ID } from '~/static/paymentMethod'
-import { useLoadingStore, useCartStore, useOrderStore } from '#imports'
-import { RATING_LABLE } from '~/static/rating'
+useSeoMeta({
+  title: 'Đơn hàng',
+  ogTitle: 'Đơn hàng',
+  description: 'Đơn hàng.',
+  ogDescription: 'Đơn hàng.',
+})
+import { useCartStore, useLoadingStore, useOrderStore } from '#imports'
 import _ from 'lodash'
+import { ORDER_STATUS, ORDER_STATUS_TABS, PAYMENT_STATUS } from '~/static/order'
+import { COD_ID } from '~/static/paymentMethod'
+import { RATING_LABLE } from '~/static/rating'
 
 const { $axios } = useNuxtApp()
+const page = ref(1)
+const pageSize = ref(null)
 const tab = ref(ORDER_STATUS_TABS[0].value)
 const loadingStore = useLoadingStore()
 const orderStore = useOrderStore()
@@ -155,15 +159,20 @@ const getAllOrder = async () => {
       params: {
         order_status: tab.value,
         search: search.value,
+        page: page.value,
       },
     })
     orders.value = response.data?.data
+    pageSize.value = response.data?.last_page
   } catch (error) {
   } finally {
     loadingStore.setLoading(false)
   }
 }
 
+watch(page, (newPage) => {
+  debounceHandleSearch()
+})
 const debounceHandleSearch = debounce(getAllOrder, 500)
 
 const debounceHandleChangeTab = debounce(getAllOrder, 500)
@@ -633,6 +642,16 @@ onMounted(async () => {
                 </template>
               </v-card>
             </v-dialog>
+
+            <!-- pagination -->
+            <div class="text-center d-flex mx-auto mt-3">
+
+              <v-pagination
+                v-model="page"
+                :length="pageSize"
+                rounded="circle"
+              ></v-pagination>
+            </div>
           </v-row>
           <div v-if="!orders?.length">
             <v-empty-state

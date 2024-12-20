@@ -30,7 +30,7 @@ class ChatService extends BaseService implements ChatServiceInterface
             $searchTerm = $request->input('search', '');
 
             $users = $this->userRepository->findChatList(
-                ['user_catalogue_id' => ['!=', User::ROLE_ADMIN]],
+                ['user_catalogue_id' => User::ROLE_CUSTOMER],
                 ['*'],
                 [
                     [

@@ -12,13 +12,13 @@
         <div class="mr-2">
           <img class="h-[60px] w-[60px] object-contain" :src="item.image" alt="" />
         </div>
-        <div>r
+        <div>
           <RouterLink
             :to="`/product/update/${item.product_id}?variant_id=${item.product_variant_id}`"
             class="mb-1 block text-primary-500"
             >{{ item.product_variant_name }}</RouterLink
           >
-          <span class="text-sm text-gray-500">Phân loại: {{ item.attribute_values }}</span>
+          <span class="text-[13px] text-gray-500">Phân loại: {{ item.attribute_values }}</span>
         </div>
       </div>
     </a-col>
@@ -231,7 +231,7 @@ const orderStatusValue = computed(() => {
 
 const handleUpdateNote = async () => {
   try {
-    const response = await axios.put(`/orders/${props.order.id}?method=PUT`, {
+    const response = await axios.post(`/orders/${props.order.id}?_method=PUT`, {
       note: note.value
     });
 
@@ -256,7 +256,10 @@ const handleUpdateStatus = async (field, value) => {
       [field]: value
     };
 
-    const response = await axios.put(`/orders/${props.order.id}?method=PUT`, payload);
+    const response =
+      field == 'order_status'
+        ? await axios.post(`/orders/${props.order.id}/update/order?_method=PUT`, payload)
+        : await axios.post(`/orders/${props.order.id}/update/payment?_method=PUT`, payload);
 
     errors.value = {};
     if (response.status == 'success') {

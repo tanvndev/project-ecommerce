@@ -20,8 +20,8 @@ class OrderStatusResource extends JsonResource
             'key'                   => $this->id,
             'code'                  => $this->order->code,
             'requested_by'          => [
-                'name' => $this->requester->fullname,
-                'email' => $this->requester->email
+                'name'  => $this->requester->fullname,
+                'email' => $this->requester->email,
             ],
             'current_status'        => $this->current_status,
             'requested_status'      => $this->requested_status,
@@ -31,7 +31,7 @@ class OrderStatusResource extends JsonResource
             'rejection_reason'      => $this->rejection_reason,
             'status'                => $this->getStatus(),
             'approved_by'           => $this->approved_by ? $this->approver->fullname . ' - ' . $this->approver->email : null,
-            'approved_at'           => $this->approved_at ? $this->approved_at->format('d/m/Y H:i:s') : null
+            'approved_at'           => $this->approved_at ? $this->approved_at->format('d/m/Y H:i:s') : null,
         ];
     }
 

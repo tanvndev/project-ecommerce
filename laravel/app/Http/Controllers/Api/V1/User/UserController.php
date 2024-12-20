@@ -61,7 +61,6 @@ class UserController extends Controller
         return successResponse('', $data, true);
     }
 
-
     /**
      * Store a newly created resource in storage.
      */

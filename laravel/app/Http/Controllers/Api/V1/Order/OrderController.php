@@ -71,8 +71,7 @@ class OrderController extends Controller
         // $this->authorizePermission('orders.store');
 
         if ($request->has('voucher_id')) {
-            $res = $this->voucherService->applyVoucher($request->voucher_id);
-
+            $res = $this->voucherService->applyVoucher('', $request->voucher_id);
             if ($res['status'] == 'error') {
                 return errorResponse($res['messages'], true);
             }
@@ -95,6 +94,14 @@ class OrderController extends Controller
     {
         $this->authorizePermission('orders.update');
         $response = $this->orderService->update($id);
+
+        return handleResponse($response);
+    }
+
+    public function adminUpdateStatus(UpdateOrderRequest $request, string $code): JsonResponse
+    {
+        $this->authorizePermission('admin.orders.update');
+        $response = $this->orderService->superAdminUpdateStatus($code);
 
         return handleResponse($response);
     }
@@ -181,6 +188,22 @@ class OrderController extends Controller
         return successResponse('', $data, true);
     }
 
+    public function updatePaymentStatus(UpdateOrderRequest $request, string $id): JsonResponse
+    {
+        $this->authorizePermission('orders.update.payment');
+        $response = $this->orderService->updatePaymentStatus($id);
+
+        return handleResponse($response);
+    }
+
+    public function updateOrderStatus(UpdateOrderRequest $request, string $id): JsonResponse
+    {
+        $this->authorizePermission('orders.update.order');
+        $response = $this->orderService->updateOrderStatus($id);
+
+        return handleResponse($response);
+    }
+
     /**
      * Update the order status to completed.
      *
@@ -200,7 +223,6 @@ class OrderController extends Controller
      */
     public function updateCancelledOrder(string $id): JsonResponse
     {
-
         $response = $this->orderService->updateStatusOrderToCancelled($id);
 
         return handleResponse($response);

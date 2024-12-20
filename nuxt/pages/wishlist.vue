@@ -1,4 +1,12 @@
 <script setup>
+
+useSeoMeta({
+  title: 'Sản phẩm ưa thích',
+  ogTitle: 'Sản phẩm ưa thích',
+  description: 'Sản phẩm ưa thích.',
+  ogDescription: 'Sản phẩm ưa thích.',
+})
+
 const loadingStore = useLoadingStore()
 const wishlistStore = useWishlistStore()
 const { $axios } = useNuxtApp()

@@ -1,4 +1,12 @@
 <script setup>
+
+useSeoMeta({
+  title: 'Thanh toán',
+  ogTitle: 'Thanh toán',
+  description: 'Thanh toán.',
+  ogDescription: 'Thanh toán.',
+})
+
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useForm } from 'vee-validate'
 import Cookies from 'js-cookie'
@@ -139,7 +147,7 @@ const applyVoucher = async () => {
     if (response.status == 'success') {
       toast(response.messages)
       setFieldValue('voucher_id', response.data.voucher_id)
-      orderStore.setDiscount(response.data.discount)
+      orderStore.setDiscount(response?.data?.discount)
     }
   } catch (error) {
     toast(error?.response?.data?.messages || 'Thao tác thất bại', 'error')

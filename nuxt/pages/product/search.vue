@@ -1,4 +1,12 @@
 <script setup>
+
+useSeoMeta({
+  title: 'Tìm kiếm sản phẩm',
+  ogTitle: 'Tìm kiếm sản phẩm',
+  description: 'Tìm kiếm sản phẩm.',
+  ogDescription: 'Tìm kiếm sản phẩm.',
+})
+
 import _ from 'lodash'
 import { ref } from 'vue'
 

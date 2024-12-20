@@ -1,4 +1,11 @@
 <script setup>
+
+useSeoMeta({
+  title: 'Tin nhắn',
+  ogTitle: 'Tin nhắn',
+  description: 'Tin nhắn.',
+  ogDescription: 'Tin nhắn.',
+})
 const { $axios, $pusher } = useNuxtApp()
 const authStore = useAuthStore()
 const chatLists = ref([])

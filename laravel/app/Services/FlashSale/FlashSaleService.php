@@ -62,7 +62,7 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
             foreach ($data['max_quantities'] as $productVariantId => $quantity) {
                 $productVariant = $this->productVariantRepository->findById($productVariantId, ['*'], [], true);
 
-                if ( ! $productVariant) {
+                if (! $productVariant) {
                     return errorResponse(__('messages.flash_sale.error.not_found'));
                 }
 
@@ -101,7 +101,7 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
                 'id' => $flashSaleId,
             ]);
 
-            if ( ! $flashSale) {
+            if (! $flashSale) {
                 return errorResponse(__('messages.flash_sale.error.not_found'));
             }
 
@@ -214,5 +214,35 @@ class FlashSaleService extends BaseService implements FlashSaleServiceInterface
         $data = $this->flashSaleRepository->findByWhere($condition, ['*'], ['product_variants']);
 
         return $data;
+    }
+
+    public function deleteMultiple()
+    {
+        return $this->executeInTransaction(function () {
+            $request = request();
+
+            $flashSale = $this->flashSaleRepository->findByWhereIn($request->modelIds, 'id', ['*'], ['product_variants']);
+            $productVariantIds = $flashSale->map(function ($item) {
+                return $item->product_variants->pluck('id')->toArray();
+            })->flatten()->unique()->toArray();
+
+            foreach ($productVariantIds as $productVariantId) {
+                $payload = [
+                    'sale_price'          => null,
+                    'is_discount_time'    => false,
+                    'sale_price_start_at' => null,
+                    'sale_price_end_at'   => null,
+                ];
+                $this->productVariantRepository->update($productVariantId, $payload);
+            }
+
+            $forceDelete = ($request->has('forceDelete') && $request->forceDelete == '1')
+                ? 'forceDeleteByWhereIn'
+                : 'deleteByWhereIn';
+
+            $this->flashSaleRepository->{$forceDelete}('id', $request->modelIds);
+
+            return successResponse(__('messages.action.success'));
+        }, __('messages.action.error'));
     }
 }

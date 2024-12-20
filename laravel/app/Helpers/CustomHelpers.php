@@ -507,8 +507,11 @@ if ( ! function_exists('haversineGreatCircleDistance')) {
 
 if ( ! function_exists('hintPhoneNumber')) {
 
-    function hintPhoneNumber(string $phoneNumber): string
+    function hintPhoneNumber($phoneNumber): string
     {
+        if ( ! $phoneNumber) {
+            return '';
+        }
         $cleaned = preg_replace('/\D/', '', $phoneNumber);
 
         if (strlen($cleaned) < 4) {
@@ -524,6 +527,11 @@ if ( ! function_exists('hintEmail')) {
 
     function hintEmail(string $email): string
     {
+
+        if ( ! $email) {
+            return '';
+        }
+
         $parts = explode('@', $email);
         if (count($parts) != 2) {
             return 'Invalid email address';

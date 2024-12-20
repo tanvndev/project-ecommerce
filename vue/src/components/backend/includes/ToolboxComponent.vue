@@ -90,7 +90,15 @@ const filterOptions = reactive({
 });
 
 const hideArchive = () => {
-  const routeHide = ['attribute.index', 'permission.index', 'order.index', 'evaluate.index', 'order.change-status-request'];
+  const routeHide = [
+    'attribute.index',
+    'permission.index',
+    'order.index',
+    'evaluate.index',
+    'order.change-status-request',
+    'flash-sale.index',
+    'user.catalogue.index'
+  ];
   if (routeHide.includes(route.name)) {
     return false;
   }
@@ -103,7 +111,8 @@ const removeDelete = () => {
     'attribute.index',
     'attribute.update',
     'order.index',
-    'evaluate.index'
+    'evaluate.index',
+    'user.catalogue.index'
   ];
   if (routeHide.includes(route.name)) {
     return false;
@@ -111,7 +120,15 @@ const removeDelete = () => {
   return true;
 };
 const removePublish = () => {
-  const routeHide = ['permission.index', 'attribute.index', 'attribute.update', 'order.index', 'order.change-status-request'];
+  const routeHide = [
+    'permission.index',
+    'attribute.index',
+    'attribute.update',
+    'order.index',
+    'order.change-status-request',
+    'flash-sale.index',
+    'user.catalogue.index'
+  ];
   if (routeHide.includes(route.name)) {
     return false;
   }

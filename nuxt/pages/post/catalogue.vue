@@ -27,7 +27,7 @@ onMounted(() => {
         <li>
           <a href="#" class="nav-filter active">
             Tất cả bài viết
-            <span>6</span>
+            <span>{{ posts?.length }}</span>
           </a>
         </li>
       </ul>
@@ -47,9 +47,6 @@ onMounted(() => {
             </figure>
             <div class="post-details">
               <div class="post-details-visible">
-                <div class="post-cats">
-                  <a href="#">...</a>
-                </div>
                 <h4 class="post-title text-white">
                   <NuxtLink :to="`/post/${post.canonical}`">{{
                     post.name
@@ -60,7 +57,6 @@ onMounted(() => {
                 Tác giả
                 <a href="#" class="post-author">{{ post.user_name }}</a> -
                 <a href="#" class="post-date">{{ post.created_at }}</a>
-                <a href="#" class="post-comment">0 Comments</a>
               </div>
             </div>
           </article>

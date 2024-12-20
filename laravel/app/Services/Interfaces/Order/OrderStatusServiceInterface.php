@@ -11,5 +11,4 @@ interface OrderStatusServiceInterface
     public function update();
 
     public function cancel();
-
 }

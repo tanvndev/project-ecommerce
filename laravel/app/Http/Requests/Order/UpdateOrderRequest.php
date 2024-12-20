@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Order;
 
+use App\Models\Order;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateOrderRequest extends FormRequest
@@ -23,11 +24,11 @@ class UpdateOrderRequest extends FormRequest
     {
         $rules = [];
         if ($this->has('order_status')) {
-            $rules['order_status'] = 'required';
+            $rules['order_status'] = 'required|in:' . implode(',', Order::ORDER_STATUS_REQUEST);
         }
 
         if ($this->has('payment_status')) {
-            $rules['payment_status'] = 'required';
+            $rules['payment_status'] = 'required|in:' . implode(',', Order::PAYMENT_STATUS_REQUEST);
         }
 
         return $rules;
