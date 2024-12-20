@@ -11,19 +11,22 @@
             margin: 0;
             padding: 0;
             background-color: #f9f9f9;
+            width: 100%;
         }
 
         table {
-            font-size: 12px;
+            font-size: 14px;
         }
 
         .invoice {
-            max-width: 400px;
-            margin: 20px auto;
+            width: 100%;
+            height: 100vh;
+            margin: 0;
             background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 0;
+            box-shadow: none;
             overflow: hidden;
+            padding: 20px;
         }
 
         .header {
@@ -62,9 +65,7 @@
         }
 
         .info-line {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
+            margin-top: 15px;
         }
 
         .info-line .title {
@@ -74,6 +75,7 @@
         }
 
         .info-line .value {
+            margin-right: 40px;
             text-align: right;
             flex: 2;
             color: #333;
@@ -108,7 +110,8 @@
         .summary .line {
             display: flex;
             justify-content: space-between;
-            margin: 5px 0;
+            margin: 15px 0;
+            padding-right: 170px;
         }
 
         .summary .total {
@@ -194,15 +197,15 @@
             <!-- Tóm tắt thanh toán -->
             <div class="summary">
                 <div class="line">
-                    <span>Tổng tiền hàng:</span>
+                    <span style="color: #555"><strong>Tổng tiền hàng:</strong></span>
                     <span>{{ $dataOrder['total_price'] }}</span>
                 </div>
                 <div class="line">
-                    <span>Phí giao hàng:</span>
+                    <span style="color: #555"><strong>Phí giao hàng:</strong></span>
                     <span>{{ $dataOrder['shipping_fee'] }}</span>
                 </div>
                 <div class="line">
-                    <span>Voucher áp dụng:</span>
+                    <span style="color: #555"><strong>Voucher áp dụng:</strong></span>
                     <span>{{ $dataOrder['discount'] != 0 ? '-' . $dataOrder['discount'] : '0' }}</span>
                 </div>
                 <div class="line total">
