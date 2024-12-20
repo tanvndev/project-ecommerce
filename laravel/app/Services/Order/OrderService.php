@@ -8,6 +8,8 @@ use App\Events\Order\OrderCreatedEvent;
 use App\Events\Order\OrderUpdatePaymentEvent;
 use App\Models\Order;
 use App\Models\PaymentMethod;
+use App\Models\ShippingMethod;
+use App\Models\User;
 use App\Models\Voucher;
 use App\Repositories\Interfaces\Cart\CartRepositoryInterface;
 use App\Repositories\Interfaces\FlashSale\FlashSaleRepositoryInterface;
@@ -108,12 +110,113 @@ class OrderService extends BaseService implements OrderServiceInterface
 
             $order = $this->orderRepository->findById($id);
 
-            if ( ! $this->checkUpdateStatus($request, $order)) {
+            if (! $this->checkUpdateStatus($request, $order)) {
                 return errorResponse(__('messages.order.error.invalid'));
             }
 
             $order->update($payload);
 
+            return successResponse(__('messages.update.success'));
+        }, __('messages.update.error'));
+    }
+
+    public function superAdminUpdateStatus(string $code)
+    {
+        return $this->executeInTransaction(function () use ($code) {
+            $request = request();
+
+            if (auth()->id() != User::ROLE_ADMIN)
+                throw new Exception('Chỉ quản trị có thể thay đổi trạng thái.', 403);
+
+            $payload = $this->handlePayloadUpdate($request);
+
+            $order = $this->orderRepository->findByWhere(['code' => $code]);
+
+            if (! $this->checkUpdateStatus($payload, $order)) {
+                return errorResponse(__('messages.order.error.invalid'));
+            }
+
+            $order->update($payload);
+
+            return successResponse(__('messages.update.success'));
+        }, __('messages.update.error'));
+    }
+
+    /**
+     * Check if the order can be updated to the given status.
+     *
+     * If the order status is to be updated to completed, the payment status must be paid and the delivery status must be delivered.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     */
+    public function checkUpdateStatus($payload, $order)
+    {
+        if ($order->order_status == Order::ORDER_STATUS_COMPLETED) {
+            return false;
+        }
+
+        if ($order->order_status == Order::ORDER_STATUS_CANCELED) {
+            return false;
+        }
+
+        if ($order->shipping_method_id == ShippingMethod::COD_ID) {
+            if ($order->order_status != Order::ORDER_STATUS_DELIVERING) {
+                return false;
+            }
+        }
+
+        if ($payload['order_status'] == Order::ORDER_STATUS_COMPLETED) {
+            if ($order->payment_status != Order::PAYMENT_STATUS_PAID) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function updatePaymentStatus(string $id)
+    {
+        return $this->executeInTransaction(function () use ($id) {
+            $request = request();
+
+            $payload = $this->handlePayloadUpdate($request);
+
+            $order = $this->orderRepository->findById($id);
+
+            if (! $order->isForwardPaymentStatus($payload['payment_status']))
+                return errorResponse('Bạn không thể cập nhật trạng thái ngược.');
+
+            if ($order->shipping_method_id == ShippingMethod::COD_ID) {
+                if ($order->order_status != Order::ORDER_STATUS_DELIVERING) {
+                    return errorResponse(__('messages.order.error.invalid'));
+                }
+            }
+
+            $order->update($payload);
+
+            return successResponse(__('messages.update.success'));
+        }, __('messages.update.error'));
+    }
+
+    public function updateOrderStatus(string $id)
+    {
+        return $this->executeInTransaction(function () use ($id) {
+            $request = request();
+
+            $payload = $this->handlePayloadUpdate($request);
+
+            $order = $this->orderRepository->findById($id);
+
+            if (! $order->isForwardStatus($payload['order_status']))
+                return errorResponse('Bạn không thể cập nhật trạng thái ngược.');
+
+            if ($payload['order_status'] == Order::ORDER_STATUS_COMPLETED) {
+                if ($order->payment_status != Order::PAYMENT_STATUS_PAID) {
+                    return errorResponse(__('messages.order.error.invalid'));
+                }
+            }
+
+            $order->update($payload);
             return successResponse(__('messages.update.success'));
         }, __('messages.update.error'));
     }
@@ -143,43 +246,6 @@ class OrderService extends BaseService implements OrderServiceInterface
         }
 
         return $payload;
-    }
-
-    /**
-     * Check if the order can be updated to the given status.
-     *
-     * If the order status is to be updated to completed, the payment status must be paid and the delivery status must be delivered.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     */
-    public function checkUpdateStatus($request, Order $order): bool
-    {
-
-        // NEU DA HOAN THANH THI K CHO THAY DOI TRANG THAI
-        if ($order->order_status == Order::ORDER_STATUS_COMPLETED) {
-            return false;
-        }
-
-        if (
-            $order->order_status == Order::ORDER_STATUS_COMPLETED
-            && $order->payment_status == Order::PAYMENT_STATUS_PAID
-        ) {
-            return false;
-        }
-
-        // Nếu đơn hàng đã bị hủy, không cho thay đổi trạng thái
-        if ($order->order_status === Order::ORDER_STATUS_CANCELED) {
-            return false;
-        }
-
-        // NEU LA THANH TOAN COD THI SE KHONG CHO HOAN THANH KHI CHUA THANH TOAN
-        $isCOD = $order->additional_details['payment_method']['id'] == PaymentMethod::COD_ID;
-
-        return ! (
-            $isCOD
-            && $request->order_status == Order::ORDER_STATUS_COMPLETED
-            && $order->payment_status != Order::PAYMENT_STATUS_PAID
-        );
     }
 
     /**
@@ -261,7 +327,7 @@ class OrderService extends BaseService implements OrderServiceInterface
                 true
             );
 
-            if ( ! $productVariant) {
+            if (! $productVariant) {
                 throw new Exception('Product variant not found.');
             }
 
@@ -286,10 +352,12 @@ class OrderService extends BaseService implements OrderServiceInterface
      */
     private function prepareOrderPayload($request, $userId = null): array
     {
+
         return array_merge($request->except('_token'), [
             'user_id'    => $userId ?? null,
             'code'       => generateOrderCode(),
             'ordered_at' => now(),
+            'created_by' => auth()->id() ?? null
         ]);
     }
 
@@ -307,7 +375,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             'publish' => 1,
         ]);
 
-        if ( ! $paymentMethod) {
+        if (! $paymentMethod) {
             throw new Exception('Payment method not found.');
         }
 
@@ -328,7 +396,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             'publish' => 1,
         ]);
 
-        if ( ! $shippingMethod) {
+        if (! $shippingMethod) {
             throw new Exception('Shipping method not found.');
         }
 
@@ -364,7 +432,7 @@ class OrderService extends BaseService implements OrderServiceInterface
 
         $cart = $this->cartRepository->findByWhere($conditions, ['*'], $relation);
 
-        if ( ! $cart) {
+        if (! $cart) {
             throw new Exception('Cart not found.');
         }
 
@@ -406,7 +474,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             'publish' => 1,
         ], ['*'], [], false, [], [], [], [], true);
 
-        if ( ! $voucher) {
+        if (! $voucher) {
             throw new Exception('Voucher not found.');
         }
 
@@ -466,7 +534,7 @@ class OrderService extends BaseService implements OrderServiceInterface
         foreach ($cartItems as $item) {
             $productVariantId = $item->product_variant_id;
 
-            if ( ! isset($flashSaleProductVariants[$productVariantId])) {
+            if (! isset($flashSaleProductVariants[$productVariantId])) {
                 continue;
             }
 
@@ -598,7 +666,7 @@ class OrderService extends BaseService implements OrderServiceInterface
      */
     private function isSalePriceValid($productVariant): bool
     {
-        if ( ! $productVariant->sale_price || ! $productVariant->price) {
+        if (! $productVariant->sale_price || ! $productVariant->price) {
             return false;
         }
 
@@ -708,7 +776,7 @@ class OrderService extends BaseService implements OrderServiceInterface
      */
     public function getOrderByUser()
     {
-        if ( ! auth()->check()) {
+        if (! auth()->check()) {
             return [];
         }
 
@@ -752,7 +820,7 @@ class OrderService extends BaseService implements OrderServiceInterface
     {
         return $this->executeInTransaction(function () use ($id) {
 
-            if ( ! auth()->check()) {
+            if (! auth()->check()) {
                 return errorResponse(__('messages.order.error.status'));
             }
 
@@ -789,7 +857,7 @@ class OrderService extends BaseService implements OrderServiceInterface
     {
         return $this->executeInTransaction(function () use ($id) {
 
-            if ( ! auth()->check()) {
+            if (! auth()->check()) {
                 return errorResponse(__('messages.order.error.status'));
             }
 
@@ -887,14 +955,14 @@ class OrderService extends BaseService implements OrderServiceInterface
                     return $id >= 47 && $id <= 69;
                 });
 
-                if ( ! empty($filteredIds)) {
+                if (! empty($filteredIds)) {
                     $randomProductId = $filteredIds[array_rand($filteredIds)];
                 } else {
                     // Nếu không có sản phẩm nào trong khoảng, bốc random từ toàn bộ danh sách
                     $randomProductId = $arrayOfIds[array_rand($arrayOfIds)];
                 }
 
-                if ( ! in_array($randomProductId, $itemset)) {
+                if (! in_array($randomProductId, $itemset)) {
                     $itemset[] = $randomProductId;
                 }
             }
@@ -990,6 +1058,7 @@ class OrderService extends BaseService implements OrderServiceInterface
             'voucher_id' => null,
             'code'       => generateOrderCode() . rand(0, 100),
             'ordered_at' => now(),
+            'created_by' => auth()->id() ?? null
         ]);
     }
 

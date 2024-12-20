@@ -84,6 +84,10 @@ const sidebar = [
       {
         name: 'Quyền người dùng',
         route: 'permission.index'
+      },
+      {
+        name: 'Phân quyền',
+        route: 'user.catalogue.permission'
       }
     ]
   },

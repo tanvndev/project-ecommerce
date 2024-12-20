@@ -31,13 +31,13 @@
               <img class="w-20 object-contain" :src="record.image" :alt="record.name" />
             </template>
 
-            <template v-if="column.dataIndex === 'publish'">
+            <!-- <template v-if="column.dataIndex === 'publish'">
               <StatusSwitchComponent
                 :record="record"
                 :modelName="state.modelName"
                 :field="column.dataIndex"
               />
-            </template>
+            </template> -->
 
             <template v-if="column.dataIndex === 'action'">
               <ActionComponent
@@ -112,19 +112,19 @@ const columns = [
     dataIndex: 'description',
     key: 'description',
     sorter: (a, b) => a.description.localeCompare(b.description)
-  },
-  {
-    title: 'Tình trạng',
-    dataIndex: 'publish',
-    key: 'publish',
-    width: '7%'
-  },
-  {
-    title: 'Thực thi',
-    dataIndex: 'action',
-    key: 'action',
-    width: '6%'
   }
+  //   {
+  //     title: 'Tình trạng',
+  //     dataIndex: 'publish',
+  //     key: 'publish',
+  //     width: '7%'
+  //   },
+  //   {
+  //     title: 'Thực thi',
+  //     dataIndex: 'action',
+  //     key: 'action',
+  //     width: '6%'
+  //   }
 ];
 
 const { getAll, loading } = useCRUD();

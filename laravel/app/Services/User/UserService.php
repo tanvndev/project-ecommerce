@@ -54,7 +54,6 @@ class UserService extends BaseService implements UserServiceInterface
         return $this->executeInTransaction(function () {
             $payload = request()->except('_token', '_method');
             $payload = $this->formatPayload($payload);
-
             $this->userRepository->create($payload);
 
             return successResponse(__('messages.create.success'));
@@ -64,12 +63,10 @@ class UserService extends BaseService implements UserServiceInterface
     private function formatPayload(array $payload): array
     {
         $request = request();
-        $payload = [
-            'password'          => Hash::make($payload['password']),
-            'user_agent'        => $request->header('User-Agent'),
-            'ip'                => $request->ip(),
-            'email_verified_at' => now()->toDateTimeString(),
-        ];
+        $payload['password']          = Hash::make($payload['password']);
+        $payload['user_agent']        = $request->header('User-Agent');
+        $payload['ip']                = $request->ip();
+        $payload['email_verified_at'] = now()->toDateTimeString();
 
         return $payload;
     }
@@ -79,7 +76,7 @@ class UserService extends BaseService implements UserServiceInterface
         return $this->executeInTransaction(function () use ($id) {
 
             if ($id == User::ROLE_ADMIN) {
-                throw new Exception('AuthorizationException', 403);
+                throw new Exception('AuthorizationException', 500);
             }
 
             $payload = request()->except('_token', '_method');

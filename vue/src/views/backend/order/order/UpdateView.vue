@@ -163,6 +163,7 @@ import {
   SelectComponent
 } from '@/components/backend';
 import { useCRUD } from '@/composables';
+import axios from '@/configs/axios';
 import router from '@/router';
 import { ORDER_STATUS, ORDER_STATUS_SELECT, PAYMENT_STATUS } from '@/static/order';
 import { formatMessages } from '@/utils/format';
@@ -249,16 +250,22 @@ const { handleSubmit, setValues } = useForm({
 });
 
 const onSubmit = handleSubmit(async (values) => {
-  console.log(messages.value);
+  try {
+    state.errors = {};
 
-  const response = await update(state.endpoint, order.value.id, values);
-  if (!response) {
-    return (state.errors = formatMessages(messages.value));
+    const routeApi = `/orders/${code.value}/admin/update?_method=PUT`;
+
+    const response = await axios.post(routeApi, values);
+
+    message.success(response.messages);
+    fetchOne();
+    state.errors = {};
+  } catch (error) {
+    const msg = error.response.data.messages || 'Có lỗi từ máy chủ vui lòng thử lại.';
+    message.error(msg);
+
+    return (state.errors = formatMessages(msg));
   }
-
-  message.success(messages.value);
-  fetchOne();
-  state.errors = {};
 });
 
 const fetchOne = async () => {

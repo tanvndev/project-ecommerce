@@ -51,7 +51,7 @@
                 <a-col :span="24" v-if="review.images">
                   <a-space>
                     <img
-                      v-for="(image, index) in JSON.parse(review.images)"
+                      v-for="(image, index) in review.images"
                       :key="index"
                       :src="image"
                       alt="review image"

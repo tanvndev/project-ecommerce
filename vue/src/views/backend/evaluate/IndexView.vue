@@ -38,7 +38,7 @@
             <template v-if="column.dataIndex === 'comment'">
               <RouterLink
                 :to="{ name: 'evaluate.replies', params: { id: record.id } }"
-                class="text-blue-500"
+                class="text-blue-500 truncate max-w-[200px] block"
               >
                 {{ record.comment }}
               </RouterLink>
@@ -56,7 +56,7 @@
             <template v-if="column.dataIndex === 'image'">
               <div v-if="record.images && record.images.length" class="flex gap-2">
                 <img
-                  v-for="(img, index) in JSON.parse(record.images)"
+                  v-for="(img, index) in record.images"
                   :key="index"
                   :src="resizeImage(img, 100)"
                   class="w-14 rounded border bg-[#f7f8fb] object-contain p-[2px] shadow-sm"

@@ -78,6 +78,10 @@ Route::middleware(['api'])->group(function () {
     Route::get('orders/{orderCode}/detail', [OrderController::class, 'getOrder']);
     Route::get('orders/user', [OrderController::class, 'getOrderByUser']);
     Route::get('orders/{orderCode}/payment', [OrderController::class, 'handleOrderPayment']);
+    Route::put('orders/{id}/update/payment', [OrderController::class, 'updatePaymentStatus'])->name('orders.update.payment');
+    Route::put('orders/{id}/update/order', [OrderController::class, 'updateOrderStatus'])->name('orders.update.order');
+    Route::put('orders/{code}/admin/update', [OrderController::class, 'adminUpdateStatus'])->name('orders.admin.update.');
+
     Route::put('orders/{id}/complete', [OrderController::class, 'updateCompletedOrder']);
     Route::put('orders/{id}/cancel', [OrderController::class, 'updateCancelledOrder']);
 

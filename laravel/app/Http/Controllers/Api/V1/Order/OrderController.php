@@ -97,6 +97,14 @@ class OrderController extends Controller
         return handleResponse($response);
     }
 
+    public function adminUpdateStatus(UpdateOrderRequest $request, string $code): JsonResponse
+    {
+        $this->authorizePermission('admin.orders.update');
+        $response = $this->orderService->superAdminUpdateStatus($code);
+
+        return handleResponse($response);
+    }
+
     /**
      * Handle order payment.
      *
@@ -106,7 +114,7 @@ class OrderController extends Controller
     {
         $order = $this->orderService->getOrderUserByCode($orderCode);
 
-        if ( ! $order) {
+        if (! $order) {
             $response = [
                 'status'   => 'error',
                 'messages' => __('messages.order.error.create'),
@@ -179,6 +187,22 @@ class OrderController extends Controller
         return successResponse('', $data, true);
     }
 
+    public function updatePaymentStatus(UpdateOrderRequest $request, string $id): JsonResponse
+    {
+        $this->authorizePermission('orders.update.payment');
+        $response = $this->orderService->updatePaymentStatus($id);
+
+        return handleResponse($response);
+    }
+
+    public function updateOrderStatus(UpdateOrderRequest $request, string $id): JsonResponse
+    {
+        $this->authorizePermission('orders.update.order');
+        $response = $this->orderService->updateOrderStatus($id);
+
+        return handleResponse($response);
+    }
+
     /**
      * Update the order status to completed.
      *
@@ -198,7 +222,6 @@ class OrderController extends Controller
      */
     public function updateCancelledOrder(string $id): JsonResponse
     {
-
         $response = $this->orderService->updateStatusOrderToCancelled($id);
 
         return handleResponse($response);

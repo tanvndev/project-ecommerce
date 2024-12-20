@@ -10,6 +10,15 @@ class Order extends Model
 {
     use HasFactory, QueryScopes;
 
+    const ORDER_STATUS_REQUEST = [
+        'pending',
+        'processing',
+        'delivering',
+        'completed',
+        'canceled',
+        'returned',
+    ];
+
     const ORDER_STATUS = [
         'pending'    => 'Chờ xác nhận',
         'processing' => 'Đang xử lý',
@@ -22,6 +31,11 @@ class Order extends Model
     const PAYMENT_STATUS = [
         'paid'   => 'Đã thanh toán',
         'unpaid' => 'Chưa thanh toán',
+    ];
+
+    const PAYMENT_STATUS_REQUEST = [
+        'paid',
+        'unpaid',
     ];
 
     const ORDER_STATUS_PENDING = 'pending';
@@ -77,6 +91,7 @@ class Order extends Model
         'ordered_at',
         'paid_at',
         'additional_details',
+        'created_by'
     ];
 
     protected $casts = [
@@ -141,5 +156,10 @@ class Order extends Model
     public function product_reviews()
     {
         return $this->hasMany(ProductReview::class);
+    }
+
+    public function created_by()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }
