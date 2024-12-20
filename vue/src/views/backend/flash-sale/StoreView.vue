@@ -146,31 +146,28 @@
               <a-card title="Xuất bản">
                 <div class="flex space-x-2">
                   <!-- Save Button -->
-                  <a-button html-type="submit" type="primary" size="large" class="w-[60%]">
+                  <a-button
+                    html-type="submit"
+                    type="primary"
+                    size="large"
+                    class="w-[100%]"
+                    @click="submitForm"
+                  >
                     <i class="fas fa-save mr-2"></i>
                     Lưu lại
-                  </a-button>
-                  <!-- Save & Exit Button -->
-                  <a-button
-                    @click="submitForm(true)"
-                    size="large"
-                    class="w-[80%]"
-                    html-type="button"
-                  >
-                    Lưu & Thoát
                   </a-button>
                 </div>
               </a-card>
 
               <!-- Status Section -->
-              <a-card title="Trạng thái">
+              <!-- <a-card title="Trạng thái">
                 <SelectComponent
                   name="publish"
                   :options="PUBLISH"
                   :required="true"
                   :placeholder="`Chọn trạng thái`"
                 />
-              </a-card>
+              </a-card> -->
 
               <!-- Start Date Section -->
               <a-card title="Ngày bắt đầu">
@@ -289,10 +286,10 @@ const fetchProducts = async () => {
 };
 
 const submitForm = async (exitAfterSave = false) => {
-  const isValid = await form.validate();
-  if (!isValid.valid) {
-    return;
-  }
+//   const isValid = await form.validate();
+//   if (!isValid.valid) {
+//     return message.error('Hãy kiểm tra các trường bạn đã nhập');
+//   }
 
   const maxQuantities = {};
   const salePrices = {};
@@ -374,7 +371,7 @@ watch(searchTerm, () => {
 
 // Khi component được mount
 onMounted(() => {
-    window.addEventListener('beforeunload', handleBeforeUnload);
+  window.addEventListener('beforeunload', handleBeforeUnload);
   if (id.value && id.value > 0) {
     state.pageTitle = 'Cập nhập nhóm sản phẩm.';
     fetchOne();

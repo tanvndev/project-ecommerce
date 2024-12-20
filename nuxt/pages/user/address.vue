@@ -1,4 +1,12 @@
 <script setup>
+
+useSeoMeta({
+  title: 'Địa chỉ',
+  ogTitle: 'Địa chỉ',
+  description: 'Địa chỉ.',
+  ogDescription: 'Địa chỉ.',
+})
+
 const { $axios, $authService } = useNuxtApp()
 const authStore = useAuthStore()
 const user = computed(() => authStore.getUser)

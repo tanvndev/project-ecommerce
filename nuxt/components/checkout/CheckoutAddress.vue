@@ -166,7 +166,7 @@ onMounted(async () => {
         >Thay đổi</a
       >
     </div>
-    <div class="customer-address" v-if="!isLoggedIn">
+    <div class="customer-address" v-if="!isLoggedIn || !currentAddress">
       <div class="row gutter-sm">
         <div class="col-xs-6">
           <IncludesInputComponent name="customer_name" label="Họ và tên *" />

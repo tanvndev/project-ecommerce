@@ -157,10 +157,10 @@ onUnmounted(() => {
           <!-- End of Dropdown Menu -->
           <span class="d-lg-show"></span>
           <div class="header-notification" v-if="isSignedIn">
-            <NuxtLink to="/post/catalogue" class="d-lg-show notification-link">
+            <!-- <NuxtLink to="/post/catalogue" class="d-lg-show notification-link">
               <i class="fas fa-bell fs-1" :class="{ shake: isShowBell }"></i>
               <span class="notification-text"> Thông báo </span>
-            </NuxtLink>
+            </NuxtLink> -->
 
             <div class="noti-dropdown-box" v-if="!_.isEmpty(notifications)">
               <h6>Thông báo mới nhận</h6>
@@ -190,7 +190,7 @@ onUnmounted(() => {
             </div>
           </div>
           <NuxtLink to="/post/catalogue" class="d-lg-show">Bài viết</NuxtLink>
-          <NuxtLink to="/contact" class="d-lg-show">Liên hệ</NuxtLink>
+          <!-- <NuxtLink to="/contact" class="d-lg-show d-done">Liên hệ</NuxtLink> -->
           <NuxtLink to="/user/profile" class="d-lg-show" v-if="isSignedIn"
             >Tài khoản</NuxtLink
           >
@@ -353,8 +353,8 @@ onUnmounted(() => {
                   >
                   hoặc :
                 </h4>
-                <a href="tel:#" class="phone-number font-weight-bolder ls-50"
-                  >0(800)123-456</a
+                <a :href="`tel:${systemConfigs?.hotline}`" class="phone-number font-weight-bolder ls-50"
+                  >{{ systemConfigs?.hotline }}</a
                 >
               </div>
             </div>

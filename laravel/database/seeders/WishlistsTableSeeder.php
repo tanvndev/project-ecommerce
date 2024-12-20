@@ -4,10 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\ProductVariant;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Carbon\Carbon;
 
 class WishlistsTableSeeder extends Seeder
 {
@@ -29,8 +28,8 @@ class WishlistsTableSeeder extends Seeder
             DB::table('wishlists')->insert([
                 'user_id'            => $userIds[array_rand($userIds)],
                 'product_variant_id' => $productVariantIds[array_rand($productVariantIds)],
-                'created_at' => $randomDate,
-                'updated_at' => $randomDate,
+                'created_at'         => $randomDate,
+                'updated_at'         => $randomDate,
             ]);
         }
     }

@@ -23,14 +23,9 @@ class UpdatePostRequest extends FormRequest
     {
         return [
             'name'             => 'required',
-            'canonical'        => 'unique:posts, canonical,' . $this->post,
+            'canonical'        => 'unique:posts,canonical,' . $this->post,
             'description'      => 'required',
             'content'          => 'required',
-            'icon'             => 'required',
-            'order'            => 'required|integer',
-            'meta_title'       => 'required',
-            'meta_keyword'     => 'required',
-            'meta_description' => 'required',
         ];
     }
 

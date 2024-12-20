@@ -1,8 +1,8 @@
 <script setup>
 import { resizeImage } from '#imports'
-import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Navigation, Autoplay } from 'swiper/modules'
 import 'swiper/css'
+import { Autoplay, Navigation } from 'swiper/modules'
+import { Swiper, SwiperSlide } from 'swiper/vue'
 
 const productCatalogueStore = useProductCatalogueStore()
 const modules = [Navigation, Autoplay]
@@ -79,7 +79,9 @@ const onSwiper = (swiper) => {
       v-if="productCatalogues.length"
     >
       <div class="container pb-2">
-        <h2 class="title justify-content-center pt-1 ls-normal mb-5 text-uppercase">
+        <h2
+          class="title justify-content-center pt-1 ls-normal mb-5 text-uppercase"
+        >
           Danh Mục Sản Phẩm
         </h2>
         <div class="category-wrapper">
@@ -148,6 +150,7 @@ const onSwiper = (swiper) => {
 </template>
 
 <style scoped>
+
 .category-media {
   background-color: #fff;
   display: block;

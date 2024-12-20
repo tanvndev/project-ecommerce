@@ -6,7 +6,6 @@ useSeoMeta({
   ogTitle: 'Trang chủ',
   description: 'Trang chủ.',
   ogDescription: 'Trang chủ.',
-  ogImage: '/og-image.png',
 })
 
 const widgetCodes = ref([])

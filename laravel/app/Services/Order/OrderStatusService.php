@@ -4,19 +4,17 @@
 
 namespace App\Services\Order;
 
-use App\Services\BaseService;
-use Illuminate\Support\Facades\Mail;
-
 use App\Mail\RequestStatusNotification;
 use App\Mail\sendOrderStatusChangeRequestEmail;
-use App\Services\Interfaces\Order\OrderStatusServiceInterface;
+
 use App\Repositories\Interfaces\Order\OrderRepositoryInterface;
 use App\Repositories\Interfaces\Order\OrderStatusRepositoryInterface;
-
+use App\Services\BaseService;
+use App\Services\Interfaces\Order\OrderStatusServiceInterface;
+use Illuminate\Support\Facades\Mail;
 
 class OrderStatusService extends BaseService implements OrderStatusServiceInterface
 {
-
     public function __construct(
         protected OrderStatusRepositoryInterface $orderStatusRepository,
         protected OrderRepositoryInterface $orderRepository
@@ -46,7 +44,9 @@ class OrderStatusService extends BaseService implements OrderStatusServiceInterf
     {
         return $this->executeInTransaction(function () {
 
-            if (auth()->user()->user_catalogue_id == 1) return errorResponse('Tài khoản admin có thể cập nhật trạng thái lùi về sau trực tiếp!');
+            if (auth()->user()->user_catalogue_id == 1) {
+                return errorResponse('Tài khoản admin có thể cập nhật trạng thái lùi về sau trực tiếp!');
+            }
 
             $payload = $this->payload();
 
@@ -54,7 +54,7 @@ class OrderStatusService extends BaseService implements OrderStatusServiceInterf
 
             $isForwardStatus = $this->isForwardStatus($order->order_status, $payload['requested_status']);
 
-            if (!$isForwardStatus) {
+            if ( ! $isForwardStatus) {
                 return errorResponse('Bạn có thể trực tiếp cập nhật trạng thái tiến lên mà không cần tạo yêu cầu');
             }
 
@@ -86,7 +86,9 @@ class OrderStatusService extends BaseService implements OrderStatusServiceInterf
     {
         return $this->executeInTransaction(function () {
 
-            if (auth()->user()->user_catalogue_id != 1) return errorResponse('Bạn không có đủ thẩm quyền để thực hiện chức năng này!');
+            if (auth()->user()->user_catalogue_id != 1) {
+                return errorResponse('Bạn không có đủ thẩm quyền để thực hiện chức năng này!');
+            }
 
             $payload = $this->payload();
 
@@ -97,7 +99,6 @@ class OrderStatusService extends BaseService implements OrderStatusServiceInterf
             }
 
             $order = $this->orderRepository->findByWhere(['code' => $orderStatus->order->code]);
-
 
             $order->order_status = $orderStatus->requested_status;
             $order->save();
@@ -121,23 +122,19 @@ class OrderStatusService extends BaseService implements OrderStatusServiceInterf
 
         $statuses = ['pending', 'processing', 'delivering', 'completed', 'cancelled', 'returned'];
 
-
         $currentStatusIndex = array_search($order_status, $statuses);
         $requestedStatusIndex = array_search($requested_status, $statuses);
 
-
-        if ($requestedStatusIndex >= $currentStatusIndex) {
-            return false;
-        }
-
-        return true;
+        return ! ($requestedStatusIndex >= $currentStatusIndex);
     }
 
     public function cancel()
     {
         return $this->executeInTransaction(function () {
 
-            if (auth()->user()->user_catalogue_id != 1) return errorResponse('Bạn không có đủ thẩm quyền để thực hiện chức năng này!');
+            if (auth()->user()->user_catalogue_id != 1) {
+                return errorResponse('Bạn không có đủ thẩm quyền để thực hiện chức năng này!');
+            }
 
             $payload = $this->payload();
 

@@ -1,4 +1,7 @@
 <template>
+  <div v-if="!(systemConfigs?.snow_effect == 'off' || systemConfigs?.snow_effect == null)">
+    <SnowEffect />
+  </div>
   <!-- Loading status -->
   <!-- <LoadingIndicator v-if="isLoading" /> -->
   <div class="flex h-screen">
@@ -16,18 +19,31 @@
 </template>
 
 <script setup>
-import { SidebarComponent, HeaderComponent, LoadingIndicator } from '@/components/backend';
-import { useStore } from 'vuex';
-import { useAntToast } from '@/utils/antToast';
-import { computed, onMounted, watchEffect } from 'vue';
+import { HeaderComponent, LoadingIndicator, SidebarComponent } from '@/components/backend';
+import SnowEffect from '@/components/backend/includes/SnowCanvas.vue';
+import axios from '@/configs/axios';
 import { AuthService } from '@/services';
+import { useAntToast } from '@/utils/antToast';
 import Cookies from 'js-cookie';
+import { computed, onMounted, ref, watchEffect } from 'vue';
+import { useStore } from 'vuex';
+
 
 const { showMessage } = useAntToast();
 const store = useStore();
 const isShowToast = computed(() => store.getters['antStore/getIsShow']);
 const isLoading = computed(() => store.getters['loadingStore/getIsLoading']);
 const token = Cookies.get('token') ?? null;
+const systemConfigs = ref({});
+
+const getSystemConfigs = async () => {
+  try {
+    const response = await axios.get('/system-configs');
+    systemConfigs.value = response.data;
+  } catch (error) {
+    console.error('Error fetching system configs:', error);
+  }
+};
 
 const setUserCurrent = async () => {
   if (token) {
@@ -48,6 +64,7 @@ watchEffect(() => {
 
 onMounted(() => {
   setUserCurrent();
+  getSystemConfigs();
 });
 </script>
 

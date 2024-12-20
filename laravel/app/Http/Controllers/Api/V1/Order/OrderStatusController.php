@@ -3,20 +3,19 @@
 namespace App\Http\Controllers\Api\V1\Order;
 
 use App\Enums\ResponseEnum;
-use App\Http\Resources\Order\OrderStatusCollection;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\StoreOrderStatusRequest;
-use App\Services\Interfaces\Order\OrderStatusServiceInterface;
+use App\Http\Resources\Order\OrderStatusCollection;
 use App\Repositories\Interfaces\Order\OrderStatusRepositoryInterface;
+use App\Services\Interfaces\Order\OrderStatusServiceInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class OrderStatusController extends Controller
 {
-
     public function __construct(
         protected OrderStatusServiceInterface $orderStatusService,
-        protected  OrderStatusRepositoryInterface $orderStatusRepository
+        protected OrderStatusRepositoryInterface $orderStatusRepository
     ) {}
 
     /**

@@ -86,4 +86,6 @@ class FlashSaleController extends Controller
 
         return successResponse('', $data);
     }
+
+    
 }

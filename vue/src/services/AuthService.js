@@ -14,6 +14,7 @@ class AuthService {
       }
 
       const token = response.data.access_token;
+      sessionStorage.setItem('role', response.data.catalogue);
       // set token to Cookie
       Cookies.set('token', token, {
         expires: parseInt(import.meta.env.VITE_REFRESHTOKEN_EXPIRES)
@@ -90,6 +91,7 @@ class AuthService {
   async me() {
     try {
       const response = await axios.get('/auth/me');
+      sessionStorage.setItem('role', response.catalogue_code);
 
       return {
         success: true,
@@ -137,6 +139,7 @@ class AuthService {
   async logout() {
     try {
       const response = await axios.post('/auth/logout');
+      sessionStorage.removeItem('role');
 
       return {
         success: true,

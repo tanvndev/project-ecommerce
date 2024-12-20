@@ -1,4 +1,12 @@
 <script setup>
+
+useSeoMeta({
+  title: 'Tra cứu đơn hàng',
+  ogTitle: 'Tra cứu đơn hàng',
+  description: 'Tra cứu đơn hàng.',
+  ogDescription: 'Tra cứu đơn hàng.',
+})
+
 const route = useRoute()
 const code = computed(() => route.query.code || '')
 const order = ref(null)

@@ -64,6 +64,7 @@
 <script setup>
 import { BreadcrumbComponent, MasterLayout } from '@/components/backend';
 import { useCRUD } from '@/composables';
+import { message } from 'ant-design-vue';
 import { onMounted, reactive } from 'vue';
 import { useStore } from 'vuex';
 
@@ -93,7 +94,7 @@ const onSubmit = async () => {
   formData.append('permissions', JSON.stringify(state.permissionChecked));
   await update(state.endpoint, 1, formData);
 
-  store.dispatch('antStore/showMessage', { type: 'success', message: messages.value });
+  message.success(messages.value);
 };
 
 const handleChecked = (userCatalogue, permissionId) => {
@@ -123,7 +124,7 @@ const getUserCatalogues = async () => {
   });
 
   // Gán userCatalogues.value từ data.value
-  state.userCatalogues = data.value;
+  state.userCatalogues = data.value.filter((item) => item.id !== 2);
 };
 
 // Lifecycle hook

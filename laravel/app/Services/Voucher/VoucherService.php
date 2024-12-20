@@ -12,7 +12,6 @@ use App\Services\BaseService;
 use App\Services\Interfaces\Voucher\VoucherServiceInterface;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Database\Eloquent\Collection;
 
 class VoucherService extends BaseService implements VoucherServiceInterface
 {
@@ -211,15 +210,17 @@ class VoucherService extends BaseService implements VoucherServiceInterface
      */
     public function applyVoucher(string $code, string $id = '')
     {
-
         return $this->executeInTransaction(function () use ($code, $id) {
+            if ( ! auth()->check()) {
+                throw new Exception('You must be logged in to apply voucher');
+            }
             $userId = auth()->user()->id;
 
             $cartItems = $this->getCartItems($userId);
             $totalPrice = $this->calculateTotalPrice($cartItems);
 
             $voucher = ! empty($id)
-                ? $this->voucherRepository->findById(['id' => $id])
+                ? $this->voucherRepository->findById($id)
                 : $this->voucherRepository->findByWhere(['code' => $code]);
 
             if ( ! $voucher) {
@@ -268,7 +269,7 @@ class VoucherService extends BaseService implements VoucherServiceInterface
      * - Min quantity of voucher is less than or equal to quantity of items in cart
      * - Apply to all items in cart
      */
-    private function handleConditionVoucher(Voucher $voucher, Collection $cartItems, float $totalPrice): bool
+    private function handleConditionVoucher($voucher, $cartItems, $totalPrice): bool
     {
         // dd($voucher);
         // dd($cartItems);
@@ -277,9 +278,9 @@ class VoucherService extends BaseService implements VoucherServiceInterface
         $startAt = Carbon::parse($voucher->start_at);
         $endAt = Carbon::parse($voucher->end_at);
 
-        if ($totalPrice < $voucher->value) {
-            return false;
-        }
+        // if ($totalPrice < $voucher->value) {
+        //     return false;
+        // }
 
         if ($endAt->lt($now) || $startAt->gt($now)) {
             return false;

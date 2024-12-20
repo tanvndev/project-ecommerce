@@ -13,10 +13,10 @@ export const useNotificationStore = defineStore('notification', {
   actions: {
     async getAllNotifications() {
       const loadingStore = useLoadingStore()
-      loadingStore.setLoading(true)
+    //   loadingStore.setLoading(true)
       const { $axios } = useNuxtApp()
 
-      loadingStore.setLoading(true)
+    //   loadingStore.setLoading(true)
 
       try {
         const response = await $axios.get('/notifications/user')
@@ -24,7 +24,7 @@ export const useNotificationStore = defineStore('notification', {
         this.setNotification(response.data)
       } catch (error) {
       } finally {
-        loadingStore.setLoading(false)
+        // loadingStore.setLoading(false)
       }
     },
     setNotification(notifications) {

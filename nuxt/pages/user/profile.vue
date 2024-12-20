@@ -1,4 +1,10 @@
 <script setup>
+useSeoMeta({
+  title: 'Hồ sơ',
+  ogTitle: 'Hồ sơ',
+  description: 'Hồ sơ.',
+  ogDescription: 'Hồ sơ.',
+})
 import _ from 'lodash'
 import { useForm } from 'vee-validate'
 

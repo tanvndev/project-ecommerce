@@ -23,7 +23,7 @@ class StoreOrderStatusRequest extends FormRequest
     {
         return [
             'requested_status' => 'required|string|in:pending,processing,delivering,completed,cancelled,returned',
-            'reason' => 'required|string|max:100'
+            'reason'           => 'required|string|max:100',
         ];
     }
 
@@ -31,7 +31,7 @@ class StoreOrderStatusRequest extends FormRequest
     {
         return [
             'requested_status'      => 'Trạng thái ',
-            'reason' => 'Lý do',
+            'reason'                => 'Lý do',
         ];
     }
 

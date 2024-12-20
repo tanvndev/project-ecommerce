@@ -13,7 +13,6 @@
               placeholder="Tìm kiếm..."
               v-model="searchTearm"
               class="mb-4 w-full rounded border p-2 text-[14px]"
-              @change="handleSearch"
             />
           </div>
           <div class="scrollable">
@@ -28,7 +27,7 @@
                 <img
                   :src="chat.image || 'https://via.placeholder.com/40'"
                   alt=""
-                  class="mr-3 h-[50px] w-[50px] rounded-full"
+                  class="mr-3 max-h-[50px] rounded-full"
                 />
                 <div class="status-indicator-1 active"></div>
               </div>
@@ -162,7 +161,7 @@ import { MasterLayout } from '@/components/backend';
 import { useCRUD } from '@/composables';
 import pusher from '@/plugins/pusher';
 import { debounce } from '@/utils/helpers';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 
 import { timeAgo } from '@/utils/helpers';
@@ -190,9 +189,7 @@ const fetchChatList = async () => {
 };
 const debounceFetchChatList = debounce(fetchChatList, 300);
 
-const handleSearch = () => {
-  debounceFetchChatList();
-};
+watch(searchTearm, debounceFetchChatList, { deep: true });
 
 const handleSelectChat = async (receiver_id) => {
   selectedChatUser.value = chatLists.value?.find((user) => user.id === receiver_id);

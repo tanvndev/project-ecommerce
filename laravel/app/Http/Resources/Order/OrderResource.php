@@ -49,6 +49,7 @@ class OrderResource extends JsonResource
             'district_code'               => $this->district->code,
             'ward_code'                   => $this->ward->code,
             'note'                        => $this->note,
+            'created_by'                  => new UserResource($this->created_by),
             'user'                        => new UserResource($this->user),
             'order_items'                 => OrderItemResource::collection($this->order_items),
         ];
@@ -101,7 +102,7 @@ class OrderResource extends JsonResource
     private function getOrderStatusValueNext($orderStatus)
     {
         $statusMap = [
-            Order::ORDER_STATUS_PENDING => Order::ORDER_STATUS_PROCESSING,
+            Order::ORDER_STATUS_PENDING    => Order::ORDER_STATUS_PROCESSING,
             Order::ORDER_STATUS_PROCESSING => Order::ORDER_STATUS_DELIVERING,
             Order::ORDER_STATUS_DELIVERING => Order::ORDER_STATUS_COMPLETED,
         ];

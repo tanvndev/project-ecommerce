@@ -46,13 +46,18 @@
             </template>
 
             <template v-if="column.dataIndex === 'action'">
-              <a-button
-                type="primary"
-                :disabled="record.status.color !== 'warning'"
-                @click="record.status.color === 'warning' ? showModal(record) : null"
-              >
-                {{ record.status.color == 'warning' ? 'Thay đổi' : 'Đã xử lý' }}
-              </a-button>
+              <div v-if="role === 'admin'">
+                <a-button
+                  type="primary"
+                  :disabled="record.status.color !== 'warning'"
+                  @click="record.status.color === 'warning' ? showModal(record) : null"
+                >
+                  {{ record.status.color == 'warning' ? 'Thay đổi' : 'Đã xử lý' }}
+                </a-button>
+              </div>
+              <a-tag :color="record.status.color" v-else>{{
+                record.status.color == 'warning' ? 'Chưa xử lý' : 'Đã xử lý'
+              }}</a-tag>
             </template>
           </template>
 
@@ -79,7 +84,12 @@
           :cancel-button-props="{ danger: true }"
         >
           <div class="mb-7">
-            <a-textarea v-model:value="rejectionReason" placeholder="Nhập lý do" />
+            <a-textarea
+              v-model:value="rejectionReason"
+              placeholder="Nhập lý do"
+              :auto-size="true"
+              size="large"
+            />
           </div>
         </a-modal>
 
@@ -90,22 +100,18 @@
 </template>
 
 <script setup>
-import {
-  BreadcrumbComponent,
-  MasterLayout,
-  ToolboxComponent
-} from '@/components/backend';
+import { BreadcrumbComponent, MasterLayout, ToolboxComponent } from '@/components/backend';
 import { useCRUD, usePagination } from '@/composables';
 import { debounce } from '@/utils/helpers';
 import { message } from 'ant-design-vue';
-import { onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { columns } from './columns';
 
 const isModalVisible = ref(false);
 const rejectionReason = ref('');
 const currentRecordId = ref(null);
-
+const role = computed(() => sessionStorage.getItem('role'));
 const showModal = (record) => {
   currentRecordId.value = record.id;
   isModalVisible.value = true;

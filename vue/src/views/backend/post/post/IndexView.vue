@@ -39,7 +39,7 @@
 
             <template v-if="column.dataIndex === 'name'">
               <RouterLink
-                :to="{ name: 'brand.update', params: { id: record.id } }"
+                :to="{ name: 'post.update', params: { id: record.id } }"
                 class="text-blue-500"
                 >{{ record.name }}
               </RouterLink>

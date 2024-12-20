@@ -20,7 +20,7 @@ import {
 } from './backend';
 
 import { isLoggedIn } from '@/middlewares/authenticate';
-// import { isAdmin } from '@/middlewares/authorization';
+import { isAdmin } from '@/middlewares/authorization';
 
 const routes = [
   {
@@ -46,13 +46,13 @@ const routes = [
     path: '/dashboard',
     name: 'dashboard',
     component: () => import('@/views/backend/DashboardView.vue'),
-    beforeEnter: [isLoggedIn]
+    beforeEnter: [isLoggedIn, isAdmin]
   },
   {
     path: '/setting',
     name: 'setting',
     component: () => import('@/views/backend/setting/IndexVue.vue'),
-    beforeEnter: [isLoggedIn]
+    beforeEnter: [isLoggedIn, isAdmin]
   },
   ...userRoutes,
   ...authRoutes,

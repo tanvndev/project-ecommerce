@@ -88,7 +88,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
         $start_date = '';
         $end_date = '';
 
-        if (! empty($request->date)) {
+        if ( ! empty($request->date)) {
             switch ($request->date) {
                 case 'today':
                     $start_date = now()->startOfDay()->format('Y-m-d H:i:s');
@@ -148,7 +148,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                     break;
                 case 'custom':
 
-                    if (! $request->start_date || ! $request->end_date) {
+                    if ( ! $request->start_date || ! $request->end_date) {
                         break;
                     }
 
@@ -537,7 +537,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
         $dateRange = $this->getDateRangeByRequest($request);
 
-        if (! empty($dateRange[0]) && ! empty($dateRange[1])) {
+        if ( ! empty($dateRange[0]) && ! empty($dateRange[1])) {
             $start_date = $dateRange[0];
             $end_date = $dateRange[1];
         }
@@ -571,7 +571,7 @@ class StatisticService extends BaseService implements StatisticServiceInterface
 
         $dateRange = $this->getDateRangeByRequest($request);
 
-        if (! empty($dateRange[0]) && ! empty($dateRange[1])) {
+        if ( ! empty($dateRange[0]) && ! empty($dateRange[1])) {
             $start_date = $dateRange[0];
             $end_date = $dateRange[1];
         }
@@ -641,13 +641,13 @@ class StatisticService extends BaseService implements StatisticServiceInterface
                     $query->where('product_variants.stock', '>', 0)
                         ->orWhere('product_variants.stock', '<=', 'product_variants.low_stock_amount');
                 })
-                ->orderByRaw("
+                ->orderByRaw('
                     CASE
                         WHEN product_variants.stock <= 0 THEN 1
                         WHEN product_variants.stock <= product_variants.low_stock_amount THEN 2
                         ELSE 3
                     END
-                ")
+                ')
                 ->paginate(10);
         });
     }

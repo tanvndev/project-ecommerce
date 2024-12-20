@@ -247,9 +247,9 @@ onMounted(() => {
                         {{ review.comment }}
                       </p>
 
-                      <div class="d-flex pb-6">
+                      <div class="d-flex pb-6" v-if="review?.images">
                         <v-img
-                          v-for="img in JSON.parse(review?.images || '[]')"
+                          v-for="img in review?.images"
                           :src="resizeImage(img, 150)"
                           class="bg-grey-lighten-2 mr-3"
                           max-width="150"

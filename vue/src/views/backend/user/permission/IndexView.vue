@@ -26,7 +26,7 @@
           :loading="loading"
           @change="handleTableChange"
         >
-          <template #bodyCell="{ column, record }">
+          <!-- <template #bodyCell="{ column, record }">
             <template v-if="column.dataIndex === 'action'">
               <ActionComponent
                 @onDelete="onDelete"
@@ -35,7 +35,7 @@
                 :endpoint="state.endpoint"
               />
             </template>
-          </template>
+          </template> -->
         </a-table>
         <!-- End table -->
       </div>
@@ -86,12 +86,12 @@ const columns = [
     key: 'canonical',
     sorter: (a, b) => a.canonical.localeCompare(b.canonical)
   },
-  {
-    title: 'Thực thi',
-    dataIndex: 'action',
-    key: 'action',
-    width: '6%'
-  }
+//   {
+//     title: 'Thực thi',
+//     dataIndex: 'action',
+//     key: 'action',
+//     width: '6%'
+//   }
 ];
 
 const { getAll, loading } = useCRUD();

@@ -17,27 +17,27 @@
   /* border-color: #0420451a; */
   box-shadow: 0 1px 1px rgba(56, 65, 74, 0.15);
 }
-:where(.css-dev-only-do-not-override-17yhhjv).ant-card .ant-card-head-title {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-card .ant-card-head-title {
   text-transform: capitalize;
   font-weight: 500;
 }
-:where(.css-dev-only-do-not-override-17yhhjv).ant-table-wrapper .ant-table-column-title {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-table-wrapper .ant-table-column-title {
   font-weight: 500;
 }
-:where(.css-dev-only-do-not-override-17yhhjv).ant-table-wrapper .ant-table-thead > tr > th,
-:where(.css-dev-only-do-not-override-17yhhjv).ant-table-wrapper .ant-table-thead > tr > td {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-table-wrapper .ant-table-thead > tr > th,
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-table-wrapper .ant-table-thead > tr > td {
   font-weight: 500;
 }
-:where(.css-dev-only-do-not-override-17yhhjv).ant-dropdown .ant-dropdown-menu,
-:where(.css-dev-only-do-not-override-17yhhjv).ant-dropdown-menu-submenu .ant-dropdown-menu {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-dropdown .ant-dropdown-menu,
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-dropdown-menu-submenu .ant-dropdown-menu {
   border-radius: 4px;
 }
 
-:where(.css-dev-only-do-not-override-17yhhjv).ant-table-wrapper .ant-table {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-table-wrapper .ant-table {
   box-shadow: 0 1px 2px rgba(56, 65, 74, 0.15);
 }
 
-/* :where(.css-dev-only-do-not-override-17yhhjv).ant-menu-dark {
+/* :where(.css-dev-only-do-not-override-1p3hq3p).ant-menu-dark {
   color: rgba(255, 255, 255, 0.65);
   background: #001529;
 } */
@@ -55,67 +55,67 @@
   object-fit: cover;
 }
 
-:where(.css-dev-only-do-not-override-17yhhjv).ant-select-single.ant-select-lg .ant-select-selector {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-select-single.ant-select-lg .ant-select-selector {
   font-size: 15px;
 }
-:where(.css-dev-only-do-not-override-17yhhjv).ant-input-affix-wrapper-lg {
-  font-size: 15px;
-}
-
-:where(.css-dev-only-do-not-override-17yhhjv).ant-select-multiple.ant-select-lg {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-input-affix-wrapper-lg {
   font-size: 15px;
 }
 
-:where(.css-dev-only-do-not-override-17yhhjv).ant-input-number-lg {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-select-multiple.ant-select-lg {
   font-size: 15px;
 }
 
-:where(.css-dev-only-do-not-override-17yhhjv).ant-picker-large .ant-picker-input > input {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-input-number-lg {
   font-size: 15px;
 }
 
-:where(.css-dev-only-do-not-override-17yhhjv).ant-input-lg {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-picker-large .ant-picker-input > input {
   font-size: 15px;
 }
 
-:where(.css-dev-only-do-not-override-17yhhjv).ant-card {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-input-lg {
+  font-size: 15px;
+}
+
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-card {
   border-radius: 4px;
 }
 
-:where(.css-dev-only-do-not-override-17yhhjv).ant-card .ant-card-body {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-card .ant-card-body {
   padding: 18px 20px;
 }
-:where(.css-dev-only-do-not-override-17yhhjv).ant-btn.ant-btn-lg {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-btn.ant-btn-lg {
   border-radius: 4px;
 }
 
-:where(.css-dev-only-do-not-override-17yhhjv).ant-select-single.ant-select-lg:not(
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-select-single.ant-select-lg:not(
     .ant-select-customize-input
   )
   .ant-select-selector {
   height: 38.5px;
 }
 
-:where(.css-dev-only-do-not-override-17yhhjv).ant-input-affix-wrapper-lg {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-input-affix-wrapper-lg {
   border-radius: 4px;
 }
-:where(.css-dev-only-do-not-override-17yhhjv).ant-input-number .ant-input-number-input {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-input-number .ant-input-number-input {
   border-radius: 4px;
 }
-:where(.css-dev-only-do-not-override-17yhhjv).ant-input-number-lg {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-input-number-lg {
   border-radius: 4px;
 }
-:where(.css-dev-only-do-not-override-17yhhjv).ant-select-multiple.ant-select-lg
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-select-multiple.ant-select-lg
   .ant-select-selector {
   border-radius: 4px;
 }
-:where(.css-dev-only-do-not-override-17yhhjv).ant-input-lg {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-input-lg {
   border-radius: 4px;
 }
-:where(.css-dev-only-do-not-override-17yhhjv).ant-input-group-wrapper-lg .ant-input-group-addon {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-input-group-wrapper-lg .ant-input-group-addon {
   border-radius: 4px;
 }
-:where(.css-dev-only-do-not-override-17yhhjv).ant-select-single.ant-select-lg .ant-select-selector {
+:where(.css-dev-only-do-not-override-1p3hq3p).ant-select-single.ant-select-lg .ant-select-selector {
   border-radius: 4px;
 }
 

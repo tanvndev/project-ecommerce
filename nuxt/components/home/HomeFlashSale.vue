@@ -1,10 +1,12 @@
 <script setup>
-import { resizeImage } from '#imports'
-import 'swiper/css'
-import { Autoplay, Navigation } from 'swiper/modules'
-import { Swiper, SwiperSlide } from 'swiper/vue'
+import { resizeImage } from '#imports';
+import 'swiper/css';
+import { Autoplay, Navigation } from 'swiper/modules';
+import { Swiper, SwiperSlide } from 'swiper/vue';
 
 const { $axios } = useNuxtApp()
+const cartStore = useCartStore()
+const wishlistStore = useWishlistStore()
 const modules = [Navigation, Autoplay]
 const products = ref([])
 const slider = ref(null)
@@ -13,6 +15,30 @@ const remainingTime = reactive({
   minutes: 0,
   seconds: 0,
 })
+
+const addToCart = async (variantId) => {
+  if (!variantId) {
+    return toast('Có lỗi vui lòng thử lại.', 'error')
+  }
+
+  const payload = {
+    product_variant_id: variantId,
+  }
+
+  await cartStore.addToCart(payload)
+}
+
+const addToWishlist = async (variantId) => {
+  if (!variantId) {
+    return toast('Có lỗi vui lòng thử lại.', 'error')
+  }
+
+  const payload = {
+    product_variant_id: variantId,
+  }
+
+  await wishlistStore.addToWishlist(payload)
+}
 
 const formatTime = (time) => String(time).padStart(2, '0')
 
@@ -69,13 +95,14 @@ onMounted(getFlashSales)
 <template>
   <!-- Categories -->
   <v-lazy
+    v-if="products?.length"
     :min-height="200"
     :options="{ threshold: 0.5 }"
     transition="fade-transition"
   >
     <section
       class="category-section top-category pt-10 pb-10"
-      v-if="products?.length"
+
     >
       <div class="container pb-2">
         <div class="title-link-wrapper pb-1 mb-4">
