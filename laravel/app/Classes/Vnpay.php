@@ -25,7 +25,7 @@ class Vnpay
             'vnp_Command'    => 'pay',
             'vnp_CreateDate' => date('YmdHis'),
             'vnp_CurrCode'   => 'VND',
-            'vnp_IpAddr'     => $_SERVER['REMOTE_ADDR'],
+            'vnp_IpAddr'     => isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '10.240.239.133',
             'vnp_Locale'     => $locale,
             'vnp_OrderInfo'  => $order->note ?? 'Thanh toan don hang ' . $order->code . ' qua VNPAY.',
             'vnp_OrderType'  => 'billpayment',
