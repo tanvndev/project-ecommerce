@@ -181,16 +181,19 @@ class OrderService extends BaseService implements OrderServiceInterface
 
             $payload = $this->handlePayloadUpdate($request);
 
+
             $order = $this->orderRepository->findById($id);
 
-            if (! $order->isForwardPaymentStatus($payload['payment_status']))
-                return errorResponse('Bạn không thể cập nhật trạng thái ngược.');
+            if ($payload['payment_status'] == Order::PAYMENT_STATUS_UNPAID) return errorResponse('Bạn không thể cập nhật trạng thái ngược.');
+            // if (! $order->isForwardPaymentStatus($payload['payment_status']))
+            //
 
             if ($order->shipping_method_id == ShippingMethod::COD_ID) {
                 if ($order->order_status != Order::ORDER_STATUS_DELIVERING) {
                     return errorResponse(__('messages.order.error.invalid'));
                 }
             }
+            _log($order);
 
             $order->update($payload);
 
@@ -846,6 +849,8 @@ class OrderService extends BaseService implements OrderServiceInterface
             if ($order->payment_status == Order::PAYMENT_STATUS_PAID) {
                 $order->update($payload);
 
+                event(new OrderCompletedEvent($order));
+
                 return successResponse(__('messages.order.success.status'));
             }
 
@@ -1015,7 +1020,6 @@ class OrderService extends BaseService implements OrderServiceInterface
      */
     private function addOrder($request)
     {
-
         $payload = $this->preparePayload($request);
 
         $paymentMethod = $this->getPaymentMethod($payload['payment_method_id']);

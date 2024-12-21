@@ -72,6 +72,8 @@ Route::middleware(['api'])->group(function () {
     Route::get('system-configs', [SystemConfigController::class, 'index']);
     Route::get('search-history/list', [SearchHistoryController::class, 'index']);
     Route::get('flash-sales/list', [FlashSaleController::class, 'getFlashSale']);
+    Route::get('product-reviews/{productId}', [ProductReviewController::class, 'getReviewByProductId'])->name('show');
+
 
     // Order
     Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
@@ -220,7 +222,6 @@ Route::middleware(['api'])->group(function () {
         // PRODUCT REVIEW ROUTE
         Route::controller(ProductReviewController::class)->name('product-reviews.')->group(function () {
             Route::get('product-reviews', 'getAllProductReviews')->name('getAllProductReviews');
-            Route::get('product-reviews/{productId}', 'getReviewByProductId')->name('show');
             Route::get('product-reviews/replies/{id}', 'adminGetReplies')->name('replies');
             Route::post('product-reviews', 'store')->name('store');
             Route::post('product-reviews/replies/create', 'adminReply')->name('reply');

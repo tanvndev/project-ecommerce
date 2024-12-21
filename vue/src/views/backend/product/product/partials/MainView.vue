@@ -33,6 +33,28 @@
             <!-- Chung partials -->
             <CommonView :product-type="state.productType" />
           </a-tab-pane>
+
+          <!-- Thuoc tinh -->
+          <a-tab-pane key="5">
+            <template #tab>
+              <span>
+                <i class="fas fa-tasks-alt mr-1"></i>
+                Các thuộc tính
+              </span>
+            </template>
+            <AttributeView :product-type="state.productType" />
+          </a-tab-pane>
+          <!-- Bien the -->
+          <a-tab-pane key="6" v-if="state.productType === 'variable'">
+            <template #tab>
+              <span>
+                <i class="far fa-table mr-1"></i>
+                Các biến thể
+              </span>
+            </template>
+            <VariantView />
+          </a-tab-pane>
+
           <!-- Giao hang -->
           <a-tab-pane key="3">
             <template #tab>
@@ -54,26 +76,6 @@
             </template>
             <UpsellView />
           </a-tab-pane>
-          <!-- Thuoc tinh -->
-          <a-tab-pane key="5">
-            <template #tab>
-              <span>
-                <i class="fas fa-tasks-alt mr-1"></i>
-                Các thuộc tính
-              </span>
-            </template>
-            <AttributeView :product-type="state.productType" />
-          </a-tab-pane>
-          <!-- Bien the -->
-          <a-tab-pane key="6" v-if="state.productType === 'variable'">
-            <template #tab>
-              <span>
-                <i class="far fa-table mr-1"></i>
-                Các biến thể
-              </span>
-            </template>
-            <VariantView />
-          </a-tab-pane>
         </a-tabs>
       </a-col>
     </a-row>
@@ -81,15 +83,15 @@
 </template>
 
 <script setup>
-import { SelectComponent, InputComponent } from '@/components/backend';
-import AttributeView from './AttributeView.vue';
-import VariantView from './VariantView.vue';
-import CommonView from './CommonView.vue';
-import ShippingView from './ShippingView.vue';
-import UpsellView from './UpsellView.vue';
+import { InputComponent, SelectComponent } from '@/components/backend';
 import { PRODUCT_TYPE } from '@/static/constants';
 import { reactive } from 'vue';
 import { useStore } from 'vuex';
+import AttributeView from './AttributeView.vue';
+import CommonView from './CommonView.vue';
+import ShippingView from './ShippingView.vue';
+import UpsellView from './UpsellView.vue';
+import VariantView from './VariantView.vue';
 
 const props = defineProps({
   update: {

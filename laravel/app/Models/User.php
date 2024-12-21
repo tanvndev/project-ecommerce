@@ -161,4 +161,9 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(ProductRecommendation::class);
     }
+
+    public function order_created_by()
+    {
+        return $this->hasMany(Order::class, 'created_by', 'id');
+    }
 }

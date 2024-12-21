@@ -5,6 +5,7 @@ namespace App\Http\Resources\Order;
 use App\Http\Resources\User\UserResource;
 use App\Models\Order;
 use App\Models\PaymentMethod;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -18,6 +19,8 @@ class OrderResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $createdBy = $this->created_by ?  User::find($this->created_by) ?? null : null;
+        _log($createdBy);
         return [
             'id'                          => $this->id ?? '',
             'key'                         => $this->id,
@@ -49,7 +52,7 @@ class OrderResource extends JsonResource
             'district_code'               => $this->district->code,
             'ward_code'                   => $this->ward->code,
             'note'                        => $this->note,
-            'created_by'                  => new UserResource($this->created_by),
+            'created_by'                  => new UserResource($createdBy),
             'user'                        => new UserResource($this->user),
             'order_items'                 => OrderItemResource::collection($this->order_items),
         ];

@@ -266,7 +266,7 @@ const getAllDates = (range) => {
 
 onMounted(() => {
   const { date, start_date, end_date } = query;
-  optionActive.value = date || 'last_30_days';
+  optionActive.value = date || 'last_7_days';
 
   const filterOption = filterDateOptions.value
     .flat()
@@ -287,7 +287,7 @@ onMounted(() => {
     handleChangeDate({
       label: '30 ngày qua',
       value: `${formatDate(thirtyDaysAgo)} - ${formatDate(today)}`,
-      active: 'last_30_days'
+      active: 'last_7_days'
     });
   }
 
