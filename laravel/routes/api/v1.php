@@ -286,4 +286,5 @@ Route::controller(CartController::class)->name('cart.')->group(function () {
     Route::put('carts/handle-selected', 'handleSelected')->name('handle-selected');
     Route::delete('carts/delete-cart-selected', 'deleteCartSelected')->name('deleteCartSelected');
     Route::get('carts/add-paid-products', 'addPaidProductsToCart')->name('addPaidProducts');
+    Route::post('carts/buy-now', 'buyNow')->name('buyNow');
 });
